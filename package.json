@@ -1,0 +1,20 @@
+{
+  "name": "nation-builder-rts",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "משחק אסטרטגיית זמן-אמת בדפדפן בסגנון Age of Empires, בעברית מלאה (RTL)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}
