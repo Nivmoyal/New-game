@@ -1,9 +1,35 @@
 import { describe, expect, it } from 'vitest';
 import { Camera } from '../src/render/camera';
 import { hexToRgb, mix, shade } from '../src/render/iso';
-import { archetypeOf } from '../src/render/art/structures';
-import { lookFor, isVehicle } from '../src/render/art/appearance';
-import { getBuilding, getUnit, DATA } from '../src/data';
+import { archetypeOf, paletteFor } from '../src/render/art/structures';
+import { lookFor, isVehicle, isMotorised } from '../src/render/art/appearance';
+import { allNations, getBuilding, getNation, getUnit, DATA } from '../src/data';
+import { Effects } from '../src/render/effects';
+import { World } from '../src/core/world';
+
+/** הקשר ציור מזויף — האפקטים נבדקים על הלוגיקה, לא על הפיקסלים. */
+function fakeCtx(): CanvasRenderingContext2D {
+  const noop = () => {};
+  const handler: ProxyHandler<Record<string, unknown>> = {
+    get: (_t, prop) => {
+      if (prop === 'createRadialGradient' || prop === 'createLinearGradient') {
+        return () => ({ addColorStop: noop });
+      }
+      return typeof prop === 'string' ? noop : undefined;
+    },
+    set: () => true,
+  };
+  return new Proxy({}, handler) as unknown as CanvasRenderingContext2D;
+}
+
+function cam2(): Camera {
+  const c = new Camera();
+  c.setViewport(800, 600);
+  c.setMapSize(64, 64);
+  c.zoom = 48;
+  c.centerOn(20, 20);
+  return c;
+}
 
 function cam(): Camera {
   const c = new Camera();
@@ -162,5 +188,141 @@ describe('שמות צה"ל לזרוע הישראלית', () => {
     expect(getUnit('il_tank').name).toContain('מרכבה');
     expect(getUnit('il_apc').name).toContain('נמר');
     expect(getBuilding('il_airdefense').name).toBe('כיפת ברזל');
+  });
+});
+
+describe('שפה אדריכלית לכל אומה', () => {
+  it('לכל אומה סגנון גג וצבעים משלה', () => {
+    const styles = new Map<string, string>();
+    for (const n of allNations()) {
+      const pal = paletteFor(n.id, '#ffffff');
+      expect(pal.wall, n.id).toMatch(/^#/);
+      expect(pal.roof, n.id).toMatch(/^#/);
+      styles.set(n.id, pal.roofStyle);
+    }
+    // לפחות ארבעה סגנונות שונים בין שש האומות
+    expect(new Set(styles.values()).size).toBeGreaterThanOrEqual(4);
+    expect(styles.get('japan')).toBe('pagoda');
+    expect(styles.get('arabs')).toBe('dome');
+    expect(styles.get('egypt')).toBe('flat');
+    expect(styles.get('vikings')).toBe('turf');
+    expect(styles.get('rome')).toBe('hip');
+  });
+
+  it('אומה לא מוכרת נופלת לברירת מחדל במקום לקרוס', () => {
+    expect(() => paletteFor('אין_כזו', '#fff')).not.toThrow();
+    expect(paletteFor('אין_כזו', '#fff').roofStyle).toBeTruthy();
+  });
+});
+
+describe('התפתחות טכנולוגית של ישראל', () => {
+  it('המשחק מתחיל עם סייר רכוב ולא עם רכב ממונע', () => {
+    const israel = getNation('israel');
+    expect(israel.startingUnits).toContain('il_horse_scout');
+    expect(israel.startingUnits).not.toContain('il_scout');
+    for (const id of israel.startingUnits ?? []) {
+      expect(isMotorised(id), `${id} ממונע בתחילת המשחק`).toBe(false);
+    }
+  });
+
+  it('כלי רכב ממונעים נפתחים רק משלב 3', () => {
+    const israel = getNation('israel');
+    for (const stage of israel.stages) {
+      for (const id of stage.unlocks?.units ?? []) {
+        if (isMotorised(id)) {
+          expect(stage.index, `${id} נפתח בשלב ${stage.index}`).toBeGreaterThanOrEqual(3);
+        }
+      }
+    }
+    // גם יחידות הענפים הממונעות שייכות לשלב 3 ומעלה
+    const army = (israel.branches ?? []).find((b) => b.id === 'army')!;
+    expect(army.atStage).toBeGreaterThanOrEqual(3);
+  });
+
+  it('הסייר הרכוב מצויר כרוכב על סוס', () => {
+    const look = lookFor(getUnit('il_horse_scout'));
+    expect(look.kind).toBe('vehicle');
+    if (look.kind === 'vehicle') expect(look.vehicle).toBe('horse');
+    expect(isMotorised('il_horse_scout')).toBe(false);
+  });
+
+  it('כל הפרשים בכל האומות רכובים', () => {
+    for (const id of Object.keys(DATA.units)) {
+      const def = getUnit(id);
+      if (def.class !== 'cavalry') continue;
+      const look = lookFor(def);
+      expect(look.kind, id).toBe('vehicle');
+    }
+  });
+});
+
+describe('אפקטים של קרב', () => {
+  it('ירייה נוצרת ומתפוגגת אחרי זמן החיים שלה', () => {
+    const fx = new Effects();
+    const now = 1000;
+    fx.shot('arrow', { x: 0, y: 0 }, { x: 5, y: 0 }, now);
+    expect(fx.count).toBe(1);
+    const ctx = fakeCtx();
+    const cam = cam2();
+    fx.render(ctx, cam, now + 50);
+    expect(fx.count).toBe(1);
+    fx.render(ctx, cam, now + 60_000);
+    expect(fx.count).toBe(0);
+  });
+
+  it('פגיעה כבדה מוסיפה פיצוץ וענני עשן', () => {
+    const fx = new Effects();
+    fx.impact({ x: 2, y: 2 }, 0, true);
+    expect(fx.count).toBeGreaterThan(1);
+  });
+
+  it('מספר האפקטים חסום כדי לא להעמיס', () => {
+    const fx = new Effects();
+    for (let i = 0; i < 2000; i++) fx.work({ x: i, y: i }, 0);
+    expect(fx.count).toBeLessThanOrEqual(400);
+  });
+
+  it('קרב אמיתי מייצר דיווחי ירי ופגיעה', () => {
+    const world = new World({
+      seed: 21,
+      map: { width: 48, height: 48 },
+      revealAll: true,
+      players: [
+        { id: 0, name: 'א', nationId: 'israel', team: 0 },
+        { id: 1, name: 'ב', nationId: 'japan', team: 1 },
+      ],
+    });
+    const shooter = world.spawnUnit('il_rifleman', 0, { x: 24, y: 24 })!;
+    const target = world.spawnUnit('jp_ashigaru', 1, { x: 27, y: 24 })!;
+    world.assignOrder(shooter, { kind: 'attack', targetId: target.id });
+    let shots = 0;
+    let hits = 0;
+    for (let i = 0; i < 600 && target.alive; i++) {
+      world.update(1 / 30);
+      for (const c of world.drainCombat()) {
+        if (c.type === 'shot') shots++;
+        if (c.type === 'hit') hits++;
+      }
+    }
+    expect(hits).toBeGreaterThan(0);
+    expect(shots).toBeGreaterThan(0);
+  });
+
+  it('איסוף משאבים מייצר ניצוצות עבודה', () => {
+    const world = new World({
+      seed: 22,
+      map: { width: 48, height: 48 },
+      players: [{ id: 0, name: 'א', nationId: 'israel', branchChoices: { settlement: 'kibbutz' } }],
+    });
+    const tc = world.townCenterOf(0)!;
+    const worker = world.entitiesOf(0).find((e) => e.defId === 'il_worker')!;
+    const tile = world.findResourceTile(tc.pos, 'wood', 25)!;
+    world.assignOrder(worker, { kind: 'gather', tile, resource: 'wood' });
+    let work = 0;
+    for (let i = 0; i < 2000; i++) {
+      world.update(1 / 30);
+      for (const c of world.drainCombat()) if (c.type === 'work') work++;
+    }
+    expect(work).toBeGreaterThan(0);
   });
 });

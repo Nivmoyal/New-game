@@ -7,6 +7,8 @@ import { drawBox, drawColumn, faceColors, poly, shade } from '../iso';
  */
 
 export type VehicleKind =
+  | 'horse'
+  | 'camel'
   | 'tank'
   | 'apc'
   | 'jeep'
@@ -63,6 +65,51 @@ export function drawVehicle(
   ctx.restore();
 
   switch (kind) {
+    case 'horse':
+    case 'camel': {
+      // סוס/גמל עם רוכב: גוף, ארבע רגליים, צוואר, ראש ורוכב בצבע השחקן
+      const coat = kind === 'camel' ? '#c8a86a' : ['#6b4a32', '#3f332b', '#8a6a45'][Math.abs(Math.round(wx * 7 + wy * 13)) % 3];
+      const gait = Math.sin(time * 0.008 + wx * 2 + wy) * 0.06;
+      const bodyZ = 0.3 + (kind === 'camel' ? 0.08 : 0);
+
+      // רגליים
+      for (const [lx, ly] of [[0.2, 0.26], [0.2, 0.62], [0.72, 0.26], [0.72, 0.62]]) {
+        const swing = Math.sin(time * 0.012 + lx * 6 + ly * 3) * 0.05;
+        drawColumn(ctx, cam, x + s * lx + swing, y + s * ly, 0.045, bodyZ, shade(coat, -0.25));
+      }
+      // גוף
+      drawBox(ctx, cam, x + s * 0.14, y + s * 0.26, s * 0.66, s * 0.4, 0.22, faceColors(coat), bodyZ + gait);
+      if (kind === 'camel') {
+        // דבשת
+        drawBox(ctx, cam, x + s * 0.34, y + s * 0.32, s * 0.28, s * 0.28, 0.14, faceColors(shade(coat, 0.05)), bodyZ + 0.22 + gait);
+      }
+      // צוואר וראש בכיוון ההליכה
+      const hx = x + s * (dir > 0 ? 0.78 : 0.12);
+      drawColumn(ctx, cam, hx, y + s * 0.45, 0.07, 0.26, shade(coat, 0.04), bodyZ + 0.1 + gait);
+      drawBox(ctx, cam, hx - s * 0.08, y + s * 0.37, s * 0.18, s * 0.16, 0.1, faceColors(shade(coat, 0.08)), bodyZ + 0.34 + gait);
+      // זנב
+      const tail = cam.worldToScreen(x + s * (dir > 0 ? 0.1 : 0.9), y + s * 0.45, bodyZ + 0.2 + gait);
+      ctx.strokeStyle = shade(coat, -0.3);
+      ctx.lineWidth = Math.max(1, cam.zoom * 0.035);
+      ctx.beginPath();
+      ctx.moveTo(tail.x, tail.y);
+      ctx.lineTo(tail.x - dir * cam.zoom * 0.08, tail.y + cam.zoom * 0.1);
+      ctx.stroke();
+
+      // רוכב
+      const rz = bodyZ + 0.22 + gait;
+      drawBox(ctx, cam, x + s * 0.34, y + s * 0.38, s * 0.2, s * 0.18, 0.24, faceColors(owner), rz);
+      const head = cam.worldToScreen(x + s * 0.44, y + s * 0.47, rz + 0.34);
+      ctx.fillStyle = '#e0b088';
+      ctx.beginPath();
+      ctx.arc(head.x, head.y, cam.zoom * 0.07, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = shade(owner, -0.3);
+      ctx.beginPath();
+      ctx.arc(head.x, head.y - cam.zoom * 0.02, cam.zoom * 0.075, Math.PI, 0);
+      ctx.fill();
+      break;
+    }
     case 'tank': {
       const hull = '#6b7050';
       // שרשראות

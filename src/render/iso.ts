@@ -313,3 +313,112 @@ export function drawFlag(
     { x: top.x, y: top.y + h * 0.9 },
   ], color);
 }
+
+/** סגנונות גג — מה שנותן לכל אומה את השפה האדריכלית שלה. */
+export type RoofStyle = 'gable' | 'hip' | 'pagoda' | 'dome' | 'flat' | 'turf';
+
+/** כיפה מקורבת בחצי-כדור, לאדריכלות עם קשתות. */
+export function drawDomeRoof(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  cx: number,
+  cy: number,
+  radius: number,
+  baseZ: number,
+  height: number,
+  base: string,
+): void {
+  const rings = 6;
+  // מלמטה למעלה: הטבעת הרחבה והנמוכה ראשונה, והצרות מעליה.
+  // בסדר ההפוך הטבעת התחתונה כיסתה את כל הכיפה והיא נראתה כמו גומה.
+  for (let i = 0; i < rings; i++) {
+    const t = i / rings;
+    const r = radius * Math.cos((t * Math.PI) / 2);
+    const z = baseZ + height * Math.sin((t * Math.PI) / 2);
+    const pts: Vec2[] = [];
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2;
+      pts.push(cam.worldToScreen(cx + Math.cos(a) * r, cy + Math.sin(a) * r, z));
+    }
+    poly(ctx, pts, shade(base, -0.24 + t * 0.4));
+  }
+}
+
+/** גג שטוח עם מעקה — אדריכלות מדברית/מודרנית. */
+export function drawFlatRoof(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  w: number,
+  d: number,
+  baseZ: number,
+  base: string,
+): void {
+  poly(ctx, tileDiamond(cam, wx, wy, w, d, baseZ), shade(base, 0.1));
+  const t = Math.min(w, d) * 0.08;
+  // מעקה בשתי הפאות הנראות
+  drawBox(ctx, cam, wx, wy + d - t, w, t, 0.1, faceColors(shade(base, -0.05)), baseZ);
+  drawBox(ctx, cam, wx + w - t, wy, t, d - t, 0.1, faceColors(shade(base, -0.02)), baseZ);
+}
+
+/** גג פגודה: שתי שכבות רעפים רחבות עם מרזבים בולטים. */
+export function drawPagodaRoof(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  w: number,
+  d: number,
+  baseZ: number,
+  peak: number,
+  base: string,
+): void {
+  drawHipRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 0.42, base, 0.34);
+  const inset = Math.min(w, d) * 0.16;
+  drawHipRoof(
+    ctx, cam,
+    wx + inset, wy + inset,
+    w - inset * 2, d - inset * 2,
+    baseZ + peak * 0.46, peak * 0.58,
+    shade(base, 0.06), 0.3,
+  );
+}
+
+/** בוחר ומצייר גג לפי הסגנון של האומה. */
+export function drawRoof(
+  style: RoofStyle,
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  w: number,
+  d: number,
+  baseZ: number,
+  peak: number,
+  base: string,
+  ridgeAlongX = true,
+): void {
+  switch (style) {
+    case 'hip':
+      drawHipRoof(ctx, cam, wx, wy, w, d, baseZ, peak, base, 0.14);
+      break;
+    case 'pagoda':
+      drawPagodaRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 1.15, base);
+      break;
+    case 'dome':
+      drawFlatRoof(ctx, cam, wx, wy, w, d, baseZ, base);
+      drawDomeRoof(ctx, cam, wx + w / 2, wy + d / 2, Math.min(w, d) * 0.42, baseZ + 0.08, peak * 1.1, base);
+      break;
+    case 'flat':
+      drawFlatRoof(ctx, cam, wx, wy, w, d, baseZ, base);
+      break;
+    case 'turf':
+      drawGableRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 1.35, base, ridgeAlongX, 0.24);
+      break;
+    case 'gable':
+    default:
+      drawGableRoof(ctx, cam, wx, wy, w, d, baseZ, peak, base, ridgeAlongX);
+      break;
+  }
+}

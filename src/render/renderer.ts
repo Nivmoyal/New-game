@@ -11,6 +11,7 @@ import { skinFor, type Action, type PersonStyle } from './art/people';
 import { FRAMES, PersonSprites } from './art/spritecache';
 import { drawResource } from './art/nature';
 import { TerrainLayer } from './terrain';
+import { Effects } from './effects';
 import { archetypeOf, drawStructure, paletteFor } from './art/structures';
 import { drawVehicle } from './art/vehicles';
 
@@ -28,11 +29,14 @@ export class Renderer {
   private ctx: CanvasRenderingContext2D;
   private terrain = new TerrainLayer();
   private people = new PersonSprites();
+  /** אפקטים של קרב — יריות, פגיעות, פיצוצים ואבק. */
+  readonly effects = new Effects();
   /** טקסטורת ערפל בגודל המפה — פיקסל לאריח. */
   private fogCanvas: HTMLCanvasElement | null = null;
   private fogImage: ImageData | null = null;
   private fogStamp = -1;
   private lastSpriteZoom = -1;
+  private vignette: HTMLCanvasElement | null = null;
   private dpr = 1;
 
   constructor(private canvas: HTMLCanvasElement) {
@@ -70,12 +74,36 @@ export class Renderer {
     const dirty = world.map.consumeDirtyTiles();
     if (dirty.length > 0) this.terrain.invalidateTiles(dirty);
 
+    // דיווחי הקרב מהסימולציה הופכים לחלקיקים
+    for (const c of world.drainCombat()) {
+      switch (c.type) {
+        case 'shot':
+          this.effects.shot(c.weapon, c.from, c.to, now);
+          break;
+        case 'hit':
+          this.effects.impact(c.pos, now, c.heavy);
+          break;
+        case 'destroyed':
+          if (c.building) this.effects.dust(c.pos, now);
+          else this.effects.impact(c.pos, now, false);
+          break;
+        case 'work':
+          this.effects.work(c.pos, now, c.kind === 'mine' ? '#d8d2c0' : '#c8a86a');
+          break;
+        case 'heal':
+          this.effects.heal(c.pos, now);
+          break;
+      }
+    }
+
     const bounds = this.camera.visibleBounds(3);
     this.terrain.render(ctx, this.camera, world, viewer, now);
     this.drawControlRadius(world, viewer);
     this.drawSceneObjects(world, viewer, state, bounds, now);
     this.drawPlacement(state);
+    this.effects.render(ctx, this.camera, now);
     this.drawFog(world, viewer);
+    this.drawVignette();
     this.drawPings(state, now);
     this.drawDragRect(state);
   }
@@ -403,6 +431,27 @@ export class Renderer {
     ctx.drawImage(this.fogCanvas, 0, 0, width, height);
     ctx.restore();
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  }
+
+  /**
+   * הצללת קצוות עדינה — מרכזת את המבט ומוסיפה עומק.
+   * נצרבת פעם אחת: מילוי גרדיאנט על כל המסך בכל פריים עלה כ-10ms.
+   */
+  private drawVignette(): void {
+    const { viewWidth: w, viewHeight: h } = this.camera;
+    if (!this.vignette || this.vignette.width !== w || this.vignette.height !== h) {
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, w);
+      c.height = Math.max(1, h);
+      const g2 = c.getContext('2d')!;
+      const g = g2.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.34, w / 2, h / 2, Math.max(w, h) * 0.78);
+      g.addColorStop(0, 'rgba(0,0,0,0)');
+      g.addColorStop(1, 'rgba(4,8,14,0.42)');
+      g2.fillStyle = g;
+      g2.fillRect(0, 0, w, h);
+      this.vignette = c;
+    }
+    this.ctx.drawImage(this.vignette, 0, 0);
   }
 
   private drawPings(state: RenderState, now: number): void {

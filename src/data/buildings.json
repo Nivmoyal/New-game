@@ -286,6 +286,7 @@
   "pierceArmor": 6,
   "los": 7,
   "trains": [
+   "il_horse_scout",
    "il_scout",
    "il_apc",
    "jp_cavalry",

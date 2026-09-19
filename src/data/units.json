@@ -56,6 +56,32 @@
    "cavalry": 1.6
   }
  },
+ "il_horse_scout": {
+  "id": "il_horse_scout",
+  "name": "סייר רכוב",
+  "emoji": "🐎",
+  "desc": "רוכב מהיר לגילוי שטח בשלבים הראשונים",
+  "class": "cavalry",
+  "cost": {
+   "food": 70
+  },
+  "trainTime": 16,
+  "hp": 105,
+  "armor": 1,
+  "pierceArmor": 1,
+  "attack": 8,
+  "attackType": "melee",
+  "range": 0.9,
+  "attackCooldown": 1.6,
+  "speed": 3.4,
+  "los": 11,
+  "pop": 1,
+  "radius": 0.42,
+  "bonusVs": {
+   "ranged": 1.6,
+   "worker": 1.4
+  }
+ },
  "il_infantry": {
   "id": "il_infantry",
   "name": "חייל חי\"ר",
@@ -112,10 +138,11 @@
   "id": "il_scout",
   "name": "ג'יפ סיור",
   "emoji": "🚙",
-  "desc": "רכב סיור מהיר לגילוי שטח",
+  "desc": "רכב סיור מהיר — נפתח עם המעבר לעיירה",
   "class": "cavalry",
   "cost": {
-   "food": 70
+   "food": 60,
+   "gold": 40
   },
   "trainTime": 16,
   "hp": 110,

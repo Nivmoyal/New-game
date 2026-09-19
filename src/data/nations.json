@@ -29,7 +29,7 @@
    "il_worker",
    "il_worker",
    "il_worker",
-   "il_scout"
+   "il_horse_scout"
   ],
   "stages": [
    {
@@ -51,7 +51,8 @@
      ],
      "units": [
       "il_worker",
-      "il_guard"
+      "il_guard",
+      "il_horse_scout"
      ]
     }
    },
@@ -87,8 +88,7 @@
      ],
      "units": [
       "il_infantry",
-      "il_rifleman",
-      "il_scout"
+      "il_rifleman"
      ],
      "techs": [
       "weapons_infantry",
@@ -105,7 +105,7 @@
     "index": 3,
     "name": "עיירה",
     "emoji": "🏙️",
-    "desc": "עיירה עם שוק, בית חולים ובסיס צבאי. כאן בוחרים זרוע צבאית.",
+    "desc": "עיירה עם שוק, בית חולים ובסיס צבאי. כאן נכנסים כלי רכב וכאן בוחרים זרוע צבאית.",
     "controlRadius": 30,
     "popBonus": 10,
     "centerEmoji": "🏬",
@@ -133,7 +133,8 @@
       "il_hospital"
      ],
      "units": [
-      "il_medic"
+      "il_medic",
+      "il_scout"
      ],
      "techs": [
       "armor_cavalry",

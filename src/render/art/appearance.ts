@@ -13,6 +13,16 @@ export type UnitLook =
   | { kind: 'vehicle'; vehicle: VehicleKind };
 
 const VEHICLES: Record<string, VehicleKind> = {
+  // רכובים — מצוירים כסוס/גמל עם רוכב
+  il_horse_scout: 'horse',
+  jp_cavalry: 'horse',
+  ar_lighthorse: 'horse',
+  ar_heavycav: 'horse',
+  ar_camel: 'camel',
+  ar_horsearcher: 'horse',
+  rm_equites: 'horse',
+  vk_raider: 'horse',
+  jp_daimyo: 'horse',
   il_tank: 'tank',
   il_apc: 'apc',
   il_scout: 'jeep',
@@ -112,6 +122,8 @@ function defaultTool(def: UnitDef): NonNullable<PersonStyle['tool']> {
 export function lookFor(def: UnitDef): UnitLook {
   const vehicle = VEHICLES[def.id];
   if (vehicle) return { kind: 'vehicle', vehicle };
+  // ברירת מחדל לפרשים שאין להם רשומה: רוכבים על סוס
+  if (def.class === 'cavalry') return { kind: 'vehicle', vehicle: 'horse' };
   return {
     kind: 'person',
     style: {
@@ -125,4 +137,10 @@ export function lookFor(def: UnitDef): UnitLook {
 /** האם היחידה מצוירת כרכב (משפיע על אנימציה ועל גודל). */
 export function isVehicle(defId: string): boolean {
   return defId in VEHICLES;
+}
+
+/** האם היחידה מצוירת כרכב ממונע (להבדיל מרכיבה על בעל חיים). */
+export function isMotorised(defId: string): boolean {
+  const v = VEHICLES[defId];
+  return !!v && v !== 'horse' && v !== 'camel';
 }

@@ -20,6 +20,11 @@ import { Player, type PlayerConfig } from './player';
 import { Rng } from './rng';
 import type { EntityId, PlayerId, ResourceKind, Vec2 } from './types';
 
+/** יחידות שיורות בנשק חם — משפיע רק על סוג הקליע שמצויר. */
+function isFirearm(defId: string): boolean {
+  return defId.startsWith('il_');
+}
+
 /** גריד ניווט: קרקע + טביעת רגל של מבנים. */
 export class NavGrid implements PathGrid {
   readonly width: number;
@@ -64,6 +69,17 @@ export type GameEvent =
   | { type: 'victory'; teamId: number }
   | { type: 'notice'; playerId: PlayerId; text: string };
 
+/**
+ * דיווח קרב לשכבת התצוגה בלבד.
+ * הסימולציה לא תלויה בו — אם אף אחד לא קורא אותו הוא פשוט מתמלא ונזרק.
+ */
+export type CombatReport =
+  | { type: 'shot'; weapon: 'arrow' | 'bullet' | 'shell'; from: Vec2; to: Vec2 }
+  | { type: 'hit'; pos: Vec2; heavy: boolean }
+  | { type: 'destroyed'; pos: Vec2; building: boolean }
+  | { type: 'work'; pos: Vec2; kind: 'chop' | 'mine' | 'build' }
+  | { type: 'heal'; pos: Vec2 };
+
 export type WorldOptions = {
   map?: MapOptions;
   players: PlayerConfig[];
@@ -84,6 +100,8 @@ export class World {
   tickCount = 0;
   gameOver: { winnerTeam: number } | null = null;
   events: GameEvent[] = [];
+  /** אירועים חזותיים (יריות, פגיעות, ניצוצות) — נצרכים על ידי הרנדרר. */
+  combat: CombatReport[] = [];
 
   /** hash מרחבי לשאילתות שכנים מהירות */
   private cells = new Map<number, Set<EntityId>>();
@@ -327,6 +345,13 @@ export class World {
       if (killerPlayer) killerPlayer.stats.kills++;
     }
     this.events.push({ type: 'entityDied', playerId: e.owner, entityId: e.id, kind: e.kind });
+    if (this.combat.length < 256) {
+      this.combat.push({
+        type: 'destroyed',
+        pos: { x: e.pos.x, y: e.pos.y },
+        building: e.kind === 'building',
+      });
+    }
     // יחידות שהיו בדרך אל הישות הזאת — לבטל
     for (const other of this.entities.values()) {
       if (other.alive && other.order.targetId === e.id) other.order = { kind: 'idle' };
@@ -986,6 +1011,26 @@ export class World {
     }
     const defenderStats = statsOf(target, this.player(target.owner));
     const dmg = computeDamage(stats, defenderStats);
+
+    // דיווח חזותי: יחידות טווח יורות קליע, מגע פוגעות ישירות
+    if (this.combat.length < 256) {
+      if (stats.range > 1.6) {
+        const weapon =
+          stats.attackType === 'siege' ? 'shell' : stats.attackType === 'pierce' && isFirearm(attacker.defId) ? 'bullet' : 'arrow';
+        this.combat.push({
+          type: 'shot',
+          weapon,
+          from: { x: attacker.pos.x, y: attacker.pos.y },
+          to: { x: target.pos.x, y: target.pos.y },
+        });
+      }
+      this.combat.push({
+        type: 'hit',
+        pos: { x: target.pos.x, y: target.pos.y },
+        heavy: stats.attackType === 'siege' || dmg >= 20,
+      });
+    }
+
     this.damage(target, dmg, attacker);
     const owner = this.player(target.owner);
     if (owner && !owner.isAI && this.time - (owner as unknown as { lastWarn?: number }).lastWarn! > 12) {
@@ -1053,6 +1098,13 @@ export class World {
     const want = rate * dt;
     const got = this.map.harvest(tile.x, tile.y, want);
     if (got > 0) {
+      if (this.combat.length < 256 && this.rng.next() < 0.06) {
+        this.combat.push({
+          type: 'work',
+          pos: { x: e.pos.x, y: e.pos.y },
+          kind: res.kind === 'wood' ? 'chop' : res.kind === 'food' ? 'build' : 'mine',
+        });
+      }
       if (!u.carrying || u.carrying.kind !== res.kind) u.carrying = { kind: res.kind, amount: 0 };
       u.carrying.amount = Math.min(capacity, u.carrying.amount + got);
       if (u.carrying.amount >= capacity) this.beginReturn(e, res.kind);
@@ -1108,6 +1160,9 @@ export class World {
     site.building!.progress = Math.min(1, site.building!.progress + rate * dt);
     site.hp = Math.max(1, Math.round(site.maxHp * (0.1 + 0.9 * site.building!.progress)));
     e.unit!.attackAnim = 1;
+    if (this.combat.length < 256 && this.rng.next() < 0.05) {
+      this.combat.push({ type: 'work', pos: { x: e.pos.x, y: e.pos.y }, kind: 'build' });
+    }
     if (site.building!.progress >= 1) {
       this.completeBuilding(site);
     }
@@ -1153,6 +1208,9 @@ export class World {
     }
     if (!this.approachEntity(e, target, dt, Math.max(1, def.range))) return;
     target.hp = Math.min(target.maxHp, target.hp + 6 * dt);
+    if (this.combat.length < 256 && this.rng.next() < 0.04) {
+      this.combat.push({ type: 'heal', pos: { x: target.pos.x, y: target.pos.y } });
+    }
   }
 
   // ===== מבנים =====
@@ -1277,6 +1335,14 @@ export class World {
   drainEvents(): GameEvent[] {
     const out = this.events;
     this.events = [];
+    return out;
+  }
+
+  /** שולף את דיווחי הקרב החזותיים ומנקה את התור. */
+  drainCombat(): CombatReport[] {
+    if (this.combat.length === 0) return [];
+    const out = this.combat;
+    this.combat = [];
     return out;
   }
 }
