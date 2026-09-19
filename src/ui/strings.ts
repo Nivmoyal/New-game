@@ -71,7 +71,8 @@ export const T = {
   save: 'שמירה',
   exitToMenu: 'יציאה לתפריט',
   deleteSave: 'מחיקה',
-  confirmExit: 'לצאת לתפריט? התקדמות שלא נשמרה תאבד.',
+  confirmExit: 'התקדמות שלא נשמרה תאבד.',
+  confirmExitAction: 'לצאת בלי לשמור',
 
   // הגדרות
   sfxVolume: 'עוצמת אפקטים',

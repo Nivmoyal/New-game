@@ -58,6 +58,8 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 button.primary { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color: #3b82f6; }
 button.primary:hover:not(:disabled) { background: linear-gradient(180deg, #3b82f6, #2563eb); }
 button.ghost { background: transparent; }
+button.danger { background: rgba(239, 68, 68, 0.2); border-color: var(--danger); color: #fecaca; }
+button.danger:hover:not(:disabled) { background: rgba(239, 68, 68, 0.32); border-color: var(--danger); }
 button.big { padding: 14px 22px; font-size: 17px; }
 
 select.select, input[type="range"] {

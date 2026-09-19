@@ -67,7 +67,21 @@ export function findBranchOption(nation: NationDef, branchId: string, optionId: 
 
 /** מאחד כמה קבוצות מודיפיקטורים לאחת (מכפלות מוכפלות, תוספות מסוכמות). */
 export function mergeModifiers(...mods: Array<Modifiers | undefined>): Modifiers {
-  const out: Modifiers = {};
+  // מתחילים מערכים נייטרליים כדי שהתוצאה תמיד מלאה וצפויה
+  const out: Modifiers = {
+    buildingCostMult: 1,
+    unitCostMult: 1,
+    researchSpeedMult: 1,
+    buildSpeedMult: 1,
+    trainSpeedMult: 1,
+    unitHpMult: 1,
+    buildingHpMult: 1,
+    tradeGoldMult: 1,
+    houseCapBonus: 0,
+    popCapBonus: 0,
+    unitArmorBonus: 0,
+    losBonus: 0,
+  };
   for (const m of mods) {
     if (!m) continue;
     if (m.gatherMult) {

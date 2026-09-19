@@ -596,6 +596,26 @@ export class Game {
   // ===== תפריט השהיה =====
 
   private buildPauseOverlay(): HTMLElement {
+    // יציאה בשני שלבים במקום confirm() של הדפדפן — עקבי עם שאר הממשק
+    let confirming = false;
+    const exitBtn = el('button', { className: 'big ghost', text: T.exitToMenu }) as HTMLButtonElement;
+    const warning = el('div', { className: 'muted small', text: T.confirmExit });
+    show(warning, false);
+    exitBtn.addEventListener('click', () => {
+      if (!confirming) {
+        confirming = true;
+        exitBtn.textContent = T.confirmExitAction;
+        exitBtn.classList.add('danger');
+        show(warning, true);
+        return;
+      }
+      confirming = false;
+      exitBtn.textContent = T.exitToMenu;
+      exitBtn.classList.remove('danger');
+      show(warning, false);
+      this.exitToMenu();
+    });
+
     const panel = el('div', {
       className: 'pause-panel',
       children: [
@@ -603,13 +623,8 @@ export class Game {
         el('button', { className: 'primary big', text: T.resume, onClick: () => this.togglePause(false) }),
         el('button', { className: 'big', text: T.save, onClick: () => this.quickSave() }),
         el('button', { className: 'big', text: T.settings, onClick: () => this.openSettingsFromPause() }),
-        el('button', {
-          className: 'big ghost',
-          text: T.exitToMenu,
-          onClick: () => {
-            if (confirm(T.confirmExit)) this.exitToMenu();
-          },
-        }),
+        exitBtn,
+        warning,
       ],
     });
     return el('div', { className: 'pause-overlay', children: [panel] });

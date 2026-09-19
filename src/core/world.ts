@@ -271,6 +271,23 @@ export class World {
     });
   }
 
+  /** מוצא אריח פנוי לבניית מבנה סביב נקודה. מחזיר null אם אין. */
+  findPlacementNear(defId: string, anchor: Vec2, maxRadius = 12): Vec2 | null {
+    const def = getBuilding(defId);
+    const base = { x: Math.round(anchor.x - def.size / 2), y: Math.round(anchor.y - def.size / 2) };
+    if (this.canPlaceBuilding(def, base)) return base;
+    for (let r = 1; r <= maxRadius; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const tile = { x: base.x + dx, y: base.y + dy };
+          if (this.canPlaceBuilding(def, tile)) return tile;
+        }
+      }
+    }
+    return null;
+  }
+
   /** מנסה למקם מבנה בסביבת אריח נתון. */
   placeNear(defId: string, owner: PlayerId, tile: Vec2, maxRadius = 10): Entity | null {
     const def = getBuilding(defId);
