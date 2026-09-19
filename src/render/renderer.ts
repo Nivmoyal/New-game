@@ -13,7 +13,7 @@ import { drawResource } from './art/nature';
 import { TerrainLayer } from './terrain';
 import { GroundWear } from './groundwear';
 import { Effects } from './effects';
-import { archetypeOf, drawStructure, paletteFor } from './art/structures';
+import { archetypeOf, drawStructure, paletteFor, type WallLinks } from './art/structures';
 import { drawVehicle } from './art/vehicles';
 
 export type RenderState = {
@@ -220,11 +220,15 @@ export class Renderer {
       ctx.restore();
     }
 
-    drawStructure(ctx, cam, archetypeOf(def), origin.x, origin.y, size, pal, {
+    const arch = archetypeOf(def);
+    const barrier = arch === 'wall' || arch === 'gate';
+    drawStructure(ctx, cam, arch, origin.x, origin.y, size, pal, {
       progress: e.building?.progress ?? 1,
       stage: owner?.stage ?? 1,
       time: now,
       seed: e.id,
+      links: barrier ? this.wallLinks(world, origin, e.owner) : undefined,
+      gateOpen: arch === 'gate' ? this.gateOpen(world, e) : false,
     });
 
     const topZ = size * 0.55 + 0.6;
@@ -345,6 +349,28 @@ export class Renderer {
   }
 
   /** פס (חיים/התקדמות) מרחף מעל נקודה בעולם. */
+  /** לאילו שכנים מתחברת חומה — חומה, שער או מגדל של אותו בעלים. */
+  private wallLinks(world: World, origin: Vec2, owner: number): WallLinks {
+    const at = (x: number, y: number): boolean => {
+      const b = world.nav.barrierAt(x, y);
+      return b !== undefined && b.owner === owner;
+    };
+    return {
+      n: at(origin.x, origin.y - 1),
+      s: at(origin.x, origin.y + 1),
+      w: at(origin.x - 1, origin.y),
+      e: at(origin.x + 1, origin.y),
+    };
+  }
+
+  /** שער נפתח כשיחידה של בעליו (או של בן בריתו) נמצאת לידו. */
+  private gateOpen(world: World, e: Entity): boolean {
+    const mine = world.player(e.owner)?.team ?? e.owner;
+    return world.near(e.pos, 2.2, (o) =>
+      o.kind === 'unit' && (world.player(o.owner)?.team ?? o.owner) === mine,
+    ).length > 0;
+  }
+
   private bar(wx: number, wy: number, z: number, ratio: number, color: string, widthTiles: number): void {
     const ctx = this.ctx;
     const p = this.camera.worldToScreen(wx, wy, z);

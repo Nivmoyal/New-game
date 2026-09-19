@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { World } from '../src/core/world';
-import { getBuilding } from '../src/data';
+import { TeamNavView, World } from '../src/core/world';
+import { allNations, getBuilding } from '../src/data';
 
 function world(nationId = 'israel', branchChoices: Record<string, string> = { settlement: 'kibbutz' }) {
   return new World({
@@ -301,5 +301,97 @@ describe('ניקיון ומוות', () => {
     run(w, 2);
     expect(w.player(1)!.defeated).toBe(true);
     expect(w.gameOver?.winnerTeam).toBe(0);
+  });
+});
+
+describe('חומות ושערים', () => {
+  function twoPlayerWorld() {
+    return new World({
+      seed: 77,
+      map: { width: 64, height: 64 },
+      revealAll: true,
+      players: [
+        { id: 0, name: 'א', nationId: 'israel', team: 0, branchChoices: { settlement: 'kibbutz' } },
+        { id: 1, name: 'ב', nationId: 'japan', team: 1 },
+      ],
+    });
+  }
+
+  /** מוצא אריח פנוי ליד מרכז היישוב לבניית מחסום. */
+  function freeTile(world: World, owner: number): { x: number; y: number } {
+    const tc = world.townCenterOf(owner)!;
+    for (let r = 4; r < 12; r++) {
+      for (let dx = -r; dx <= r; dx++) {
+        for (let dy = -r; dy <= r; dy++) {
+          const t = { x: Math.round(tc.pos.x) + dx, y: Math.round(tc.pos.y) + dy };
+          if (world.canPlaceBuilding(getBuilding('wall'), t)) return t;
+        }
+      }
+    }
+    throw new Error('לא נמצא אריח פנוי');
+  }
+
+  it('חומה חוסמת את כולם, שער חוסם רק את האויב', () => {
+    const world = twoPlayerWorld();
+    const wallTile = freeTile(world, 0);
+    expect(world.spawnBuilding('wall', 0, wallTile, true)).toBeTruthy();
+
+    const gateTile = freeTile(world, 0);
+    expect(world.spawnBuilding('gate', 0, gateTile, true)).toBeTruthy();
+
+    const wallBar = world.nav.barrierAt(wallTile.x, wallTile.y);
+    const gateBar = world.nav.barrierAt(gateTile.x, gateTile.y);
+    expect(wallBar).toEqual({ owner: 0, gate: false });
+    expect(gateBar).toEqual({ owner: 0, gate: true });
+
+    const mine = new TeamNavView(world.nav, (o) => o === 0);
+    const theirs = new TeamNavView(world.nav, (o) => o === 1);
+    // חומה חוסמת את שני הצדדים
+    expect(mine.isBlocked(wallTile.x, wallTile.y)).toBe(true);
+    expect(theirs.isBlocked(wallTile.x, wallTile.y)).toBe(true);
+    // שער פתוח לבעליו בלבד
+    expect(mine.isBlocked(gateTile.x, gateTile.y)).toBe(false);
+    expect(theirs.isBlocked(gateTile.x, gateTile.y)).toBe(true);
+  });
+
+  it('שער שנהרס מפסיק לחסום', () => {
+    const world = twoPlayerWorld();
+    const tile = freeTile(world, 0);
+    const gate = world.spawnBuilding('gate', 0, tile, true)!;
+    expect(world.nav.barrierAt(tile.x, tile.y)).toBeDefined();
+    world.kill(gate);
+    expect(world.nav.barrierAt(tile.x, tile.y)).toBeUndefined();
+    expect(new TeamNavView(world.nav, () => false).isBlocked(tile.x, tile.y)).toBe(false);
+  });
+
+  it('שער נפתח לבני ברית, לא רק לבעלים', () => {
+    const world = new World({
+      seed: 78,
+      map: { width: 64, height: 64 },
+      revealAll: true,
+      players: [
+        { id: 0, name: 'א', nationId: 'israel', team: 0, branchChoices: { settlement: 'kibbutz' } },
+        { id: 1, name: 'ב', nationId: 'rome', team: 0 },
+        { id: 2, name: 'ג', nationId: 'japan', team: 1 },
+      ],
+    });
+    const tc = world.townCenterOf(0)!;
+    let tile = { x: Math.round(tc.pos.x) + 5, y: Math.round(tc.pos.y) + 5 };
+    for (let d = 0; d < 10 && !world.canPlaceBuilding(getBuilding('gate'), tile); d++) {
+      tile = { x: tile.x + 1, y: tile.y };
+    }
+    world.spawnBuilding('gate', 0, tile, true);
+    const teamOf = (o: number) => world.player(o)!.team;
+    const ally = new TeamNavView(world.nav, (o) => teamOf(o) === teamOf(1));
+    const foe = new TeamNavView(world.nav, (o) => teamOf(o) === teamOf(2));
+    expect(ally.isBlocked(tile.x, tile.y)).toBe(false);
+    expect(foe.isBlocked(tile.x, tile.y)).toBe(true);
+  });
+
+  it('שער זמין לכל האומות בשלב 2', () => {
+    for (const nation of allNations()) {
+      const stage2 = nation.stages.find((s) => s.index === 2)!;
+      expect(stage2.unlocks?.buildings).toContain('gate');
+    }
   });
 });

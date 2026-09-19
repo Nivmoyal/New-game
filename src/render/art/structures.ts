@@ -26,6 +26,7 @@ export type Archetype =
   | 'workshop'
   | 'tower'
   | 'wall'
+  | 'gate'
   | 'market'
   | 'temple'
   | 'academy'
@@ -52,6 +53,7 @@ const BY_ID: Record<string, Archetype> = {
   academy: 'academy',
   tower: 'tower',
   wall: 'wall',
+  gate: 'gate',
   fortress: 'castle',
   il_watertower: 'tower',
   il_dining_hall: 'longhouse',
@@ -83,6 +85,7 @@ const BY_ID: Record<string, Archetype> = {
 export function archetypeOf(def: BuildingDef): Archetype {
   const direct = BY_ID[def.id];
   if (direct) return direct;
+  if (def.gate) return 'gate';
   if (def.isTownCenter) return 'townCenter';
   if (def.attack && def.range) return 'tower';
   if (def.trains?.length) return 'barracks';
@@ -123,6 +126,11 @@ const NATION_PALETTE: Record<string, Omit<StructurePalette, 'owner'>> = {
   vikings: { wall: '#8a6b47', roof: '#4f6b40', trim: '#6b7f8c', roofStyle: 'turf', texture: 'wood' },
 };
 
+/** לאילו שכנים החומה מתחברת. */
+export type WallLinks = { n: boolean; e: boolean; s: boolean; w: boolean };
+
+const NO_LINKS: WallLinks = { n: false, e: false, s: false, w: false };
+
 export function paletteFor(nationId: string, ownerColor: string): StructurePalette {
   const p = NATION_PALETTE[nationId] ?? NATION_PALETTE.israel;
   return { ...p, owner: ownerColor };
@@ -136,7 +144,7 @@ export function paletteFor(nationId: string, ownerColor: string): StructurePalet
 const SHADOW_HEIGHT: Record<Archetype, number> = {
   townCenter: 1.15, house: 0.7, longhouse: 0.78, farm: 0.3, storage: 0.55,
   barracks: 0.75, range: 0.62, stable: 0.68, workshop: 0.72, tower: 1.2,
-  wall: 0.75, market: 0.6, temple: 0.95, academy: 0.78, castle: 1.4,
+  wall: 0.75, gate: 1.0, market: 0.6, temple: 0.95, academy: 0.78, castle: 1.4,
   monument: 1.2, factory: 0.9, radar: 0.85, hospital: 0.72, port: 0.62,
 };
 
@@ -148,7 +156,16 @@ export function drawStructure(
   wy: number,
   size: number,
   pal: StructurePalette,
-  opts: { progress?: number; stage?: number; time?: number; seed?: number } = {},
+  opts: {
+    progress?: number;
+    stage?: number;
+    time?: number;
+    seed?: number;
+    /** חיבור לשכנים — חומה מתחברת לחומה, לשער ולמגדל */
+    links?: WallLinks;
+    /** שער פתוח כשיחידה ידידותית לידו */
+    gateOpen?: boolean;
+  } = {},
 ): void {
   const progress = opts.progress ?? 1;
   const time = opts.time ?? 0;
@@ -200,7 +217,10 @@ export function drawStructure(
       drawTower(ctx, cam, x, y, s, pal, time);
       break;
     case 'wall':
-      drawWall(ctx, cam, wx, wy, size, pal);
+      drawWall(ctx, cam, wx, wy, size, pal, opts.links ?? NO_LINKS, opts.stage ?? 1);
+      break;
+    case 'gate':
+      drawGate(ctx, cam, wx, wy, size, pal, opts.links ?? NO_LINKS, opts.gateOpen ?? false, opts.stage ?? 1);
       break;
     case 'market':
       drawMarket(ctx, cam, x, y, s, pal);
@@ -538,6 +558,16 @@ function drawTower(
   drawFlag(ctx, cam, cx, cy, 1.16, 0.4, pal.owner, time);
 }
 
+/**
+ * חומה שמתחברת לשכנותיה.
+ *
+ * במקום קובייה בודדת לכל אריח, כל אריח מצייר עמוד מרכזי וזרועות
+ * לכיוון כל שכן — חומה, שער או מגדל של אותו בעלים. כך קו חומה נראה
+ * כקו אחד רציף, ופינה נראית כפינה.
+ *
+ * הסדר חשוב: הזרועות הרחוקות (צפון ומערב) קודם, אחר כך העמוד שמסתיר
+ * את התפר, ורק אז הזרועות הקרובות — אחרת התפרים נראים.
+ */
 function drawWall(
   ctx: CanvasRenderingContext2D,
   cam: Camera,
@@ -545,10 +575,111 @@ function drawWall(
   wy: number,
   size: number,
   pal: StructurePalette,
+  links: WallLinks,
+  stage: number,
 ): void {
-  drawBox(ctx, cam, wx + 0.06, wy + 0.06, size - 0.12, size - 0.12, 0.62, faceColors(shade(pal.wall, -0.14)));
-  for (let i = 0; i < 2; i++) {
-    drawBox(ctx, cam, wx + 0.1 + i * 0.45, wy + 0.1, 0.32, size - 0.2, 0.14, faceColors(shade(pal.wall, -0.02)), 0.62);
+  const stone = stage >= 3;
+  const h = stone ? 0.7 : 0.52;
+  const t = size * 0.34;
+  const cx = wx + size / 2;
+  const cy = wy + size / 2;
+  const body = stone ? shade(pal.wall, -0.16) : '#8a6b47';
+  const cap = stone ? shade(pal.wall, -0.02) : '#7a5d3e';
+
+  const arm = (dir: 'n' | 's' | 'e' | 'w') => {
+    if (dir === 'n') drawBox(ctx, cam, cx - t / 2, wy, t, size / 2, h, faceColors(body));
+    if (dir === 's') drawBox(ctx, cam, cx - t / 2, cy, t, size / 2, h, faceColors(body));
+    if (dir === 'w') drawBox(ctx, cam, wx, cy - t / 2, size / 2, t, h, faceColors(body));
+    if (dir === 'e') drawBox(ctx, cam, cx, cy - t / 2, size / 2, t, h, faceColors(body));
+  };
+
+  if (links.n) arm('n');
+  if (links.w) arm('w');
+  // עמוד מרכזי — קיים תמיד, וגם מהווה את כל החומה כשאין שכנים
+  drawBox(ctx, cam, cx - t * 0.62, cy - t * 0.62, t * 1.24, t * 1.24, h + 0.04, faceColors(cap));
+  if (links.e) arm('e');
+  if (links.s) arm('s');
+
+  if (stone) {
+    // שיננים על העמוד
+    for (const [ox, oy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]] as const) {
+      drawBox(
+        ctx, cam,
+        cx + ox * t * 0.5 - 0.06, cy + oy * t * 0.5 - 0.06, 0.12, 0.12, 0.12,
+        faceColors(shade(pal.wall, -0.06)), h + 0.04,
+      );
+    }
+  } else {
+    // גדר יתדות: ראשי בולים שמבצבצים מעל קו החומה
+    const stakes: Array<[number, number]> = [];
+    for (const t2 of [0.18, 0.36]) {
+      if (links.n) stakes.push([cx, wy + size * t2]);
+      if (links.s) stakes.push([cx, wy + size * (1 - t2)]);
+      if (links.w) stakes.push([wx + size * t2, cy]);
+      if (links.e) stakes.push([wx + size * (1 - t2), cy]);
+    }
+    for (const [sx, sy] of stakes) {
+      drawBox(ctx, cam, sx - 0.06, sy - 0.06, 0.12, 0.12, 0.1, faceColors('#6f5436'), h);
+    }
+  }
+}
+
+/**
+ * שער: שני עמודי צד, משקוף, ושתי כנפיים שנפתחות כשיחידה ידידותית מתקרבת.
+ * הציר נקבע לפי החומה שמתחברת אליו.
+ */
+function drawGate(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  size: number,
+  pal: StructurePalette,
+  links: WallLinks,
+  open: boolean,
+  stage: number,
+): void {
+  // אם החומה עוברת בציר x, השער נפתח בציר y (ולהפך)
+  const alongX = links.w || links.e || !(links.n || links.s);
+  const cx = wx + size / 2;
+  const cy = wy + size / 2;
+  const stone = stage >= 3;
+  const h = stone ? 0.86 : 0.7;
+  const pillar = stone ? shade(pal.wall, -0.22) : '#7a5d3e';
+  const leaf = '#6b4a2f';
+  const t = size * 0.3;
+
+  // עמודי הצד — על שני קצות ציר החומה
+  const piers: Array<[number, number]> = alongX
+    ? [[wx, cy - t / 2], [wx + size - t, cy - t / 2]]
+    : [[cx - t / 2, wy], [cx - t / 2, wy + size - t]];
+  drawBox(ctx, cam, piers[0][0], piers[0][1], t, t, h, faceColors(pillar));
+
+  // כנפיים: סגורות חוצות את המעבר, פתוחות מקופלות אל העמודים
+  const half = size * 0.5 - t * 0.5;
+  if (open) {
+    if (alongX) {
+      drawBox(ctx, cam, wx + t * 0.2, cy - t * 0.2, t * 0.7, t * 0.3, h * 0.78, faceColors(leaf));
+      drawBox(ctx, cam, wx + size - t * 0.9, cy - t * 0.2, t * 0.7, t * 0.3, h * 0.78, faceColors(leaf));
+    } else {
+      drawBox(ctx, cam, cx - t * 0.2, wy + t * 0.2, t * 0.3, t * 0.7, h * 0.78, faceColors(leaf));
+      drawBox(ctx, cam, cx - t * 0.2, wy + size - t * 0.9, t * 0.3, t * 0.7, h * 0.78, faceColors(leaf));
+    }
+  } else if (alongX) {
+    drawBox(ctx, cam, wx + t * 0.6, cy - 0.07, half, 0.14, h * 0.78, faceColors(leaf));
+    drawBox(ctx, cam, cx, cy - 0.07, half, 0.14, h * 0.78, faceColors(leaf));
+  } else {
+    drawBox(ctx, cam, cx - 0.07, wy + t * 0.6, 0.14, half, h * 0.78, faceColors(leaf));
+    drawBox(ctx, cam, cx - 0.07, cy, 0.14, half, h * 0.78, faceColors(leaf));
+  }
+
+  drawBox(ctx, cam, piers[1][0], piers[1][1], t, t, h, faceColors(pillar));
+
+  // משקוף מעל המעבר
+  if (alongX) {
+    drawBox(ctx, cam, wx, cy - t / 2, size, t, 0.14, faceColors(stone ? shade(pal.wall, -0.06) : '#8a6b47'), h);
+  } else {
+    drawBox(ctx, cam, cx - t / 2, wy, t, size, 0.14, faceColors(stone ? shade(pal.wall, -0.06) : '#8a6b47'), h);
   }
 }
 

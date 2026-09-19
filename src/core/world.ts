@@ -30,11 +30,34 @@ export class NavGrid implements PathGrid {
   readonly width: number;
   readonly height: number;
   private occupied: Uint8Array;
+  /** חומות ושערים: אריח → בעלים, והאם זה שער. */
+  private barriers = new Map<number, { owner: PlayerId; gate: boolean }>();
 
   constructor(private map: GameMap) {
     this.width = map.width;
     this.height = map.height;
     this.occupied = new Uint8Array(map.width * map.height);
+  }
+
+  setBarrier(x: number, y: number, owner: PlayerId, gate: boolean): void {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
+    this.barriers.set(y * this.width + x, { owner, gate });
+  }
+
+  clearBarrier(x: number, y: number): void {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
+    this.barriers.delete(y * this.width + x);
+  }
+
+  barrierAt(x: number, y: number): { owner: PlayerId; gate: boolean } | undefined {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return undefined;
+    return this.barriers.get(y * this.width + x);
+  }
+
+  /** חסימה מהקרקע בלבד (מים, צוק) — בלי מבנים. */
+  groundBlocked(x: number, y: number): boolean {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
+    return this.map.isBlocked(x, y);
   }
 
   setOccupied(x: number, y: number, value: boolean): void {
@@ -55,6 +78,32 @@ export class NavGrid implements PathGrid {
 
   speedAt(x: number, y: number): number {
     return this.map.speedAt(x, y);
+  }
+}
+
+/**
+ * מבט ניווט של צד אחד.
+ *
+ * שער הוא מבנה חוסם ככל מבנה אחר — אבל ליחידות של בעליו ושל בני בריתו
+ * הוא פתוח. לכן לכל צד יש מבט משלו על אותו גריד, במקום גריד נפרד.
+ */
+export class TeamNavView implements PathGrid {
+  readonly width: number;
+  readonly height: number;
+
+  constructor(private nav: NavGrid, private friendly: (owner: PlayerId) => boolean) {
+    this.width = nav.width;
+    this.height = nav.height;
+  }
+
+  isBlocked(x: number, y: number): boolean {
+    const b = this.nav.barrierAt(x, y);
+    if (b && b.gate && this.friendly(b.owner)) return this.nav.groundBlocked(x, y);
+    return this.nav.isBlocked(x, y);
+  }
+
+  speedAt(x: number, y: number): number {
+    return this.nav.speedAt(x, y);
   }
 }
 
@@ -93,6 +142,8 @@ const CELL_SIZE = 4;
 export class World {
   readonly map: GameMap;
   readonly nav: NavGrid;
+  /** מבט ניווט לכל שחקן — שערים של בני ברית פתוחים בו. */
+  private navViews = new Map<PlayerId, PathGrid>();
   readonly players: Player[];
   readonly entities = new Map<EntityId, Entity>();
   readonly rng: Rng;
@@ -120,6 +171,7 @@ export class World {
       playerCount: opts.players.length,
     });
     this.nav = new NavGrid(this.map);
+    this.navViews.clear();
     this.players = opts.players.map((p) => new Player(p, this.map.width, this.map.height));
     if (opts.revealAll) for (const p of this.players) p.fog.revealAll();
     this.spawnStartingEntities();
@@ -260,11 +312,30 @@ export class World {
     if (e.kind !== 'building') return;
     const origin = buildingOrigin(e);
     const size = e.building!.size;
+    const def = getBuilding(e.defId);
+    const barrier = def.gate === true || def.id === 'wall';
     for (let dy = 0; dy < size; dy++) {
       for (let dx = 0; dx < size; dx++) {
         this.nav.setOccupied(origin.x + dx, origin.y + dy, occupied);
+        if (!barrier) continue;
+        if (occupied) this.nav.setBarrier(origin.x + dx, origin.y + dy, e.owner, def.gate === true);
+        else this.nav.clearBarrier(origin.x + dx, origin.y + dy);
       }
     }
+  }
+
+  /**
+   * מבט הניווט של צד — שערים של בני הברית פתוחים בו.
+   * נשמר במטמון לכל שחקן, כך שאין הקצאה בכל חישוב מסלול.
+   */
+  private navFor(owner: PlayerId): PathGrid {
+    let view = this.navViews.get(owner);
+    if (!view) {
+      const myTeam = this.player(owner)?.team ?? owner;
+      view = new TeamNavView(this.nav, (o) => (this.player(o)?.team ?? o) === myTeam);
+      this.navViews.set(owner, view);
+    }
+    return view;
   }
 
   private spawnStartingEntities(): void {
@@ -794,11 +865,12 @@ export class World {
       if (this.pathBudget > 0) {
         this.pathBudget--;
         u.goal = { x: goal.x, y: goal.y };
-        const result = findPath(this.nav, e.pos, goal, {
+        const grid = this.navFor(e.owner);
+        const result = findPath(grid, e.pos, goal, {
           stopDistance: stopDistance > 1 ? stopDistance - 0.5 : 0,
           maxNodes: 9000,
         });
-        u.path = smoothPath(this.nav, e.pos, result.path);
+        u.path = smoothPath(grid, e.pos, result.path);
         u.repathCooldown = result.found ? 0.6 : 1.4;
         if (u.path.length === 0 && !result.found) {
           u.stuckTime += dt;
@@ -855,8 +927,9 @@ export class World {
       e.pos.y = Math.max(0.5, Math.min(this.map.height - 0.5, ny));
     } else {
       // תנועה עם החלקה לאורך מכשולים
-      const canX = !this.nav.isBlocked(Math.floor(nx), Math.floor(e.pos.y));
-      const canY = !this.nav.isBlocked(Math.floor(e.pos.x), Math.floor(ny));
+      const grid = this.navFor(e.owner);
+      const canX = !grid.isBlocked(Math.floor(nx), Math.floor(e.pos.y));
+      const canY = !grid.isBlocked(Math.floor(e.pos.x), Math.floor(ny));
       if (canX) e.pos.x = nx;
       if (canY) e.pos.y = ny;
       if (!canX && !canY) {

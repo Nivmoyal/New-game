@@ -1,1089 +1,1106 @@
 {
- "il_tc": {
-  "id": "il_tc",
-  "name": "מרכז היישוב",
-  "emoji": "🏘️",
-  "desc": "לב היישוב — מאמן פועלים ומקבל משאבים",
-  "size": 4,
-  "cost": {
-   "wood": 275,
-   "stone": 100
+  "il_tc": {
+    "id": "il_tc",
+    "name": "מרכז היישוב",
+    "emoji": "🏘️",
+    "desc": "לב היישוב — מאמן פועלים ומקבל משאבים",
+    "size": 4,
+    "cost": {
+      "wood": 275,
+      "stone": 100
+    },
+    "buildTime": 60,
+    "hp": 1400,
+    "armor": 4,
+    "pierceArmor": 8,
+    "los": 11,
+    "popProvided": 5,
+    "trains": [
+      "il_worker"
+    ],
+    "dropOff": "all",
+    "isTownCenter": true,
+    "limit": 4
   },
-  "buildTime": 60,
-  "hp": 1400,
-  "armor": 4,
-  "pierceArmor": 8,
-  "los": 11,
-  "popProvided": 5,
-  "trains": [
-   "il_worker"
-  ],
-  "dropOff": "all",
-  "isTownCenter": true,
-  "limit": 4
- },
- "jp_tc": {
-  "id": "jp_tc",
-  "name": "מרכז הכפר",
-  "emoji": "🏘️",
-  "desc": "לב היישוב — מאמן איכרים ומקבל משאבים",
-  "size": 4,
-  "cost": {
-   "wood": 275,
-   "stone": 100
+  "jp_tc": {
+    "id": "jp_tc",
+    "name": "מרכז הכפר",
+    "emoji": "🏘️",
+    "desc": "לב היישוב — מאמן איכרים ומקבל משאבים",
+    "size": 4,
+    "cost": {
+      "wood": 275,
+      "stone": 100
+    },
+    "buildTime": 60,
+    "hp": 1400,
+    "armor": 4,
+    "pierceArmor": 8,
+    "los": 11,
+    "popProvided": 5,
+    "trains": [
+      "jp_worker"
+    ],
+    "dropOff": "all",
+    "isTownCenter": true,
+    "limit": 4
   },
-  "buildTime": 60,
-  "hp": 1400,
-  "armor": 4,
-  "pierceArmor": 8,
-  "los": 11,
-  "popProvided": 5,
-  "trains": [
-   "jp_worker"
-  ],
-  "dropOff": "all",
-  "isTownCenter": true,
-  "limit": 4
- },
- "ar_tc": {
-  "id": "ar_tc",
-  "name": "מרכז הנווה",
-  "emoji": "🏘️",
-  "desc": "לב היישוב — מאמן עובדים ומקבל משאבים",
-  "size": 4,
-  "cost": {
-   "wood": 275,
-   "stone": 100
+  "ar_tc": {
+    "id": "ar_tc",
+    "name": "מרכז הנווה",
+    "emoji": "🏘️",
+    "desc": "לב היישוב — מאמן עובדים ומקבל משאבים",
+    "size": 4,
+    "cost": {
+      "wood": 275,
+      "stone": 100
+    },
+    "buildTime": 60,
+    "hp": 1400,
+    "armor": 4,
+    "pierceArmor": 8,
+    "los": 12,
+    "popProvided": 5,
+    "trains": [
+      "ar_worker"
+    ],
+    "dropOff": "all",
+    "isTownCenter": true,
+    "limit": 4
   },
-  "buildTime": 60,
-  "hp": 1400,
-  "armor": 4,
-  "pierceArmor": 8,
-  "los": 12,
-  "popProvided": 5,
-  "trains": [
-   "ar_worker"
-  ],
-  "dropOff": "all",
-  "isTownCenter": true,
-  "limit": 4
- },
- "rm_tc": {
-  "id": "rm_tc",
-  "name": "מרכז העיר",
-  "emoji": "🏘️",
-  "desc": "לב היישוב — מאמן אזרחים ומקבל משאבים",
-  "size": 4,
-  "cost": {
-   "wood": 275,
-   "stone": 100
+  "rm_tc": {
+    "id": "rm_tc",
+    "name": "מרכז העיר",
+    "emoji": "🏘️",
+    "desc": "לב היישוב — מאמן אזרחים ומקבל משאבים",
+    "size": 4,
+    "cost": {
+      "wood": 275,
+      "stone": 100
+    },
+    "buildTime": 60,
+    "hp": 1500,
+    "armor": 5,
+    "pierceArmor": 8,
+    "los": 11,
+    "popProvided": 5,
+    "trains": [
+      "rm_worker"
+    ],
+    "dropOff": "all",
+    "isTownCenter": true,
+    "limit": 4
   },
-  "buildTime": 60,
-  "hp": 1500,
-  "armor": 5,
-  "pierceArmor": 8,
-  "los": 11,
-  "popProvided": 5,
-  "trains": [
-   "rm_worker"
-  ],
-  "dropOff": "all",
-  "isTownCenter": true,
-  "limit": 4
- },
- "eg_tc": {
-  "id": "eg_tc",
-  "name": "מרכז הכפר",
-  "emoji": "🏘️",
-  "desc": "לב היישוב — מאמן פלאחים ומקבל משאבים",
-  "size": 4,
-  "cost": {
-   "wood": 275,
-   "stone": 100
+  "eg_tc": {
+    "id": "eg_tc",
+    "name": "מרכז הכפר",
+    "emoji": "🏘️",
+    "desc": "לב היישוב — מאמן פלאחים ומקבל משאבים",
+    "size": 4,
+    "cost": {
+      "wood": 275,
+      "stone": 100
+    },
+    "buildTime": 60,
+    "hp": 1400,
+    "armor": 4,
+    "pierceArmor": 8,
+    "los": 11,
+    "popProvided": 5,
+    "trains": [
+      "eg_worker"
+    ],
+    "dropOff": "all",
+    "isTownCenter": true,
+    "limit": 4
   },
-  "buildTime": 60,
-  "hp": 1400,
-  "armor": 4,
-  "pierceArmor": 8,
-  "los": 11,
-  "popProvided": 5,
-  "trains": [
-   "eg_worker"
-  ],
-  "dropOff": "all",
-  "isTownCenter": true,
-  "limit": 4
- },
- "house": {
-  "id": "house",
-  "name": "בית",
-  "emoji": "🏠",
-  "desc": "מגדיל את תקרת האוכלוסייה ב-5",
-  "size": 2,
-  "cost": {
-   "wood": 30
+  "house": {
+    "id": "house",
+    "name": "בית",
+    "emoji": "🏠",
+    "desc": "מגדיל את תקרת האוכלוסייה ב-5",
+    "size": 2,
+    "cost": {
+      "wood": 30
+    },
+    "buildTime": 18,
+    "hp": 320,
+    "armor": 1,
+    "pierceArmor": 4,
+    "los": 4,
+    "popProvided": 5
   },
-  "buildTime": 18,
-  "hp": 320,
-  "armor": 1,
-  "pierceArmor": 4,
-  "los": 4,
-  "popProvided": 5
- },
- "farm": {
-  "id": "farm",
-  "name": "חווה",
-  "emoji": "🌾",
-  "desc": "מייצרת אוכל באופן קבוע",
-  "size": 2,
-  "cost": {
-   "wood": 60
+  "farm": {
+    "id": "farm",
+    "name": "חווה",
+    "emoji": "🌾",
+    "desc": "מייצרת אוכל באופן קבוע",
+    "size": 2,
+    "cost": {
+      "wood": 60
+    },
+    "buildTime": 16,
+    "hp": 200,
+    "armor": 0,
+    "pierceArmor": 2,
+    "los": 3,
+    "trickle": {
+      "food": 0.42
+    }
   },
-  "buildTime": 16,
-  "hp": 200,
-  "armor": 0,
-  "pierceArmor": 2,
-  "los": 3,
-  "trickle": {
-   "food": 0.42
+  "mill": {
+    "id": "mill",
+    "name": "בית גרנות",
+    "emoji": "🏚️",
+    "desc": "נקודת פריקה לאוכל",
+    "size": 2,
+    "cost": {
+      "wood": 90
+    },
+    "buildTime": 22,
+    "hp": 480,
+    "armor": 1,
+    "pierceArmor": 5,
+    "los": 6,
+    "dropOff": [
+      "food"
+    ]
+  },
+  "lumber_camp": {
+    "id": "lumber_camp",
+    "name": "מחנה עצים",
+    "emoji": "🪵",
+    "desc": "נקודת פריקה לעץ",
+    "size": 2,
+    "cost": {
+      "wood": 90
+    },
+    "buildTime": 20,
+    "hp": 440,
+    "armor": 1,
+    "pierceArmor": 5,
+    "los": 6,
+    "dropOff": [
+      "wood"
+    ]
+  },
+  "mining_camp": {
+    "id": "mining_camp",
+    "name": "מחנה כרייה",
+    "emoji": "⛏️",
+    "desc": "נקודת פריקה לאבן וזהב",
+    "size": 2,
+    "cost": {
+      "wood": 90
+    },
+    "buildTime": 20,
+    "hp": 440,
+    "armor": 1,
+    "pierceArmor": 5,
+    "los": 6,
+    "dropOff": [
+      "stone",
+      "gold"
+    ]
+  },
+  "barracks": {
+    "id": "barracks",
+    "name": "קסרקטין",
+    "emoji": "🏹",
+    "desc": "מאמן חיל רגלים",
+    "size": 3,
+    "cost": {
+      "wood": 160
+    },
+    "buildTime": 32,
+    "hp": 900,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 7,
+    "trains": [
+      "il_guard",
+      "il_infantry",
+      "il_golani",
+      "il_commando",
+      "jp_ashigaru",
+      "jp_yari",
+      "jp_samurai",
+      "jp_shinobi",
+      "ar_spear",
+      "rm_hastati",
+      "rm_legion",
+      "eg_spear",
+      "eg_khopesh",
+      "vk_bondi",
+      "vk_spear",
+      "vk_huscarl"
+    ],
+    "researches": [
+      "armor_infantry",
+      "weapons_infantry"
+    ]
+  },
+  "archery_range": {
+    "id": "archery_range",
+    "name": "מטווח",
+    "emoji": "🎯",
+    "desc": "מאמן לוחמי טווח",
+    "size": 3,
+    "cost": {
+      "wood": 175
+    },
+    "buildTime": 32,
+    "hp": 880,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 7,
+    "trains": [
+      "il_rifleman",
+      "il_sniper",
+      "il_flak",
+      "jp_archer",
+      "ar_archer",
+      "ar_horsearcher",
+      "rm_archer",
+      "eg_archer",
+      "eg_chariot_archer",
+      "vk_archer"
+    ],
+    "researches": [
+      "fletching",
+      "armor_ranged"
+    ]
+  },
+  "stable": {
+    "id": "stable",
+    "name": "אורווה",
+    "emoji": "🐎",
+    "desc": "מאמן פרשים ויחידות משוריינות",
+    "size": 3,
+    "cost": {
+      "wood": 175
+    },
+    "buildTime": 32,
+    "hp": 880,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 7,
+    "trains": [
+      "il_horse_scout",
+      "il_scout",
+      "il_apc",
+      "jp_cavalry",
+      "ar_camel",
+      "ar_lighthorse",
+      "ar_heavycav",
+      "rm_equites",
+      "eg_chariot",
+      "vk_raider"
+    ],
+    "researches": [
+      "armor_cavalry",
+      "husbandry"
+    ]
+  },
+  "siege_workshop": {
+    "id": "siege_workshop",
+    "name": "סדנת מצור",
+    "emoji": "🛠️",
+    "desc": "מייצר מכונות מצור",
+    "size": 3,
+    "cost": {
+      "wood": 200,
+      "stone": 50
+    },
+    "buildTime": 38,
+    "hp": 900,
+    "armor": 2,
+    "pierceArmor": 7,
+    "los": 7,
+    "trains": [
+      "il_tank",
+      "jp_catapult",
+      "ar_mangonel",
+      "rm_ballista",
+      "rm_ram",
+      "eg_catapult",
+      "vk_siege"
+    ],
+    "researches": [
+      "siege_engineering"
+    ]
+  },
+  "blacksmith": {
+    "id": "blacksmith",
+    "name": "נפחייה",
+    "emoji": "🔨",
+    "desc": "משפרת נשק ושריון",
+    "size": 2,
+    "cost": {
+      "wood": 150
+    },
+    "buildTime": 30,
+    "hp": 700,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 6,
+    "researches": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "armor_cavalry"
+    ]
+  },
+  "market": {
+    "id": "market",
+    "name": "שוק",
+    "emoji": "🛒",
+    "desc": "סחר — מכניס זהב בהתמדה",
+    "size": 3,
+    "cost": {
+      "wood": 175
+    },
+    "buildTime": 34,
+    "hp": 820,
+    "armor": 1,
+    "pierceArmor": 6,
+    "los": 8,
+    "trickle": {
+      "gold": 0.28
+    },
+    "researches": [
+      "caravan",
+      "coinage"
+    ]
+  },
+  "temple": {
+    "id": "temple",
+    "name": "מקדש",
+    "emoji": "🛕",
+    "desc": "מאמן מרפאים וחוקר טכנולוגיות",
+    "size": 3,
+    "cost": {
+      "wood": 200
+    },
+    "buildTime": 36,
+    "hp": 760,
+    "armor": 1,
+    "pierceArmor": 6,
+    "los": 8,
+    "trains": [
+      "ar_scholar",
+      "eg_priest",
+      "il_medic",
+      "vk_skald"
+    ],
+    "researches": [
+      "devotion"
+    ]
+  },
+  "academy": {
+    "id": "academy",
+    "name": "אקדמיה",
+    "emoji": "🎓",
+    "desc": "מחקר מתקדם לשלבי הצמיחה הגבוהים",
+    "size": 3,
+    "cost": {
+      "wood": 200,
+      "stone": 80
+    },
+    "buildTime": 40,
+    "hp": 900,
+    "armor": 2,
+    "pierceArmor": 7,
+    "los": 8,
+    "researches": [
+      "masonry",
+      "engineering",
+      "logistics",
+      "town_watch"
+    ]
+  },
+  "tower": {
+    "id": "tower",
+    "name": "מגדל שמירה",
+    "emoji": "🗼",
+    "desc": "מבנה הגנה יורה",
+    "size": 1,
+    "cost": {
+      "stone": 100,
+      "wood": 25
+    },
+    "buildTime": 26,
+    "hp": 900,
+    "armor": 4,
+    "pierceArmor": 10,
+    "los": 10,
+    "attack": 12,
+    "attackType": "pierce",
+    "range": 7.5,
+    "attackCooldown": 1.6,
+    "bonusVs": {
+      "infantry": 1.3
+    }
+  },
+  "wall": {
+    "id": "wall",
+    "name": "חומה",
+    "emoji": "🧱",
+    "desc": "חוסמת מעבר",
+    "size": 1,
+    "cost": {
+      "stone": 6
+    },
+    "buildTime": 6,
+    "hp": 700,
+    "armor": 8,
+    "pierceArmor": 12,
+    "los": 3
+  },
+  "gate": {
+    "id": "gate",
+    "name": "שער",
+    "emoji": "🚪",
+    "desc": "נפתח ליחידות שלך וחוסם את האויב",
+    "size": 1,
+    "cost": {
+      "wood": 12,
+      "stone": 12
+    },
+    "buildTime": 12,
+    "hp": 900,
+    "armor": 8,
+    "pierceArmor": 12,
+    "los": 5,
+    "gate": true
+  },
+  "fortress": {
+    "id": "fortress",
+    "name": "מצודה",
+    "emoji": "🏰",
+    "desc": "מבנה הגנה כבד ומאמן יחידות גיבור",
+    "size": 4,
+    "cost": {
+      "stone": 350,
+      "wood": 120
+    },
+    "buildTime": 60,
+    "hp": 2400,
+    "armor": 8,
+    "pierceArmor": 14,
+    "los": 12,
+    "attack": 22,
+    "attackType": "pierce",
+    "range": 9,
+    "attackCooldown": 1.4,
+    "trains": [
+      "il_elite",
+      "jp_daimyo",
+      "ar_heavycav",
+      "rm_centurion",
+      "eg_khopesh",
+      "vk_jarl"
+    ],
+    "limit": 4
+  },
+  "il_watertower": {
+    "id": "il_watertower",
+    "name": "מגדל מים",
+    "emoji": "💧",
+    "desc": "סמל היישוב — טווח ראייה גדול וזרימת אוכל",
+    "size": 2,
+    "cost": {
+      "stone": 80,
+      "wood": 40
+    },
+    "buildTime": 28,
+    "hp": 700,
+    "armor": 3,
+    "pierceArmor": 9,
+    "los": 16,
+    "trickle": {
+      "food": 0.18
+    },
+    "limit": 3
+  },
+  "il_dining_hall": {
+    "id": "il_dining_hall",
+    "name": "חדר אוכל",
+    "emoji": "🍽️",
+    "desc": "כלכלה שיתופית — אוכל ומקום לאנשים",
+    "size": 3,
+    "cost": {
+      "wood": 140,
+      "food": 60
+    },
+    "buildTime": 34,
+    "hp": 820,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 7,
+    "popProvided": 8,
+    "trickle": {
+      "food": 0.5
+    },
+    "limit": 3
+  },
+  "il_school": {
+    "id": "il_school",
+    "name": "בית ספר",
+    "emoji": "🏫",
+    "desc": "חינוך — מחקר מהיר יותר",
+    "size": 3,
+    "cost": {
+      "wood": 180
+    },
+    "buildTime": 36,
+    "hp": 780,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 8,
+    "researches": [
+      "education",
+      "masonry",
+      "town_watch"
+    ]
+  },
+  "il_factory": {
+    "id": "il_factory",
+    "name": "מפעל",
+    "emoji": "🏭",
+    "desc": "ייצור תעשייתי — עץ ואבן בהתמדה",
+    "size": 3,
+    "cost": {
+      "wood": 200,
+      "stone": 80
+    },
+    "buildTime": 42,
+    "hp": 1000,
+    "armor": 3,
+    "pierceArmor": 7,
+    "los": 7,
+    "trickle": {
+      "wood": 0.3,
+      "stone": 0.18
+    },
+    "researches": [
+      "industry"
+    ],
+    "limit": 3
+  },
+  "il_military_base": {
+    "id": "il_military_base",
+    "name": "בסיס צבאי",
+    "emoji": "🏕️",
+    "desc": "מאמן את יחידות העילית של הזרוע הנבחרת",
+    "size": 4,
+    "cost": {
+      "wood": 220,
+      "stone": 120
+    },
+    "buildTime": 46,
+    "hp": 1400,
+    "armor": 5,
+    "pierceArmor": 10,
+    "los": 10,
+    "trains": [
+      "il_golani",
+      "il_commando",
+      "il_sniper",
+      "il_apc",
+      "il_tank",
+      "il_drone",
+      "il_flak",
+      "il_elite"
+    ],
+    "researches": [
+      "logistics",
+      "engineering"
+    ],
+    "limit": 3
+  },
+  "il_airdefense": {
+    "id": "il_airdefense",
+    "name": "כיפת ברזל",
+    "emoji": "📡",
+    "desc": "מערכת יירוט שמגנה על היישוב מפני מטרות אוויריות",
+    "size": 2,
+    "cost": {
+      "wood": 120,
+      "gold": 140
+    },
+    "buildTime": 40,
+    "hp": 900,
+    "armor": 4,
+    "pierceArmor": 10,
+    "los": 16,
+    "attack": 18,
+    "attackType": "flak",
+    "range": 12,
+    "attackCooldown": 1.3,
+    "bonusVs": {
+      "air": 5.0
+    },
+    "limit": 6
+  },
+  "il_hospital": {
+    "id": "il_hospital",
+    "name": "בית חולים",
+    "emoji": "🏥",
+    "desc": "מרפא יחידות בסביבה ומאמן חובשים",
+    "size": 3,
+    "cost": {
+      "wood": 180,
+      "gold": 80
+    },
+    "buildTime": 40,
+    "hp": 900,
+    "armor": 2,
+    "pierceArmor": 7,
+    "los": 8,
+    "trains": [
+      "il_medic"
+    ],
+    "healAura": {
+      "radius": 9,
+      "rate": 3.5
+    },
+    "limit": 3
+  },
+  "il_exchange": {
+    "id": "il_exchange",
+    "name": "בורסה",
+    "emoji": "💹",
+    "desc": "מרכז מסחר — זרימת זהב חזקה",
+    "size": 3,
+    "cost": {
+      "wood": 200,
+      "stone": 100
+    },
+    "buildTime": 44,
+    "hp": 860,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 8,
+    "trickle": {
+      "gold": 0.65
+    },
+    "researches": [
+      "coinage",
+      "caravan"
+    ],
+    "limit": 2
+  },
+  "il_hightech": {
+    "id": "il_hightech",
+    "name": "פארק הייטק",
+    "emoji": "💻",
+    "desc": "מחקר וחדשנות — בונוס טכנולוגי גדול",
+    "size": 3,
+    "cost": {
+      "wood": 220,
+      "gold": 120
+    },
+    "buildTime": 48,
+    "hp": 900,
+    "armor": 3,
+    "pierceArmor": 8,
+    "los": 9,
+    "trickle": {
+      "gold": 0.3
+    },
+    "researches": [
+      "education",
+      "industry",
+      "engineering"
+    ],
+    "limit": 2
+  },
+  "jp_castle": {
+    "id": "jp_castle",
+    "name": "טירה",
+    "emoji": "🏯",
+    "desc": "מבצר יפני — הגנה חזקה ומאמן דאימיו",
+    "size": 4,
+    "cost": {
+      "stone": 320,
+      "wood": 120
+    },
+    "buildTime": 58,
+    "hp": 2600,
+    "armor": 9,
+    "pierceArmor": 15,
+    "los": 13,
+    "attack": 24,
+    "attackType": "pierce",
+    "range": 9.5,
+    "attackCooldown": 1.3,
+    "trains": [
+      "jp_daimyo",
+      "jp_samurai"
+    ],
+    "limit": 4
+  },
+  "jp_dojo": {
+    "id": "jp_dojo",
+    "name": "דוג'ו",
+    "emoji": "🥋",
+    "desc": "אימון לוחמי עילית",
+    "size": 3,
+    "cost": {
+      "wood": 190
+    },
+    "buildTime": 36,
+    "hp": 880,
+    "armor": 3,
+    "pierceArmor": 7,
+    "los": 7,
+    "trains": [
+      "jp_samurai",
+      "jp_shinobi"
+    ],
+    "researches": [
+      "weapons_infantry",
+      "armor_infantry",
+      "devotion"
+    ]
+  },
+  "jp_shrine": {
+    "id": "jp_shrine",
+    "name": "מקדש הכפר",
+    "emoji": "⛩️",
+    "desc": "מרכז רוחני — מוסיף מקום לאנשים ומחקר",
+    "size": 2,
+    "cost": {
+      "wood": 140
+    },
+    "buildTime": 30,
+    "hp": 700,
+    "armor": 1,
+    "pierceArmor": 6,
+    "los": 9,
+    "popProvided": 5,
+    "researches": [
+      "devotion",
+      "town_watch"
+    ]
+  },
+  "ar_wisdom_house": {
+    "id": "ar_wisdom_house",
+    "name": "בית חוכמה",
+    "emoji": "📚",
+    "desc": "מרכז מדע — מחקר מהיר במיוחד",
+    "size": 3,
+    "cost": {
+      "wood": 200,
+      "gold": 60
+    },
+    "buildTime": 40,
+    "hp": 840,
+    "armor": 2,
+    "pierceArmor": 7,
+    "los": 10,
+    "trains": [
+      "ar_scholar"
+    ],
+    "researches": [
+      "education",
+      "masonry",
+      "engineering",
+      "logistics"
+    ],
+    "limit": 3
+  },
+  "ar_bazaar": {
+    "id": "ar_bazaar",
+    "name": "בזאר",
+    "emoji": "🏬",
+    "desc": "שוק גדול — זהב בהתמדה",
+    "size": 3,
+    "cost": {
+      "wood": 190
+    },
+    "buildTime": 36,
+    "hp": 820,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 9,
+    "trickle": {
+      "gold": 0.55
+    },
+    "researches": [
+      "caravan",
+      "coinage"
+    ],
+    "limit": 3
+  },
+  "ar_caravanserai": {
+    "id": "ar_caravanserai",
+    "name": "חאן שיירות",
+    "emoji": "🐫",
+    "desc": "תחנת שיירות — אוכל וזהב לדרך",
+    "size": 3,
+    "cost": {
+      "wood": 160,
+      "stone": 60
+    },
+    "buildTime": 36,
+    "hp": 900,
+    "armor": 3,
+    "pierceArmor": 7,
+    "los": 10,
+    "popProvided": 5,
+    "trickle": {
+      "food": 0.22,
+      "gold": 0.22
+    },
+    "limit": 3
+  },
+  "rm_forum": {
+    "id": "rm_forum",
+    "name": "פורום",
+    "emoji": "🏛️",
+    "desc": "לב החיים האזרחיים — מסחר ומחקר",
+    "size": 3,
+    "cost": {
+      "wood": 200,
+      "stone": 80
+    },
+    "buildTime": 40,
+    "hp": 1000,
+    "armor": 3,
+    "pierceArmor": 8,
+    "los": 9,
+    "trickle": {
+      "gold": 0.4
+    },
+    "researches": [
+      "coinage",
+      "masonry",
+      "town_watch"
+    ],
+    "limit": 2
+  },
+  "rm_aqueduct": {
+    "id": "rm_aqueduct",
+    "name": "אמת מים",
+    "emoji": "🌉",
+    "desc": "הנדסה רומית — אוכל ומקום לאנשים",
+    "size": 2,
+    "cost": {
+      "stone": 120,
+      "wood": 40
+    },
+    "buildTime": 32,
+    "hp": 800,
+    "armor": 5,
+    "pierceArmor": 10,
+    "los": 7,
+    "popProvided": 6,
+    "trickle": {
+      "food": 0.3
+    },
+    "limit": 4
+  },
+  "rm_castrum": {
+    "id": "rm_castrum",
+    "name": "מחנה לגיון",
+    "emoji": "⛺",
+    "desc": "מחנה מאורגן — מאמן לגיונרים",
+    "size": 4,
+    "cost": {
+      "wood": 200,
+      "stone": 100
+    },
+    "buildTime": 44,
+    "hp": 1500,
+    "armor": 6,
+    "pierceArmor": 10,
+    "los": 10,
+    "trains": [
+      "rm_legion",
+      "rm_centurion",
+      "rm_hastati"
+    ],
+    "researches": [
+      "logistics",
+      "weapons_infantry",
+      "armor_infantry"
+    ],
+    "limit": 3
+  },
+  "eg_granary": {
+    "id": "eg_granary",
+    "name": "אסם",
+    "emoji": "🏺",
+    "desc": "אחסון תבואה — אוכל בהתמדה",
+    "size": 2,
+    "cost": {
+      "wood": 120
+    },
+    "buildTime": 26,
+    "hp": 620,
+    "armor": 1,
+    "pierceArmor": 5,
+    "los": 6,
+    "dropOff": [
+      "food"
+    ],
+    "trickle": {
+      "food": 0.3
+    }
+  },
+  "eg_obelisk": {
+    "id": "eg_obelisk",
+    "name": "אובליסק",
+    "emoji": "🗿",
+    "desc": "מונומנט — טווח ראייה עצום",
+    "size": 1,
+    "cost": {
+      "stone": 140
+    },
+    "buildTime": 30,
+    "hp": 800,
+    "armor": 6,
+    "pierceArmor": 12,
+    "los": 20,
+    "limit": 4
+  },
+  "eg_pyramid": {
+    "id": "eg_pyramid",
+    "name": "פירמידה",
+    "emoji": "🔺",
+    "desc": "פרויקט הבנייה הגדול — בונוס עצום ליישוב",
+    "size": 4,
+    "cost": {
+      "stone": 500,
+      "wood": 200,
+      "gold": 200
+    },
+    "buildTime": 120,
+    "hp": 4000,
+    "armor": 12,
+    "pierceArmor": 20,
+    "los": 14,
+    "popProvided": 20,
+    "trickle": {
+      "gold": 0.5,
+      "stone": 0.25
+    },
+    "limit": 1
+  },
+  "vk_tc": {
+    "id": "vk_tc",
+    "name": "מרכז האחוזה",
+    "emoji": "🏘️",
+    "desc": "לב היישוב — מאמן איכרים ומקבל משאבים",
+    "size": 4,
+    "cost": {
+      "wood": 275,
+      "stone": 100
+    },
+    "buildTime": 60,
+    "hp": 1400,
+    "armor": 4,
+    "pierceArmor": 8,
+    "los": 12,
+    "popProvided": 5,
+    "trains": [
+      "vk_worker"
+    ],
+    "dropOff": "all",
+    "isTownCenter": true,
+    "limit": 4
+  },
+  "vk_longhouse": {
+    "id": "vk_longhouse",
+    "name": "לונגהאוס",
+    "emoji": "🛖",
+    "desc": "בית ארוך משותף — מקום מגורים גדול לכל המשפחה המורחבת",
+    "size": 3,
+    "cost": {
+      "wood": 110
+    },
+    "buildTime": 26,
+    "hp": 760,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 6,
+    "popProvided": 9,
+    "limit": 6
+  },
+  "vk_mead_hall": {
+    "id": "vk_mead_hall",
+    "name": "אולם המשתה",
+    "emoji": "🍺",
+    "desc": "אולם החגיגות — אוכל בהתמדה ולכידות קהילתית",
+    "size": 3,
+    "cost": {
+      "wood": 170,
+      "food": 60
+    },
+    "buildTime": 36,
+    "hp": 900,
+    "armor": 2,
+    "pierceArmor": 7,
+    "los": 8,
+    "popProvided": 6,
+    "trickle": {
+      "food": 0.5
+    },
+    "researches": [
+      "devotion",
+      "town_watch"
+    ],
+    "limit": 3
+  },
+  "vk_harbor": {
+    "id": "vk_harbor",
+    "name": "נמל סחר",
+    "emoji": "⚓",
+    "desc": "מזחים וסירות דיג — זהב ואוכל מהים",
+    "size": 3,
+    "cost": {
+      "wood": 180
+    },
+    "buildTime": 38,
+    "hp": 840,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 11,
+    "trickle": {
+      "gold": 0.5,
+      "food": 0.25
+    },
+    "researches": [
+      "caravan",
+      "coinage"
+    ],
+    "limit": 4
+  },
+  "vk_forge": {
+    "id": "vk_forge",
+    "name": "בית מלאכה",
+    "emoji": "⚒️",
+    "desc": "נפחים וחרשי עץ — שיפור נשק ושריון",
+    "size": 2,
+    "cost": {
+      "wood": 150,
+      "stone": 40
+    },
+    "buildTime": 30,
+    "hp": 780,
+    "armor": 3,
+    "pierceArmor": 7,
+    "los": 6,
+    "researches": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "engineering"
+    ]
   }
- },
- "mill": {
-  "id": "mill",
-  "name": "בית גרנות",
-  "emoji": "🏚️",
-  "desc": "נקודת פריקה לאוכל",
-  "size": 2,
-  "cost": {
-   "wood": 90
-  },
-  "buildTime": 22,
-  "hp": 480,
-  "armor": 1,
-  "pierceArmor": 5,
-  "los": 6,
-  "dropOff": [
-   "food"
-  ]
- },
- "lumber_camp": {
-  "id": "lumber_camp",
-  "name": "מחנה עצים",
-  "emoji": "🪵",
-  "desc": "נקודת פריקה לעץ",
-  "size": 2,
-  "cost": {
-   "wood": 90
-  },
-  "buildTime": 20,
-  "hp": 440,
-  "armor": 1,
-  "pierceArmor": 5,
-  "los": 6,
-  "dropOff": [
-   "wood"
-  ]
- },
- "mining_camp": {
-  "id": "mining_camp",
-  "name": "מחנה כרייה",
-  "emoji": "⛏️",
-  "desc": "נקודת פריקה לאבן וזהב",
-  "size": 2,
-  "cost": {
-   "wood": 90
-  },
-  "buildTime": 20,
-  "hp": 440,
-  "armor": 1,
-  "pierceArmor": 5,
-  "los": 6,
-  "dropOff": [
-   "stone",
-   "gold"
-  ]
- },
- "barracks": {
-  "id": "barracks",
-  "name": "קסרקטין",
-  "emoji": "🏹",
-  "desc": "מאמן חיל רגלים",
-  "size": 3,
-  "cost": {
-   "wood": 160
-  },
-  "buildTime": 32,
-  "hp": 900,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 7,
-  "trains": [
-   "il_guard",
-   "il_infantry",
-   "il_golani",
-   "il_commando",
-   "jp_ashigaru",
-   "jp_yari",
-   "jp_samurai",
-   "jp_shinobi",
-   "ar_spear",
-   "rm_hastati",
-   "rm_legion",
-   "eg_spear",
-   "eg_khopesh",
-   "vk_bondi",
-   "vk_spear",
-   "vk_huscarl"
-  ],
-  "researches": [
-   "armor_infantry",
-   "weapons_infantry"
-  ]
- },
- "archery_range": {
-  "id": "archery_range",
-  "name": "מטווח",
-  "emoji": "🎯",
-  "desc": "מאמן לוחמי טווח",
-  "size": 3,
-  "cost": {
-   "wood": 175
-  },
-  "buildTime": 32,
-  "hp": 880,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 7,
-  "trains": [
-   "il_rifleman",
-   "il_sniper",
-   "il_flak",
-   "jp_archer",
-   "ar_archer",
-   "ar_horsearcher",
-   "rm_archer",
-   "eg_archer",
-   "eg_chariot_archer",
-   "vk_archer"
-  ],
-  "researches": [
-   "fletching",
-   "armor_ranged"
-  ]
- },
- "stable": {
-  "id": "stable",
-  "name": "אורווה",
-  "emoji": "🐎",
-  "desc": "מאמן פרשים ויחידות משוריינות",
-  "size": 3,
-  "cost": {
-   "wood": 175
-  },
-  "buildTime": 32,
-  "hp": 880,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 7,
-  "trains": [
-   "il_horse_scout",
-   "il_scout",
-   "il_apc",
-   "jp_cavalry",
-   "ar_camel",
-   "ar_lighthorse",
-   "ar_heavycav",
-   "rm_equites",
-   "eg_chariot",
-   "vk_raider"
-  ],
-  "researches": [
-   "armor_cavalry",
-   "husbandry"
-  ]
- },
- "siege_workshop": {
-  "id": "siege_workshop",
-  "name": "סדנת מצור",
-  "emoji": "🛠️",
-  "desc": "מייצר מכונות מצור",
-  "size": 3,
-  "cost": {
-   "wood": 200,
-   "stone": 50
-  },
-  "buildTime": 38,
-  "hp": 900,
-  "armor": 2,
-  "pierceArmor": 7,
-  "los": 7,
-  "trains": [
-   "il_tank",
-   "jp_catapult",
-   "ar_mangonel",
-   "rm_ballista",
-   "rm_ram",
-   "eg_catapult",
-   "vk_siege"
-  ],
-  "researches": [
-   "siege_engineering"
-  ]
- },
- "blacksmith": {
-  "id": "blacksmith",
-  "name": "נפחייה",
-  "emoji": "🔨",
-  "desc": "משפרת נשק ושריון",
-  "size": 2,
-  "cost": {
-   "wood": 150
-  },
-  "buildTime": 30,
-  "hp": 700,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 6,
-  "researches": [
-   "weapons_infantry",
-   "armor_infantry",
-   "fletching",
-   "armor_ranged",
-   "armor_cavalry"
-  ]
- },
- "market": {
-  "id": "market",
-  "name": "שוק",
-  "emoji": "🛒",
-  "desc": "סחר — מכניס זהב בהתמדה",
-  "size": 3,
-  "cost": {
-   "wood": 175
-  },
-  "buildTime": 34,
-  "hp": 820,
-  "armor": 1,
-  "pierceArmor": 6,
-  "los": 8,
-  "trickle": {
-   "gold": 0.28
-  },
-  "researches": [
-   "caravan",
-   "coinage"
-  ]
- },
- "temple": {
-  "id": "temple",
-  "name": "מקדש",
-  "emoji": "🛕",
-  "desc": "מאמן מרפאים וחוקר טכנולוגיות",
-  "size": 3,
-  "cost": {
-   "wood": 200
-  },
-  "buildTime": 36,
-  "hp": 760,
-  "armor": 1,
-  "pierceArmor": 6,
-  "los": 8,
-  "trains": [
-   "ar_scholar",
-   "eg_priest",
-   "il_medic",
-   "vk_skald"
-  ],
-  "researches": [
-   "devotion"
-  ]
- },
- "academy": {
-  "id": "academy",
-  "name": "אקדמיה",
-  "emoji": "🎓",
-  "desc": "מחקר מתקדם לשלבי הצמיחה הגבוהים",
-  "size": 3,
-  "cost": {
-   "wood": 200,
-   "stone": 80
-  },
-  "buildTime": 40,
-  "hp": 900,
-  "armor": 2,
-  "pierceArmor": 7,
-  "los": 8,
-  "researches": [
-   "masonry",
-   "engineering",
-   "logistics",
-   "town_watch"
-  ]
- },
- "tower": {
-  "id": "tower",
-  "name": "מגדל שמירה",
-  "emoji": "🗼",
-  "desc": "מבנה הגנה יורה",
-  "size": 1,
-  "cost": {
-   "stone": 100,
-   "wood": 25
-  },
-  "buildTime": 26,
-  "hp": 900,
-  "armor": 4,
-  "pierceArmor": 10,
-  "los": 10,
-  "attack": 12,
-  "attackType": "pierce",
-  "range": 7.5,
-  "attackCooldown": 1.6,
-  "bonusVs": {
-   "infantry": 1.3
-  }
- },
- "wall": {
-  "id": "wall",
-  "name": "חומה",
-  "emoji": "🧱",
-  "desc": "חוסמת מעבר",
-  "size": 1,
-  "cost": {
-   "stone": 6
-  },
-  "buildTime": 6,
-  "hp": 700,
-  "armor": 8,
-  "pierceArmor": 12,
-  "los": 3
- },
- "fortress": {
-  "id": "fortress",
-  "name": "מצודה",
-  "emoji": "🏰",
-  "desc": "מבנה הגנה כבד ומאמן יחידות גיבור",
-  "size": 4,
-  "cost": {
-   "stone": 350,
-   "wood": 120
-  },
-  "buildTime": 60,
-  "hp": 2400,
-  "armor": 8,
-  "pierceArmor": 14,
-  "los": 12,
-  "attack": 22,
-  "attackType": "pierce",
-  "range": 9,
-  "attackCooldown": 1.4,
-  "trains": [
-   "il_elite",
-   "jp_daimyo",
-   "ar_heavycav",
-   "rm_centurion",
-   "eg_khopesh",
-   "vk_jarl"
-  ],
-  "limit": 4
- },
- "il_watertower": {
-  "id": "il_watertower",
-  "name": "מגדל מים",
-  "emoji": "💧",
-  "desc": "סמל היישוב — טווח ראייה גדול וזרימת אוכל",
-  "size": 2,
-  "cost": {
-   "stone": 80,
-   "wood": 40
-  },
-  "buildTime": 28,
-  "hp": 700,
-  "armor": 3,
-  "pierceArmor": 9,
-  "los": 16,
-  "trickle": {
-   "food": 0.18
-  },
-  "limit": 3
- },
- "il_dining_hall": {
-  "id": "il_dining_hall",
-  "name": "חדר אוכל",
-  "emoji": "🍽️",
-  "desc": "כלכלה שיתופית — אוכל ומקום לאנשים",
-  "size": 3,
-  "cost": {
-   "wood": 140,
-   "food": 60
-  },
-  "buildTime": 34,
-  "hp": 820,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 7,
-  "popProvided": 8,
-  "trickle": {
-   "food": 0.5
-  },
-  "limit": 3
- },
- "il_school": {
-  "id": "il_school",
-  "name": "בית ספר",
-  "emoji": "🏫",
-  "desc": "חינוך — מחקר מהיר יותר",
-  "size": 3,
-  "cost": {
-   "wood": 180
-  },
-  "buildTime": 36,
-  "hp": 780,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 8,
-  "researches": [
-   "education",
-   "masonry",
-   "town_watch"
-  ]
- },
- "il_factory": {
-  "id": "il_factory",
-  "name": "מפעל",
-  "emoji": "🏭",
-  "desc": "ייצור תעשייתי — עץ ואבן בהתמדה",
-  "size": 3,
-  "cost": {
-   "wood": 200,
-   "stone": 80
-  },
-  "buildTime": 42,
-  "hp": 1000,
-  "armor": 3,
-  "pierceArmor": 7,
-  "los": 7,
-  "trickle": {
-   "wood": 0.3,
-   "stone": 0.18
-  },
-  "researches": [
-   "industry"
-  ],
-  "limit": 3
- },
- "il_military_base": {
-  "id": "il_military_base",
-  "name": "בסיס צבאי",
-  "emoji": "🏕️",
-  "desc": "מאמן את יחידות העילית של הזרוע הנבחרת",
-  "size": 4,
-  "cost": {
-   "wood": 220,
-   "stone": 120
-  },
-  "buildTime": 46,
-  "hp": 1400,
-  "armor": 5,
-  "pierceArmor": 10,
-  "los": 10,
-  "trains": [
-   "il_golani",
-   "il_commando",
-   "il_sniper",
-   "il_apc",
-   "il_tank",
-   "il_drone",
-   "il_flak",
-   "il_elite"
-  ],
-  "researches": [
-   "logistics",
-   "engineering"
-  ],
-  "limit": 3
- },
- "il_airdefense": {
-  "id": "il_airdefense",
-  "name": "כיפת ברזל",
-  "emoji": "📡",
-  "desc": "מערכת יירוט שמגנה על היישוב מפני מטרות אוויריות",
-  "size": 2,
-  "cost": {
-   "wood": 120,
-   "gold": 140
-  },
-  "buildTime": 40,
-  "hp": 900,
-  "armor": 4,
-  "pierceArmor": 10,
-  "los": 16,
-  "attack": 18,
-  "attackType": "flak",
-  "range": 12,
-  "attackCooldown": 1.3,
-  "bonusVs": {
-   "air": 5.0
-  },
-  "limit": 6
- },
- "il_hospital": {
-  "id": "il_hospital",
-  "name": "בית חולים",
-  "emoji": "🏥",
-  "desc": "מרפא יחידות בסביבה ומאמן חובשים",
-  "size": 3,
-  "cost": {
-   "wood": 180,
-   "gold": 80
-  },
-  "buildTime": 40,
-  "hp": 900,
-  "armor": 2,
-  "pierceArmor": 7,
-  "los": 8,
-  "trains": [
-   "il_medic"
-  ],
-  "healAura": {
-   "radius": 9,
-   "rate": 3.5
-  },
-  "limit": 3
- },
- "il_exchange": {
-  "id": "il_exchange",
-  "name": "בורסה",
-  "emoji": "💹",
-  "desc": "מרכז מסחר — זרימת זהב חזקה",
-  "size": 3,
-  "cost": {
-   "wood": 200,
-   "stone": 100
-  },
-  "buildTime": 44,
-  "hp": 860,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 8,
-  "trickle": {
-   "gold": 0.65
-  },
-  "researches": [
-   "coinage",
-   "caravan"
-  ],
-  "limit": 2
- },
- "il_hightech": {
-  "id": "il_hightech",
-  "name": "פארק הייטק",
-  "emoji": "💻",
-  "desc": "מחקר וחדשנות — בונוס טכנולוגי גדול",
-  "size": 3,
-  "cost": {
-   "wood": 220,
-   "gold": 120
-  },
-  "buildTime": 48,
-  "hp": 900,
-  "armor": 3,
-  "pierceArmor": 8,
-  "los": 9,
-  "trickle": {
-   "gold": 0.3
-  },
-  "researches": [
-   "education",
-   "industry",
-   "engineering"
-  ],
-  "limit": 2
- },
- "jp_castle": {
-  "id": "jp_castle",
-  "name": "טירה",
-  "emoji": "🏯",
-  "desc": "מבצר יפני — הגנה חזקה ומאמן דאימיו",
-  "size": 4,
-  "cost": {
-   "stone": 320,
-   "wood": 120
-  },
-  "buildTime": 58,
-  "hp": 2600,
-  "armor": 9,
-  "pierceArmor": 15,
-  "los": 13,
-  "attack": 24,
-  "attackType": "pierce",
-  "range": 9.5,
-  "attackCooldown": 1.3,
-  "trains": [
-   "jp_daimyo",
-   "jp_samurai"
-  ],
-  "limit": 4
- },
- "jp_dojo": {
-  "id": "jp_dojo",
-  "name": "דוג'ו",
-  "emoji": "🥋",
-  "desc": "אימון לוחמי עילית",
-  "size": 3,
-  "cost": {
-   "wood": 190
-  },
-  "buildTime": 36,
-  "hp": 880,
-  "armor": 3,
-  "pierceArmor": 7,
-  "los": 7,
-  "trains": [
-   "jp_samurai",
-   "jp_shinobi"
-  ],
-  "researches": [
-   "weapons_infantry",
-   "armor_infantry",
-   "devotion"
-  ]
- },
- "jp_shrine": {
-  "id": "jp_shrine",
-  "name": "מקדש הכפר",
-  "emoji": "⛩️",
-  "desc": "מרכז רוחני — מוסיף מקום לאנשים ומחקר",
-  "size": 2,
-  "cost": {
-   "wood": 140
-  },
-  "buildTime": 30,
-  "hp": 700,
-  "armor": 1,
-  "pierceArmor": 6,
-  "los": 9,
-  "popProvided": 5,
-  "researches": [
-   "devotion",
-   "town_watch"
-  ]
- },
- "ar_wisdom_house": {
-  "id": "ar_wisdom_house",
-  "name": "בית חוכמה",
-  "emoji": "📚",
-  "desc": "מרכז מדע — מחקר מהיר במיוחד",
-  "size": 3,
-  "cost": {
-   "wood": 200,
-   "gold": 60
-  },
-  "buildTime": 40,
-  "hp": 840,
-  "armor": 2,
-  "pierceArmor": 7,
-  "los": 10,
-  "trains": [
-   "ar_scholar"
-  ],
-  "researches": [
-   "education",
-   "masonry",
-   "engineering",
-   "logistics"
-  ],
-  "limit": 3
- },
- "ar_bazaar": {
-  "id": "ar_bazaar",
-  "name": "בזאר",
-  "emoji": "🏬",
-  "desc": "שוק גדול — זהב בהתמדה",
-  "size": 3,
-  "cost": {
-   "wood": 190
-  },
-  "buildTime": 36,
-  "hp": 820,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 9,
-  "trickle": {
-   "gold": 0.55
-  },
-  "researches": [
-   "caravan",
-   "coinage"
-  ],
-  "limit": 3
- },
- "ar_caravanserai": {
-  "id": "ar_caravanserai",
-  "name": "חאן שיירות",
-  "emoji": "🐫",
-  "desc": "תחנת שיירות — אוכל וזהב לדרך",
-  "size": 3,
-  "cost": {
-   "wood": 160,
-   "stone": 60
-  },
-  "buildTime": 36,
-  "hp": 900,
-  "armor": 3,
-  "pierceArmor": 7,
-  "los": 10,
-  "popProvided": 5,
-  "trickle": {
-   "food": 0.22,
-   "gold": 0.22
-  },
-  "limit": 3
- },
- "rm_forum": {
-  "id": "rm_forum",
-  "name": "פורום",
-  "emoji": "🏛️",
-  "desc": "לב החיים האזרחיים — מסחר ומחקר",
-  "size": 3,
-  "cost": {
-   "wood": 200,
-   "stone": 80
-  },
-  "buildTime": 40,
-  "hp": 1000,
-  "armor": 3,
-  "pierceArmor": 8,
-  "los": 9,
-  "trickle": {
-   "gold": 0.4
-  },
-  "researches": [
-   "coinage",
-   "masonry",
-   "town_watch"
-  ],
-  "limit": 2
- },
- "rm_aqueduct": {
-  "id": "rm_aqueduct",
-  "name": "אמת מים",
-  "emoji": "🌉",
-  "desc": "הנדסה רומית — אוכל ומקום לאנשים",
-  "size": 2,
-  "cost": {
-   "stone": 120,
-   "wood": 40
-  },
-  "buildTime": 32,
-  "hp": 800,
-  "armor": 5,
-  "pierceArmor": 10,
-  "los": 7,
-  "popProvided": 6,
-  "trickle": {
-   "food": 0.3
-  },
-  "limit": 4
- },
- "rm_castrum": {
-  "id": "rm_castrum",
-  "name": "מחנה לגיון",
-  "emoji": "⛺",
-  "desc": "מחנה מאורגן — מאמן לגיונרים",
-  "size": 4,
-  "cost": {
-   "wood": 200,
-   "stone": 100
-  },
-  "buildTime": 44,
-  "hp": 1500,
-  "armor": 6,
-  "pierceArmor": 10,
-  "los": 10,
-  "trains": [
-   "rm_legion",
-   "rm_centurion",
-   "rm_hastati"
-  ],
-  "researches": [
-   "logistics",
-   "weapons_infantry",
-   "armor_infantry"
-  ],
-  "limit": 3
- },
- "eg_granary": {
-  "id": "eg_granary",
-  "name": "אסם",
-  "emoji": "🏺",
-  "desc": "אחסון תבואה — אוכל בהתמדה",
-  "size": 2,
-  "cost": {
-   "wood": 120
-  },
-  "buildTime": 26,
-  "hp": 620,
-  "armor": 1,
-  "pierceArmor": 5,
-  "los": 6,
-  "dropOff": [
-   "food"
-  ],
-  "trickle": {
-   "food": 0.3
-  }
- },
- "eg_obelisk": {
-  "id": "eg_obelisk",
-  "name": "אובליסק",
-  "emoji": "🗿",
-  "desc": "מונומנט — טווח ראייה עצום",
-  "size": 1,
-  "cost": {
-   "stone": 140
-  },
-  "buildTime": 30,
-  "hp": 800,
-  "armor": 6,
-  "pierceArmor": 12,
-  "los": 20,
-  "limit": 4
- },
- "eg_pyramid": {
-  "id": "eg_pyramid",
-  "name": "פירמידה",
-  "emoji": "🔺",
-  "desc": "פרויקט הבנייה הגדול — בונוס עצום ליישוב",
-  "size": 4,
-  "cost": {
-   "stone": 500,
-   "wood": 200,
-   "gold": 200
-  },
-  "buildTime": 120,
-  "hp": 4000,
-  "armor": 12,
-  "pierceArmor": 20,
-  "los": 14,
-  "popProvided": 20,
-  "trickle": {
-   "gold": 0.5,
-   "stone": 0.25
-  },
-  "limit": 1
- },
- "vk_tc": {
-  "id": "vk_tc",
-  "name": "מרכז האחוזה",
-  "emoji": "🏘️",
-  "desc": "לב היישוב — מאמן איכרים ומקבל משאבים",
-  "size": 4,
-  "cost": {
-   "wood": 275,
-   "stone": 100
-  },
-  "buildTime": 60,
-  "hp": 1400,
-  "armor": 4,
-  "pierceArmor": 8,
-  "los": 12,
-  "popProvided": 5,
-  "trains": [
-   "vk_worker"
-  ],
-  "dropOff": "all",
-  "isTownCenter": true,
-  "limit": 4
- },
- "vk_longhouse": {
-  "id": "vk_longhouse",
-  "name": "לונגהאוס",
-  "emoji": "🛖",
-  "desc": "בית ארוך משותף — מקום מגורים גדול לכל המשפחה המורחבת",
-  "size": 3,
-  "cost": {
-   "wood": 110
-  },
-  "buildTime": 26,
-  "hp": 760,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 6,
-  "popProvided": 9,
-  "limit": 6
- },
- "vk_mead_hall": {
-  "id": "vk_mead_hall",
-  "name": "אולם המשתה",
-  "emoji": "🍺",
-  "desc": "אולם החגיגות — אוכל בהתמדה ולכידות קהילתית",
-  "size": 3,
-  "cost": {
-   "wood": 170,
-   "food": 60
-  },
-  "buildTime": 36,
-  "hp": 900,
-  "armor": 2,
-  "pierceArmor": 7,
-  "los": 8,
-  "popProvided": 6,
-  "trickle": {
-   "food": 0.5
-  },
-  "researches": [
-   "devotion",
-   "town_watch"
-  ],
-  "limit": 3
- },
- "vk_harbor": {
-  "id": "vk_harbor",
-  "name": "נמל סחר",
-  "emoji": "⚓",
-  "desc": "מזחים וסירות דיג — זהב ואוכל מהים",
-  "size": 3,
-  "cost": {
-   "wood": 180
-  },
-  "buildTime": 38,
-  "hp": 840,
-  "armor": 2,
-  "pierceArmor": 6,
-  "los": 11,
-  "trickle": {
-   "gold": 0.5,
-   "food": 0.25
-  },
-  "researches": [
-   "caravan",
-   "coinage"
-  ],
-  "limit": 4
- },
- "vk_forge": {
-  "id": "vk_forge",
-  "name": "בית מלאכה",
-  "emoji": "⚒️",
-  "desc": "נפחים וחרשי עץ — שיפור נשק ושריון",
-  "size": 2,
-  "cost": {
-   "wood": 150,
-   "stone": 40
-  },
-  "buildTime": 30,
-  "hp": 780,
-  "armor": 3,
-  "pierceArmor": 7,
-  "los": 6,
-  "researches": [
-   "weapons_infantry",
-   "armor_infantry",
-   "fletching",
-   "armor_ranged",
-   "masonry",
-   "engineering"
-  ]
- }
 }
