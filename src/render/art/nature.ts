@@ -1,6 +1,6 @@
 import type { TileResource } from '../../core/types';
 import type { Camera } from '../camera';
-import { drawColumn, poly, shade } from '../iso';
+import { drawCastShadowEllipse, drawColumn, poly, shade } from '../iso';
 
 /** גיוון דטרמיניסטי לפי אריח — אותו עץ ייראה אותו דבר בכל פריים. */
 export function tileHash(x: number, y: number, salt = 0): number {
@@ -23,6 +23,7 @@ export function drawConifer(
 ): void {
   const trunk = '#6b4a2f';
   const leaf = CONIFER[Math.floor(tileHash(wx, wy, seed) * CONIFER.length)];
+  drawCastShadowEllipse(ctx, cam, wx, wy, 0.3, h * 0.9);
   drawColumn(ctx, cam, wx, wy, 0.085, h * 0.3, trunk);
   const layers = 4;
   for (let i = 0; i < layers; i++) {
@@ -59,6 +60,7 @@ export function drawBroadleaf(
   seed: number,
 ): void {
   const leaf = BROADLEAF[Math.floor(tileHash(wx, wy, seed) * BROADLEAF.length)];
+  drawCastShadowEllipse(ctx, cam, wx, wy, 0.34, h * 0.85);
   drawColumn(ctx, cam, wx, wy, 0.095, h * 0.42, '#6b4a2f');
   const c = cam.worldToScreen(wx, wy, h * 0.72);
   const r = cam.zoom * 0.28;
@@ -85,6 +87,7 @@ export function drawRocks(
   seed: number,
   color = '#8d949c',
 ): void {
+  drawCastShadowEllipse(ctx, cam, wx, wy, 0.3, 0.3);
   const count = 3;
   for (let i = 0; i < count; i++) {
     const hx = tileHash(wx, wy, seed + i * 17);
@@ -136,6 +139,7 @@ export function drawBerryBush(
   wy: number,
   seed: number,
 ): void {
+  drawCastShadowEllipse(ctx, cam, wx, wy, 0.22, 0.3);
   const c = cam.worldToScreen(wx, wy, 0.16);
   const r = cam.zoom * 0.17;
   ctx.fillStyle = '#2f6136';

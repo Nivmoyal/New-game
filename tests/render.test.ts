@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { Camera } from '../src/render/camera';
-import { hexToRgb, mix, shade } from '../src/render/iso';
+import {
+  drawCastShadow,
+  drawCastShadowEllipse,
+  hexToRgb,
+  mix,
+  shade,
+  shadowScreenOffset,
+} from '../src/render/iso';
+import {
+  DIRECTIONS,
+  angleOfDirection,
+  directionIndex,
+  screenAngleOf,
+} from '../src/render/art/people';
 import { archetypeOf, paletteFor } from '../src/render/art/structures';
 import { lookFor, isVehicle, isMotorised } from '../src/render/art/appearance';
 import { allNations, getBuilding, getNation, getUnit, DATA } from '../src/data';
@@ -324,5 +337,122 @@ describe('אפקטים של קרב', () => {
       for (const c of world.drainCombat()) if (c.type === 'work') work++;
     }
     expect(work).toBeGreaterThan(0);
+  });
+});
+
+/** הקשר ציור שמתעד קודקודים וקריאות מילוי — לבדיקת גאומטריית הצללים. */
+function recordCtx() {
+  const pts: { x: number; y: number }[] = [];
+  let fills = 0;
+  let ellipses = 0;
+  const ctx = {
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 0,
+    globalAlpha: 1,
+    save() {},
+    restore() {},
+    beginPath() {},
+    closePath() {},
+    translate() {},
+    rotate() {},
+    moveTo(x: number, y: number) {
+      pts.push({ x, y });
+    },
+    lineTo(x: number, y: number) {
+      pts.push({ x, y });
+    },
+    ellipse() {
+      ellipses++;
+    },
+    fill() {
+      fills++;
+    },
+    stroke() {},
+  };
+  return {
+    ctx: ctx as unknown as CanvasRenderingContext2D,
+    pts,
+    get fills() {
+      return fills;
+    },
+    get ellipses() {
+      return ellipses;
+    },
+  };
+}
+
+describe('כיווני פנייה', () => {
+  it('זווית המסך תואמת את ההיטל האיזומטרי בפועל', () => {
+    const cam = cam2();
+    for (let i = 0; i < 16; i++) {
+      const facing = (i / 16) * Math.PI * 2;
+      const a = cam.worldToScreen(10, 10, 0);
+      const b = cam.worldToScreen(10 + Math.cos(facing), 10 + Math.sin(facing), 0);
+      const actual = Math.atan2(b.y - a.y, b.x - a.x);
+      const expected = screenAngleOf(facing);
+      // הפרש זוויתי מחזורי
+      const diff = Math.abs(Math.atan2(Math.sin(actual - expected), Math.cos(actual - expected)));
+      expect(diff).toBeLessThan(1e-9);
+    }
+  });
+
+  it('שמונה כיווני עולם שונים ממופים לשמונה אינדקסים שונים', () => {
+    const seen = new Set<number>();
+    for (let i = 0; i < DIRECTIONS; i++) {
+      // כיווני העולם מוסטים ב-45° כדי ליפול במרכזי הסקטורים של המסך
+      const facing = (i / DIRECTIONS) * Math.PI * 2 + Math.PI / 4;
+      seen.add(directionIndex(screenAngleOf(facing)));
+    }
+    expect(seen.size).toBe(DIRECTIONS);
+  });
+
+  it('מיפוי הכיוונים מחזורי ויציב בהלוך-ושוב', () => {
+    for (let d = 0; d < DIRECTIONS; d++) {
+      expect(directionIndex(angleOfDirection(d))).toBe(d);
+      expect(directionIndex(angleOfDirection(d) + Math.PI * 2)).toBe(d);
+      expect(directionIndex(angleOfDirection(d) - Math.PI * 2)).toBe(d);
+    }
+    expect(directionIndex(-0.001)).toBe(0);
+    expect(directionIndex(Math.PI * 2 - 0.001)).toBe(0);
+  });
+});
+
+describe('צללים מוטלים', () => {
+  it('הצל נופל שמאלה-מטה על המסך', () => {
+    const cam = cam2();
+    const off = shadowScreenOffset(cam);
+    expect(off.x).toBeLessThan(0);
+    expect(off.y).toBeGreaterThan(0);
+  });
+
+  it('גוף ללא גובה אינו מטיל צל', () => {
+    const r = recordCtx();
+    drawCastShadow(r.ctx, cam2(), 10, 10, 1, 1, 0);
+    expect(r.fills).toBe(0);
+  });
+
+  it('הצל מתארך מעבר לטביעת הרגל בכיוון השמש', () => {
+    const cam = cam2();
+    const foot = recordCtx();
+    drawCastShadow(foot.ctx, cam, 10, 10, 2, 2, 0.05);
+    const tall = recordCtx();
+    drawCastShadow(tall.ctx, cam, 10, 10, 2, 2, 1.4);
+    expect(tall.fills).toBe(1);
+    const minX = (pts: { x: number }[]) => Math.min(...pts.map((p) => p.x));
+    const maxY = (pts: { y: number }[]) => Math.max(...pts.map((p) => p.y));
+    expect(minX(tall.pts)).toBeLessThan(minX(foot.pts));
+    expect(maxY(tall.pts)).toBeGreaterThan(maxY(foot.pts));
+    // גוף גבוה יותר מטיל צל ארוך יותר
+    const taller = recordCtx();
+    drawCastShadow(taller.ctx, cam, 10, 10, 2, 2, 2.8);
+    expect(minX(taller.pts)).toBeLessThan(minX(tall.pts));
+  });
+
+  it('צל הדמות מצויר כאליפסה מסובבת', () => {
+    const r = recordCtx();
+    drawCastShadowEllipse(r.ctx, cam2(), 10, 10, 0.22, 0.8);
+    expect(r.ellipses).toBe(1);
+    expect(r.fills).toBe(1);
   });
 });

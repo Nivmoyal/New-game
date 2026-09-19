@@ -1,5 +1,5 @@
 import type { Camera } from '../camera';
-import { poly, shade } from '../iso';
+import { drawCastShadowEllipse, poly, shade } from '../iso';
 
 /**
  * דמויות אנוש מצוירות פרוצדורלית, עם אנימציית הליכה ועבודה.
@@ -32,8 +32,37 @@ export function skinFor(id: number): string {
 }
 
 /**
+ * ממיר כיוון תנועה בעולם לזווית על המסך.
+ * בהיטל איזומטרי כיוון (dx,dy) ממופה ל-(dx-dy, (dx+dy)/2).
+ */
+export function screenAngleOf(worldFacing: number): number {
+  const dx = Math.cos(worldFacing);
+  const dy = Math.sin(worldFacing);
+  return Math.atan2((dx + dy) / 2, dx - dy);
+}
+
+/** מספר כיווני הפנייה הנתמכים. */
+export const DIRECTIONS = 8;
+
+/** ממפה זווית מסך לאחד משמונה הכיוונים. */
+export function directionIndex(screenAngle: number): number {
+  const t = (screenAngle / (Math.PI * 2) + 1) % 1;
+  return Math.round(t * DIRECTIONS) % DIRECTIONS;
+}
+
+/** זווית המסך המייצגת של כיוון בדיד. */
+export function angleOfDirection(dir: number): number {
+  return (dir / DIRECTIONS) * Math.PI * 2;
+}
+
+/**
  * מצייר דמות במיקום עולם (wx,wy) על גובה z.
- * `facing` הוא זווית תנועה ברדיאנים בעולם; משמשת להיפוך צדדי.
+ *
+ * `screenAngle` הוא הכיוון שאליו הדמות פונה **על המסך**. ממנו נגזרים
+ * שני גורמים רציפים: `fwd` (‎+1 פונה אל הצופה, ‎-1 מפנה גב) ו-`lat`
+ * (‎+1 ימינה, ‎-1 שמאלה). רוחב הכתפיים, מרווח הרגליים, מיקום הידיים
+ * והאם רואים פנים — כולם נגזרים מהם, כך שמתקבלים שמונה כיוונים
+ * משכנעים בלי לצייר שמונה ספרייטים ביד.
  */
 export function drawPerson(
   ctx: CanvasRenderingContext2D,
@@ -44,30 +73,30 @@ export function drawPerson(
   style: PersonStyle,
   action: Action,
   phase: number,
-  facing: number,
+  screenAngle: number,
   scale = 1,
+  withShadow = true,
 ): void {
   const base = cam.worldToScreen(wx, wy, z);
-  // גובה דמות ≈ 0.85 אריח
-  const u = cam.zoom * 0.66 * scale; // יחידת מידה אנכית
+  const u = cam.zoom * 0.66 * scale;
   if (u < 3) {
-    // זום רחוק מאוד — נקודה צבעונית בלבד, חוסך זמן ציור
     ctx.fillStyle = style.cloth;
     ctx.fillRect(base.x - u * 0.3, base.y - u * 0.6, u * 0.6, u * 0.6);
     return;
   }
 
-  // כיוון: ימינה אם היחידה נעה לכיוון +x או -y
-  const dirX = Math.cos(facing);
-  const dirY = Math.sin(facing);
-  const screenDir = dirX - dirY >= 0 ? 1 : -1;
+  // fwd: +1 פונה אלינו, -1 מפנה גב. lat: +1 ימינה, -1 שמאלה.
+  const fwd = Math.sin(screenAngle);
+  const lat = Math.cos(screenAngle);
+  const side = Math.abs(lat); // כמה רואים פרופיל
+  const facingUs = fwd > 0;
+  const dirSign = lat >= 0 ? 1 : -1;
 
   const t = phase * Math.PI * 2;
   const walking = action === 'walk' || action === 'carry';
   const swing = walking ? Math.sin(t) : 0;
   const bob = walking ? Math.abs(Math.cos(t)) * u * 0.05 : 0;
 
-  // מחזור עבודה: זרועות מונפות ויורדות
   let workArm = 0;
   if (action === 'chop' || action === 'mine' || action === 'build' || action === 'fight') {
     workArm = Math.sin(phase * Math.PI * 2);
@@ -75,89 +104,119 @@ export function drawPerson(
     workArm = Math.sin(phase * Math.PI * 2) * 0.5 - 0.3;
   }
 
-  const px = (dx: number, dy: number) => ({ x: base.x + dx * screenDir, y: base.y + dy - bob });
+  const px = (dx: number, dy: number) => ({ x: base.x + dx, y: base.y + dy - bob });
 
   const legTop = -u * 0.44;
   const bodyTop = -u * 0.78;
   const headR = u * 0.15;
+  // כתפיים רחבות כשרואים חזית/גב, צרות בפרופיל
+  const half = u * (0.1 + 0.08 * (1 - side));
 
-  // ===== צל =====
-  ctx.save();
-  ctx.globalAlpha = 0.2;
-  ctx.fillStyle = '#0a1508';
-  ctx.beginPath();
-  ctx.ellipse(base.x, base.y, u * 0.24, u * 0.1, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  if (withShadow) {
+    drawCastShadowEllipse(ctx, cam, wx, wy, 0.22 * scale, 0.8 * scale);
+  }
 
   const legColor = shade(style.accent, -0.1);
   const lw = Math.max(1, u * 0.11);
+  ctx.lineCap = 'round';
 
   // ===== רגליים =====
-  ctx.lineCap = 'round';
+  // בפרופיל הרגליים מתנדנדות קדימה ואחורה; בחזית הן זזות הצידה
   ctx.lineWidth = lw;
   ctx.strokeStyle = legColor;
-  const legSwing = swing * u * 0.16;
+  const legSpread = half * 0.55;
+  const stepFwd = swing * u * 0.16 * side * dirSign;
+  const stepSide = swing * u * 0.06 * (1 - side);
   ctx.beginPath();
-  const hip = px(0, legTop);
-  ctx.moveTo(hip.x, hip.y);
-  const footA = px(legSwing, 0);
-  ctx.lineTo(footA.x, footA.y);
-  ctx.moveTo(hip.x, hip.y);
-  const footB = px(-legSwing, 0);
-  ctx.lineTo(footB.x, footB.y);
+  const hipL = px(-legSpread, legTop);
+  const hipR = px(legSpread, legTop);
+  ctx.moveTo(hipL.x, hipL.y);
+  const footL = px(-legSpread + stepFwd + stepSide, 0);
+  ctx.lineTo(footL.x, footL.y);
+  ctx.moveTo(hipR.x, hipR.y);
+  const footR = px(legSpread - stepFwd - stepSide, 0);
+  ctx.lineTo(footR.x, footR.y);
   ctx.stroke();
 
   // ===== גוף =====
   const shoulderY = bodyTop + u * 0.06;
   const bodyPts = [
-    px(-u * 0.15, shoulderY),
-    px(u * 0.15, shoulderY),
-    px(u * 0.12, legTop + u * 0.02),
-    px(-u * 0.12, legTop + u * 0.02),
+    px(-half, shoulderY),
+    px(half, shoulderY),
+    px(half * 0.82, legTop + u * 0.02),
+    px(-half * 0.82, legTop + u * 0.02),
   ];
   poly(ctx, bodyPts, style.cloth, shade(style.cloth, -0.5));
-  // הצללה בצד שמאל של הגוף
-  poly(ctx, [bodyPts[0], px(-u * 0.04, shoulderY), px(-u * 0.03, legTop), bodyPts[3]], shade(style.cloth, -0.16));
+  // הצללה בצד המרוחק מהשמש
+  poly(ctx, [bodyPts[0], px(-half * 0.2, shoulderY), px(-half * 0.18, legTop), bodyPts[3]],
+    shade(style.cloth, -0.16));
 
   // ===== זרועות =====
   ctx.lineWidth = lw * 0.85;
   ctx.strokeStyle = style.skin;
   const shoulder = px(0, shoulderY + u * 0.02);
-  // זרוע אחורית
-  const backHand = px(-u * 0.2 - swing * u * 0.1, shoulderY + u * 0.26);
+  const armLift = workArm * u * 0.4;
+  // יד "אחורית" — נעלמת כמעט לגמרי בפרופיל
+  const backHand = px(
+    -half * 1.5 * (0.4 + 0.6 * (1 - side)) - swing * u * 0.08 * side * dirSign,
+    shoulderY + u * 0.26,
+  );
   ctx.beginPath();
   ctx.moveTo(shoulder.x, shoulder.y);
   ctx.lineTo(backHand.x, backHand.y);
   ctx.stroke();
-  // זרוע קדמית — מונפת בעבודה
-  const armLift = workArm * u * 0.4;
-  const frontHand = px(u * 0.26 + swing * u * 0.1, shoulderY + u * 0.24 - armLift);
+  // יד קדמית — נושאת את הכלי
+  const frontHand = px(
+    (half * 1.5 * (0.4 + 0.6 * (1 - side)) + u * 0.1 * side) * dirSign + swing * u * 0.08 * side * dirSign,
+    shoulderY + u * 0.24 - armLift,
+  );
   ctx.beginPath();
   ctx.moveTo(shoulder.x, shoulder.y);
   ctx.lineTo(frontHand.x, frontHand.y);
   ctx.stroke();
 
-  // ===== כלי עבודה =====
   if (style.tool && style.tool !== 'none') {
-    drawTool(ctx, style.tool, frontHand, shoulder, u, screenDir, style);
+    drawTool(ctx, style.tool, frontHand, shoulder, u, dirSign, style);
   }
 
   // ===== ראש =====
-  const head = px(u * 0.02, bodyTop - headR * 0.6);
+  const head = px(u * 0.02 * dirSign * side, bodyTop - headR * 0.6);
   ctx.fillStyle = style.skin;
   ctx.beginPath();
   ctx.arc(head.x, head.y, headR, 0, Math.PI * 2);
   ctx.fill();
 
-  // ===== כובע =====
-  drawHat(ctx, style, head, headR, screenDir);
+  // גב הראש: כשמפנים גב רואים רק שיער/קסדה
+  if (!facingUs) {
+    ctx.fillStyle = style.hat === 'helmet' ? '#8a939c' : '#3a2a1c';
+    ctx.beginPath();
+    ctx.arc(head.x, head.y, headR * 0.98, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // פנים: עיניים נראות רק כשפונים אלינו, ומתעמעמות בפרופיל
+    const eyeAlpha = Math.max(0, fwd) * (0.45 + 0.55 * (1 - side));
+    if (eyeAlpha > 0.08) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, eyeAlpha);
+      ctx.fillStyle = '#2b2420';
+      const eyeDx = headR * 0.38;
+      const eyeOff = headR * 0.3 * dirSign * side;
+      ctx.beginPath();
+      ctx.arc(head.x - eyeDx * (1 - side * 0.5) + eyeOff, head.y - headR * 0.05, headR * 0.15, 0, Math.PI * 2);
+      ctx.arc(head.x + eyeDx * (1 - side * 0.5) + eyeOff, head.y - headR * 0.05, headR * 0.15, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
 
-  // ===== משא =====
+  drawHat(ctx, style, head, headR, dirSign);
+
+  // ===== משא על הגב =====
   if (action === 'carry') {
     ctx.fillStyle = '#8a6a3f';
-    const packX = head.x - screenDir * headR * 1.6;
-    ctx.fillRect(packX - u * 0.09, head.y + headR * 0.4, u * 0.18, u * 0.2);
+    const packX = head.x - dirSign * headR * 1.5 * side;
+    const packY = head.y + headR * (facingUs ? 0.9 : 0.4);
+    ctx.fillRect(packX - u * 0.09, packY, u * 0.18, u * 0.2);
   }
 }
 

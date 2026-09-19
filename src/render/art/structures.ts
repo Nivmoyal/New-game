@@ -1,7 +1,7 @@
 import type { BuildingDef } from '../../data/schema';
 import type { Camera } from '../camera';
 import {
-  drawBox, drawColumn, drawFlag, drawGableRoof, drawHipRoof, drawRoof,
+  drawBox, drawCastShadow, drawColumn, drawFlag, drawGableRoof, drawHipRoof, drawRoof,
   faceColors, poly, shade, type RoofStyle,
 } from '../iso';
 import { drawFarmField, tileHash } from './nature';
@@ -127,6 +127,14 @@ export function paletteFor(nationId: string, ownerColor: string): StructurePalet
  * מצייר מבנה. (wx,wy) היא פינת שמאל-עליון בעולם, `size` צד המבנה באריחים.
  * `progress` (0..1) מצייר אתר בנייה עם פיגומים כשהוא קטן מ-1.
  */
+/** גובה משוער לכל ארכיטיפ — משמש לחישוב אורך הצל המוטל. */
+const SHADOW_HEIGHT: Record<Archetype, number> = {
+  townCenter: 1.15, house: 0.7, longhouse: 0.78, farm: 0.3, storage: 0.55,
+  barracks: 0.75, range: 0.62, stable: 0.68, workshop: 0.72, tower: 1.2,
+  wall: 0.75, market: 0.6, temple: 0.95, academy: 0.78, castle: 1.4,
+  monument: 1.2, factory: 0.9, radar: 0.85, hospital: 0.72, port: 0.62,
+};
+
 export function drawStructure(
   ctx: CanvasRenderingContext2D,
   cam: Camera,
@@ -140,6 +148,10 @@ export function drawStructure(
   const progress = opts.progress ?? 1;
   const time = opts.time ?? 0;
   const seed = opts.seed ?? 0;
+
+  // צל מוטל על הקרקע — מה שגורם למבנה "לשבת" בעולם ולא לרחף
+  const shadowH = (SHADOW_HEIGHT[arch] ?? 0.7) * (progress < 1 ? 0.45 : 1);
+  drawCastShadow(ctx, cam, wx + size * 0.1, wy + size * 0.1, size * 0.8, size * 0.8, shadowH);
 
   if (progress < 1) {
     drawConstructionSite(ctx, cam, wx, wy, size, pal, progress);

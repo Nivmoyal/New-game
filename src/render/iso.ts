@@ -422,3 +422,104 @@ export function drawRoof(
       break;
   }
 }
+
+/**
+ * כיוון השמש, ביחידות אריח להיסט לכל יחידת גובה.
+ * נבחר כך שהצללים נופלים שמאלה-מטה על המסך (שמש מימין-מעלה),
+ * באותו כיוון שבו מוצללות הפאות של כל גוף.
+ */
+export const SUN = { dx: -0.52, dy: 0.86 };
+
+/** צבע הצל המוטל. */
+export const SHADOW_FILL = 'rgba(12, 22, 16, 0.3)';
+
+/** היסט הצל במרחב המסך ליחידת גובה אחת. */
+export function shadowScreenOffset(cam: Camera): Vec2 {
+  return {
+    x: (SUN.dx - SUN.dy) * (cam.zoom / 2),
+    y: (SUN.dx + SUN.dy) * (cam.zoom / 4),
+  };
+}
+
+/** עוטף קמור של נקודות מסך (Andrew monotone chain). */
+function convexHull(points: Vec2[]): Vec2[] {
+  if (points.length < 3) return points;
+  const pts = [...points].sort((a, b) => (a.x === b.x ? a.y - b.y : a.x - b.x));
+  const cross = (o: Vec2, a: Vec2, b: Vec2) =>
+    (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const lower: Vec2[] = [];
+  for (const p of pts) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) {
+      lower.pop();
+    }
+    lower.push(p);
+  }
+  const upper: Vec2[] = [];
+  for (let i = pts.length - 1; i >= 0; i--) {
+    const p = pts[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) {
+      upper.pop();
+    }
+    upper.push(p);
+  }
+  lower.pop();
+  upper.pop();
+  return lower.concat(upper);
+}
+
+/**
+ * צל מוטל של גוף מלבני על הקרקע.
+ *
+ * הצל הוא העוטף הקמור של טביעת הרגל ושל טביעת הרגל המוסטת בכיוון
+ * השמש לפי הגובה — כלומר בדיוק מה שגוף קופסתי היה מטיל.
+ */
+export function drawCastShadow(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  w: number,
+  d: number,
+  height: number,
+): void {
+  if (height <= 0.02) return;
+  const ox = SUN.dx * height;
+  const oy = SUN.dy * height;
+  const base: Vec2[] = [
+    cam.worldToScreen(wx, wy, 0),
+    cam.worldToScreen(wx + w, wy, 0),
+    cam.worldToScreen(wx + w, wy + d, 0),
+    cam.worldToScreen(wx, wy + d, 0),
+  ];
+  const top: Vec2[] = [
+    cam.worldToScreen(wx + ox, wy + oy, 0),
+    cam.worldToScreen(wx + w + ox, wy + oy, 0),
+    cam.worldToScreen(wx + w + ox, wy + d + oy, 0),
+    cam.worldToScreen(wx + ox, wy + d + oy, 0),
+  ];
+  poly(ctx, convexHull([...base, ...top]), SHADOW_FILL);
+}
+
+/** צל מוטל של גוף צר וגבוה (עץ, עמוד, דמות). */
+export function drawCastShadowEllipse(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number,
+  wy: number,
+  radius: number,
+  height: number,
+): void {
+  const mid = height * 0.5;
+  const c = cam.worldToScreen(wx + SUN.dx * mid, wy + SUN.dy * mid, 0);
+  const len = height * cam.zoom * 0.34;
+  ctx.save();
+  ctx.fillStyle = SHADOW_FILL;
+  ctx.translate(c.x, c.y);
+  // מאורך בכיוון השמש
+  const off = shadowScreenOffset(cam);
+  ctx.rotate(Math.atan2(off.y, off.x));
+  ctx.beginPath();
+  ctx.ellipse(0, 0, Math.max(2, radius * cam.zoom * 0.5 + len * 0.5), Math.max(1.5, radius * cam.zoom * 0.28), 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}

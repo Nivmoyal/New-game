@@ -1,5 +1,5 @@
 import type { Camera } from '../camera';
-import { drawBox, drawColumn, faceColors, poly, shade } from '../iso';
+import { drawBox, drawCastShadowEllipse, drawColumn, faceColors, poly, shade } from '../iso';
 
 /**
  * כלי רכב וכלי מצור — מצוירים כתיבות תלת-ממדיות עם פרטים.
@@ -54,15 +54,13 @@ export function drawVehicle(
   const y = wy - s * 0.38;
   const dir = Math.cos(facing) - Math.sin(facing) >= 0 ? 1 : -1;
 
-  // צל
-  ctx.save();
-  ctx.globalAlpha = 0.24;
-  ctx.fillStyle = '#0a1508';
-  const sp = cam.worldToScreen(wx, wy, 0);
-  ctx.beginPath();
-  ctx.ellipse(sp.x, sp.y, cam.zoom * s * 0.42, cam.zoom * s * 0.2, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+  // צל מוטל בכיוון השמש
+  if (kind !== 'drone') {
+    drawCastShadowEllipse(ctx, cam, wx, wy, s * 0.55, kind === 'horse' || kind === 'camel' ? 0.8 : 0.5);
+  } else {
+    // מל"ט מרחף — צל קטן ורחוק מתחתיו
+    drawCastShadowEllipse(ctx, cam, wx, wy, s * 0.3, 1.2);
+  }
 
   switch (kind) {
     case 'horse':

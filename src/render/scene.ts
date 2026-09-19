@@ -1,7 +1,7 @@
 import { Camera } from './camera';
 import { poly, shade, tileDiamond } from './iso';
 import { drawBroadleaf, drawConifer, drawRocks } from './art/nature';
-import { drawPerson, type Action, type PersonStyle } from './art/people';
+import { drawPerson, screenAngleOf, type Action, type PersonStyle } from './art/people';
 import { drawStructure, paletteFor, type Archetype } from './art/structures';
 import { drawVehicle } from './art/vehicles';
 
@@ -216,7 +216,8 @@ export class MenuScene {
       const facing = Math.atan2(wk.ty - wk.y, wk.tx - wk.x);
       items.push({
         depth: wk.x + wk.y,
-        draw: () => drawPerson(ctx, cam, wk.x, wk.y, 0, wk.style, wk.action, phase, facing, 0.95),
+        draw: () =>
+          drawPerson(ctx, cam, wk.x, wk.y, 0, wk.style, wk.action, phase, screenAngleOf(facing), 0.95),
       });
     }
     items.sort((a, b) => a.depth - b.depth);

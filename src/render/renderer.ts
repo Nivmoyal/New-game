@@ -7,7 +7,7 @@ import type { World } from '../core/world';
 import { Camera } from './camera';
 import { drawBox, faceColors, poly, shade, tileDiamond } from './iso';
 import { lookFor } from './art/appearance';
-import { skinFor, type Action, type PersonStyle } from './art/people';
+import { directionIndex, screenAngleOf, skinFor, type Action, type PersonStyle } from './art/people';
 import { FRAMES, PersonSprites } from './art/spritecache';
 import { drawResource } from './art/nature';
 import { TerrainLayer } from './terrain';
@@ -291,8 +291,7 @@ export class Renderer {
         tool: look.style.tool,
         shield: look.style.shield,
       };
-      const facing = e.unit?.facing ?? 0;
-      const flip = Math.cos(facing) - Math.sin(facing) < 0;
+      const dir = directionIndex(screenAngleOf(e.unit?.facing ?? 0));
       const scale = def.pop >= 2 ? 1.15 : 1;
       const sprite = this.people.get(
         `${e.defId}|${color}|${skinFor(e.id)}`,
@@ -300,8 +299,10 @@ export class Renderer {
         style,
         action,
         frame,
-        flip,
+        dir,
         scale,
+        // יחידות אוויר לא מטילות צל בנקודת הקרקע שלהן
+        def.class !== 'air',
       );
       const flying = def.class === 'air';
       const p = cam.worldToScreen(e.pos.x, e.pos.y, flying ? 1.1 : 0);
