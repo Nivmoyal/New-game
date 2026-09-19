@@ -38,6 +38,8 @@ export class AiController {
   private defenseUntil = 0;
   /** מפת "מה כבר ביקשתי לבנות" — מונע ניסיונות כפולים באותו דופק */
   private pendingBuild = 0;
+  /** מקום הנמל שנמצא (null = אין חוף בטווח, undefined = עוד לא נבדק). */
+  private cachedShore: Vec2 | null | undefined = undefined;
 
   constructor(playerId: PlayerId, difficulty: Difficulty = 'normal') {
     this.playerId = playerId;
@@ -57,11 +59,16 @@ export class AiController {
     const mine = world.entitiesOf(this.playerId);
     const units = mine.filter((e) => e.kind === 'unit');
     const buildings = mine.filter((e) => e.kind === 'building');
-    const workers = units.filter((e) => (getUnit(e.defId).gatherRate ? true : false));
+    // סירת דיג אוספת, אבל היא לא פועל יבשתי: אסור לשלוח אותה לכרות עץ
+    const workers = units.filter((e) => {
+      const d = getUnit(e.defId);
+      return Boolean(d.gatherRate) && d.class !== 'ship';
+    });
     const army = units.filter((e) => this.isMilitary(e));
 
     this.manageEconomy(world, player, workers);
     this.manageTraining(world, player, buildings, workers.length, army.length);
+    this.manageDocks(world, player, buildings);
     this.manageConstruction(world, player, buildings, workers);
     this.manageResearch(world, player, buildings);
     this.manageGrowth(world, player, buildings);
@@ -71,7 +78,8 @@ export class AiController {
 
   private isMilitary(e: Entity): boolean {
     const def = getUnit(e.defId);
-    return def.class !== 'worker' && !def.healer;
+    // ספינות לא נשלחות בגלי התקפה יבשתיים — הן מגינות על החוף בעצמן
+    return def.class !== 'worker' && def.class !== 'ship' && !def.healer;
   }
 
   // ===== כלכלה =====
@@ -169,10 +177,58 @@ export class AiController {
     for (const b of buildings) {
       const def = getBuilding(b.defId);
       if (!def.trains || def.isTownCenter) continue;
+      // נמל מנוהל בנפרד: סירות דיג הן כלכלה, לא צבא
+      if (roleOf(def) === 'dock') continue;
       if (!b.building?.complete) continue;
       if ((b.building.trainQueue.length ?? 0) >= 2) continue;
       const choice = this.pickUnit(world, player, def);
       if (choice) world.enqueueTrain(b.id, choice.id);
+    }
+  }
+
+  /**
+   * נמלים: קודם צי דיג (כלכלה), ורק כשיש מספיק — ספינות קרב.
+   * סירת דיג נספרת ככלכלה ולא כצבא, אחרת ה-AI היה חושב שיש לו צבא
+   * ושולח גלי התקפה של סירות.
+   */
+  private manageDocks(world: World, player: Player, buildings: Entity[]): void {
+    const docks = buildings.filter(
+      (b) => b.building?.complete && roleOf(getBuilding(b.defId)) === 'dock',
+    );
+    if (docks.length === 0) return;
+
+    let boats = 0;
+    let warships = 0;
+    for (const e of world.entitiesOf(this.playerId)) {
+      if (!e.alive || e.kind !== 'unit') continue;
+      const d = getUnit(e.defId);
+      if (d.class !== 'ship') continue;
+      if (d.gatherRate) boats++;
+      else warships++;
+    }
+
+    const wantBoats = 2 + player.stage;
+    for (const b of docks) {
+      const def = getBuilding(b.defId);
+      if (!def.trains || (b.building!.trainQueue.length ?? 0) >= 1) continue;
+      const fishing = def.trains.filter((id) => getUnit(id).gatherRate);
+      const war = def.trains.filter((id) => !getUnit(id).gatherRate);
+      const pick = boats < wantBoats ? fishing[0] : warships < player.stage ? war[0] : null;
+      if (!pick || !player.canTrain(pick)) continue;
+      const u = getUnit(pick);
+      if (!player.hasResources(player.unitCost(u.id, u.cost))) continue;
+      world.enqueueTrain(b.id, pick);
+      if (boats < wantBoats) boats++;
+      else warships++;
+    }
+
+    // סירת דיג שסיימה או שנולדה — שולחים לדגה הקרובה
+    for (const e of world.entitiesOf(this.playerId)) {
+      if (!e.alive || e.kind !== 'unit' || e.order.kind !== 'idle') continue;
+      const d = getUnit(e.defId);
+      if (d.class !== 'ship' || !d.gatherRate) continue;
+      const tile = world.findResourceTile(e.pos, 'food', 26, true);
+      if (tile) world.assignOrder(e, { kind: 'gather', tile, resource: 'food' });
     }
   }
 
@@ -318,6 +374,13 @@ export class AiController {
       if (eco) return eco;
     }
 
+    // 5ב. נמל — רק אם באמת יש חוף בטווח סביר מהבסיס.
+    //     בלי הבדיקה הזו ה-AI היה "רוצה" נמל במפה יבשתית ונתקע בלי לבנות כלום.
+    if (player.stage >= 2 && totalOfRole('dock') < 1) {
+      const dock = availableByRole(unlocked, 'dock')[0];
+      if (dock && this.shoreSpot(world, dock) !== null) return dock;
+    }
+
     // 6. מחקר
     if (player.stage >= 2 && totalOfRole('research') < 1 + Math.floor(player.stage / 2)) {
       const res = availableByRole(unlocked, 'research').find(
@@ -349,12 +412,45 @@ export class AiController {
    * מסתפקים בהצמדה. בלי הסבב השני ה-AI נתקע במפות צפופות כמו "יער עד",
    * צובר משאבים ולא בונה כלום. הרדיוס גדל ככל שהניסיונות נכשלים.
    */
+  /**
+   * מקום חוף לנמל, בסריקה מסודרת מהקרוב לרחוק.
+   * דגימה אקראית כמעט אף פעם לא פוגעת ברצועת חוף, ולכן כאן סורקים.
+   * התוצאה נשמרת במטמון: קו החוף לא זז במהלך המשחק.
+   */
+  private shoreSpot(world: World, def: BuildingDef): Vec2 | null {
+    if (this.cachedShore !== undefined) return this.cachedShore;
+    const tc = world.townCenterOf(this.playerId);
+    const anchor = tc?.pos ?? { x: world.map.width / 2, y: world.map.height / 2 };
+    this.cachedShore = null;
+    for (let r = 4; r <= 50 && this.cachedShore === null; r++) {
+      for (let dy = -r; dy <= r; dy++) {
+        for (let dx = -r; dx <= r; dx++) {
+          if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+          const tile = { x: Math.round(anchor.x) + dx, y: Math.round(anchor.y) + dy };
+          if (world.canPlaceBuilding(def, tile)) {
+            this.cachedShore = tile;
+            break;
+          }
+        }
+        if (this.cachedShore !== null) break;
+      }
+    }
+    return this.cachedShore;
+  }
+
   private findBuildSpot(
     world: World,
     def: BuildingDef,
     anchor: Vec2,
     role: string,
   ): Vec2 | null {
+    if (role === 'dock') {
+      const spot = this.shoreSpot(world, def);
+      // המקום שנשמר עלול להיתפס בינתיים — אז סורקים מחדש
+      if (spot && world.canPlaceBuilding(def, spot)) return spot;
+      this.cachedShore = undefined;
+      return this.shoreSpot(world, def);
+    }
     const minR = role === 'defense' ? 6 : 3;
     const baseMax = role === 'dropOff' ? 20 : 16;
 

@@ -22,6 +22,7 @@ export type UnitClass =
   | 'cavalry'   // פרשים / שריון
   | 'siege'     // מצור
   | 'air'       // אווירי
+  | 'ship'      // ימי
   | 'building'; // מבנה (מטרה בלבד)
 
 export type Vec2 = { x: number; y: number };

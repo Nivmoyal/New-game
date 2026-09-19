@@ -3,6 +3,7 @@ import type { BranchOptionDef, NationDef } from '../data/schema';
 import { DIFFICULTY_ORDER, AI_PROFILES } from '../ai/difficulty';
 import type { Difficulty } from '../core/types';
 import { deleteSave, listSaves, type Settings } from '../core/save';
+import { MenuScene } from '../render/scene';
 import { clear, el, show } from './dom';
 import { MAP_SIZES, T } from './strings';
 
@@ -33,6 +34,8 @@ export class StartMenu {
   readonly root: HTMLElement;
   private screen: HTMLElement;
   private setup: GameSetup;
+  private scene: MenuScene | null = null;
+  private sceneCanvas: HTMLCanvasElement;
 
   constructor(
     parent: HTMLElement,
@@ -51,19 +54,32 @@ export class StartMenu {
       enemies: 1,
     };
     this.root = el('div', { className: 'menu-root' });
+    // סצנת רקע חיה — אותו מנוע ציור של המשחק עצמו
+    this.sceneCanvas = el('canvas', { className: 'menu-scene' }) as HTMLCanvasElement;
+    this.root.appendChild(this.sceneCanvas);
+    this.root.appendChild(el('div', { className: 'menu-veil' }));
     this.screen = el('div', { className: 'menu-screen' });
     this.root.appendChild(this.screen);
     parent.appendChild(this.root);
+    try {
+      this.scene = new MenuScene(this.sceneCanvas);
+      this.scene.start();
+    } catch {
+      // בלי סצנה — הרקע נשאר מדורג, המסך עדיין עובד
+    }
     this.showMain();
   }
 
   open(): void {
     show(this.root, true);
+    this.scene?.start();
     this.showMain();
   }
 
   close(): void {
     show(this.root, false);
+    // עוצרים את האנימציה כשלא רואים אותה — חוסך סוללה ומעבד
+    this.scene?.stop();
   }
 
   // ===== מסך ראשי =====
@@ -74,7 +90,9 @@ export class StartMenu {
       el('div', {
         className: 'menu-hero',
         children: [
+          el('div', { className: 'crest', text: '⚔️' }),
           el('h1', { className: 'title', text: T.gameTitle }),
+          el('div', { className: 'title-rule' }),
           el('p', { className: 'subtitle', text: T.gameSubtitle }),
           el('div', {
             className: 'menu-buttons',

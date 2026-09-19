@@ -12,7 +12,7 @@ import {
   type Order,
 } from './entities';
 import { FOG_VISIBLE } from './fog';
-import { GameMap, generateMap, type MapOptions } from './gamemap';
+import { GameMap, generateMap, type MapOptions, MIN_HARBOR_WATER } from './gamemap';
 import { beginStageTransition, tickStageTransition } from './growth';
 import { computeDamage, maxHpFor, statsOf, type CombatStats } from './combat';
 import { findPath, formationOffsets, rotateOffsets, smoothPath, type PathGrid } from './pathfinding';
@@ -20,16 +20,51 @@ import { Player, type PlayerConfig } from './player';
 import { Rng } from './rng';
 import type { EntityId, PlayerId, ResourceKind, Vec2 } from './types';
 
+/** יחידות שיורות בנשק חם — משפיע רק על סוג הקליע שמצויר. */
+function isFirearm(defId: string): boolean {
+  return defId.startsWith('il_');
+}
+
 /** גריד ניווט: קרקע + טביעת רגל של מבנים. */
 export class NavGrid implements PathGrid {
   readonly width: number;
   readonly height: number;
   private occupied: Uint8Array;
+  /** חומות ושערים: אריח → בעלים, והאם זה שער. */
+  private barriers = new Map<number, { owner: PlayerId; gate: boolean }>();
 
   constructor(private map: GameMap) {
     this.width = map.width;
     this.height = map.height;
     this.occupied = new Uint8Array(map.width * map.height);
+  }
+
+  setBarrier(x: number, y: number, owner: PlayerId, gate: boolean): void {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
+    this.barriers.set(y * this.width + x, { owner, gate });
+  }
+
+  clearBarrier(x: number, y: number): void {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
+    this.barriers.delete(y * this.width + x);
+  }
+
+  barrierAt(x: number, y: number): { owner: PlayerId; gate: boolean } | undefined {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return undefined;
+    return this.barriers.get(y * this.width + x);
+  }
+
+  /** חסימה מהקרקע בלבד (מים, צוק) — בלי מבנים. */
+  groundBlocked(x: number, y: number): boolean {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return true;
+    return this.map.isBlocked(x, y);
+  }
+
+  /** אריח שספינה יכולה לשוט בו. */
+  isWater(x: number, y: number): boolean {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return false;
+    const t = this.map.terrainAt(x, y);
+    return t === 'water' || t === 'shallow';
   }
 
   setOccupied(x: number, y: number, value: boolean): void {
@@ -53,6 +88,39 @@ export class NavGrid implements PathGrid {
   }
 }
 
+/**
+ * מבט ניווט של צד אחד.
+ *
+ * שער הוא מבנה חוסם ככל מבנה אחר — אבל ליחידות של בעליו ושל בני בריתו
+ * הוא פתוח. לכן לכל צד יש מבט משלו על אותו גריד, במקום גריד נפרד.
+ */
+export class TeamNavView implements PathGrid {
+  readonly width: number;
+  readonly height: number;
+
+  constructor(
+    private nav: NavGrid,
+    private friendly: (owner: PlayerId) => boolean,
+    /** ניווט ימי: המים פתוחים והיבשה חסומה — היפוך מוחלט של הרגיל. */
+    private naval = false,
+  ) {
+    this.width = nav.width;
+    this.height = nav.height;
+  }
+
+  isBlocked(x: number, y: number): boolean {
+    if (this.naval) return !this.nav.isWater(x, y) || this.nav.isOccupied(x, y);
+    const b = this.nav.barrierAt(x, y);
+    if (b && b.gate && this.friendly(b.owner)) return this.nav.groundBlocked(x, y);
+    return this.nav.isBlocked(x, y);
+  }
+
+  speedAt(x: number, y: number): number {
+    // במים אין הפרשי מהירות — כולם שטים אותו דבר
+    return this.naval ? 1 : this.nav.speedAt(x, y);
+  }
+}
+
 export type GameEvent =
   | { type: 'stageAdvanced'; playerId: PlayerId; stage: number; pendingBranches: string[] }
   | { type: 'buildingComplete'; playerId: PlayerId; entityId: EntityId; defId: string }
@@ -63,6 +131,17 @@ export type GameEvent =
   | { type: 'defeated'; playerId: PlayerId }
   | { type: 'victory'; teamId: number }
   | { type: 'notice'; playerId: PlayerId; text: string };
+
+/**
+ * דיווח קרב לשכבת התצוגה בלבד.
+ * הסימולציה לא תלויה בו — אם אף אחד לא קורא אותו הוא פשוט מתמלא ונזרק.
+ */
+export type CombatReport =
+  | { type: 'shot'; weapon: 'arrow' | 'bullet' | 'shell'; from: Vec2; to: Vec2 }
+  | { type: 'hit'; pos: Vec2; heavy: boolean }
+  | { type: 'destroyed'; pos: Vec2; building: boolean }
+  | { type: 'work'; pos: Vec2; kind: 'chop' | 'mine' | 'build' }
+  | { type: 'heal'; pos: Vec2 };
 
 export type WorldOptions = {
   map?: MapOptions;
@@ -77,6 +156,8 @@ const CELL_SIZE = 4;
 export class World {
   readonly map: GameMap;
   readonly nav: NavGrid;
+  /** מבט ניווט לכל שחקן — שערים של בני ברית פתוחים בו. */
+  private navViews = new Map<string, PathGrid>();
   readonly players: Player[];
   readonly entities = new Map<EntityId, Entity>();
   readonly rng: Rng;
@@ -84,6 +165,8 @@ export class World {
   tickCount = 0;
   gameOver: { winnerTeam: number } | null = null;
   events: GameEvent[] = [];
+  /** אירועים חזותיים (יריות, פגיעות, ניצוצות) — נצרכים על ידי הרנדרר. */
+  combat: CombatReport[] = [];
 
   /** hash מרחבי לשאילתות שכנים מהירות */
   private cells = new Map<number, Set<EntityId>>();
@@ -102,6 +185,7 @@ export class World {
       playerCount: opts.players.length,
     });
     this.nav = new NavGrid(this.map);
+    this.navViews.clear();
     this.players = opts.players.map((p) => new Player(p, this.map.width, this.map.height));
     if (opts.revealAll) for (const p of this.players) p.fog.revealAll();
     this.spawnStartingEntities();
@@ -198,7 +282,10 @@ export class World {
     const player = this.player(owner);
     if (!player) return null;
     const def = getUnit(defId);
-    const free = this.map.findFreeTile(pos.x, pos.y, 14) ?? { x: Math.floor(pos.x), y: Math.floor(pos.y) };
+    // ספינה נולדת במים; findFreeTile מחפש יבשה ולכן היה מעיף אותה לחוף
+    const free = def.class === 'ship'
+      ? { x: Math.floor(pos.x), y: Math.floor(pos.y) }
+      : this.map.findFreeTile(pos.x, pos.y, 14) ?? { x: Math.floor(pos.x), y: Math.floor(pos.y) };
     const e = createUnit(def, owner, { x: free.x + 0.5, y: free.y + 0.5 }, maxHpFor(defId, 'unit', player));
     this.entities.set(e.id, e);
     this.addToGrid(e);
@@ -223,7 +310,48 @@ export class World {
     return e;
   }
 
+  /**
+   * האם יש ים אמיתי בטבעת שסביב טביעת הרגל — תנאי לבניית נמל.
+   *
+   * לא מספיק שיש אריח מים אחד: נמל על שלולית היה יוצר ספינות כלואות.
+   * לכן נספר גוף המים הצמוד (עד תקרה), ונדרש שיהיה מספיק גדול כדי
+   * שיהיה לאן לשוט.
+   */
+  private touchesWater(tile: Vec2, size: number): boolean {
+    const seeds: Vec2[] = [];
+    for (let i = -1; i <= size; i++) {
+      for (const [x, y] of [
+        [tile.x + i, tile.y - 1], [tile.x + i, tile.y + size],
+        [tile.x - 1, tile.y + i], [tile.x + size, tile.y + i],
+      ]) {
+        if (this.nav.isWater(x, y)) seeds.push({ x, y });
+      }
+    }
+    if (seeds.length === 0) return false;
+
+    const cap = MIN_HARBOR_WATER;
+    const seen = new Set<number>();
+    const queue: Vec2[] = [seeds[0]];
+    seen.add(seeds[0].y * this.map.width + seeds[0].x);
+    let count = 0;
+    while (queue.length > 0 && count < cap) {
+      const c = queue.pop()!;
+      count++;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const x = c.x + dx;
+        const y = c.y + dy;
+        if (!this.nav.isWater(x, y)) continue;
+        const key = y * this.map.width + x;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        queue.push({ x, y });
+      }
+    }
+    return count >= cap;
+  }
+
   canPlaceBuilding(def: BuildingDef, tile: Vec2): boolean {
+    if (def.shore && !this.touchesWater(tile, def.size)) return false;
     for (let dy = 0; dy < def.size; dy++) {
       for (let dx = 0; dx < def.size; dx++) {
         const x = tile.x + dx;
@@ -242,11 +370,31 @@ export class World {
     if (e.kind !== 'building') return;
     const origin = buildingOrigin(e);
     const size = e.building!.size;
+    const def = getBuilding(e.defId);
+    const barrier = def.gate === true || def.id === 'wall';
     for (let dy = 0; dy < size; dy++) {
       for (let dx = 0; dx < size; dx++) {
         this.nav.setOccupied(origin.x + dx, origin.y + dy, occupied);
+        if (!barrier) continue;
+        if (occupied) this.nav.setBarrier(origin.x + dx, origin.y + dy, e.owner, def.gate === true);
+        else this.nav.clearBarrier(origin.x + dx, origin.y + dy);
       }
     }
+  }
+
+  /**
+   * מבט הניווט של צד — שערים של בני הברית פתוחים בו.
+   * נשמר במטמון לכל שחקן, כך שאין הקצאה בכל חישוב מסלול.
+   */
+  private navFor(owner: PlayerId, naval = false): PathGrid {
+    const key = naval ? `${owner}|n` : `${owner}`;
+    let view = this.navViews.get(key);
+    if (!view) {
+      const myTeam = this.player(owner)?.team ?? owner;
+      view = new TeamNavView(this.nav, (o) => (this.player(o)?.team ?? o) === myTeam, naval);
+      this.navViews.set(key, view);
+    }
+    return view;
   }
 
   private spawnStartingEntities(): void {
@@ -327,6 +475,13 @@ export class World {
       if (killerPlayer) killerPlayer.stats.kills++;
     }
     this.events.push({ type: 'entityDied', playerId: e.owner, entityId: e.id, kind: e.kind });
+    if (this.combat.length < 256) {
+      this.combat.push({
+        type: 'destroyed',
+        pos: { x: e.pos.x, y: e.pos.y },
+        building: e.kind === 'building',
+      });
+    }
     // יחידות שהיו בדרך אל הישות הזאת — לבטל
     for (const other of this.entities.values()) {
       if (other.alive && other.order.targetId === e.id) other.order = { kind: 'idle' };
@@ -343,13 +498,15 @@ export class World {
   // ===== שאילתות עזר =====
 
   /** נקודת פריקה קרובה ביותר לסוג משאב. */
-  findDropOff(owner: PlayerId, from: Vec2, kind: ResourceKind): Entity | null {
+  findDropOff(owner: PlayerId, from: Vec2, kind: ResourceKind, shoreOnly = false): Entity | null {
     let best: Entity | null = null;
     let bestDist = Infinity;
     for (const e of this.entities.values()) {
       if (!e.alive || e.owner !== owner || e.kind !== 'building') continue;
       if (!e.building?.complete) continue;
       const def = getBuilding(e.defId);
+      // ספינה יכולה לפרוק רק בנמל — מבנה חוף שהיא מסוגלת להגיע אליו
+      if (shoreOnly && !def.shore) continue;
       const drop = def.dropOff;
       if (!drop) continue;
       if (drop !== 'all' && !drop.includes(kind)) continue;
@@ -363,7 +520,7 @@ export class World {
   }
 
   /** אריח משאב פנוי קרוב לנקודה, מסוג מסוים. */
-  findResourceTile(from: Vec2, kind: ResourceKind, maxRadius = 22): Vec2 | null {
+  findResourceTile(from: Vec2, kind: ResourceKind, maxRadius = 22, onWater = false): Vec2 | null {
     let best: Vec2 | null = null;
     let bestDist = Infinity;
     const cx = Math.floor(from.x);
@@ -377,6 +534,8 @@ export class World {
           const y = cy + dy;
           const res = this.map.resourceAt(x, y);
           if (!res || res.kind !== kind || res.amount <= 0) continue;
+          // דגה נאספת רק מסירה, וכל השאר רק מהיבשה
+          if ((res.visual === 'fish') !== onWater) continue;
           const d = dx * dx + dy * dy;
           if (d < bestDist) {
             bestDist = d;
@@ -455,6 +614,12 @@ export class World {
 
   assignOrder(e: Entity, order: Order, queue = false): void {
     if (!e.alive) return;
+    // דגה נאספת רק מסירה, ושאר המשאבים רק מהיבשה — פקודה הפוכה
+    // הייתה שולחת את היחידה למקום שהיא לא יכולה להגיע אליו
+    if (order.kind === 'gather' && order.tile && e.unit) {
+      const water = this.nav.isWater(order.tile.x, order.tile.y);
+      if (water !== (getUnit(e.defId).class === 'ship')) return;
+    }
     if (queue) {
       e.queue.push(order);
       if (e.order.kind === 'idle') this.startNextOrder(e);
@@ -760,6 +925,7 @@ export class World {
     }
 
     const flying = def.class === 'air';
+    const naval = def.class === 'ship';
     u.repathCooldown -= dt;
 
     const goalChanged =
@@ -769,11 +935,12 @@ export class World {
       if (this.pathBudget > 0) {
         this.pathBudget--;
         u.goal = { x: goal.x, y: goal.y };
-        const result = findPath(this.nav, e.pos, goal, {
+        const grid = this.navFor(e.owner, naval);
+        const result = findPath(grid, e.pos, goal, {
           stopDistance: stopDistance > 1 ? stopDistance - 0.5 : 0,
           maxNodes: 9000,
         });
-        u.path = smoothPath(this.nav, e.pos, result.path);
+        u.path = smoothPath(grid, e.pos, result.path);
         u.repathCooldown = result.found ? 0.6 : 1.4;
         if (u.path.length === 0 && !result.found) {
           u.stuckTime += dt;
@@ -818,7 +985,9 @@ export class World {
       }
     }
 
-    const terrain = flying ? 1 : Math.max(0.25, this.map.speedAt(Math.floor(e.pos.x), Math.floor(e.pos.y)));
+    const terrain = flying || naval
+      ? 1
+      : Math.max(0.25, this.map.speedAt(Math.floor(e.pos.x), Math.floor(e.pos.y)));
     const speed = stats.speed * terrain;
     const nx = e.pos.x + dirX * speed * dt;
     const ny = e.pos.y + dirY * speed * dt;
@@ -830,8 +999,9 @@ export class World {
       e.pos.y = Math.max(0.5, Math.min(this.map.height - 0.5, ny));
     } else {
       // תנועה עם החלקה לאורך מכשולים
-      const canX = !this.nav.isBlocked(Math.floor(nx), Math.floor(e.pos.y));
-      const canY = !this.nav.isBlocked(Math.floor(e.pos.x), Math.floor(ny));
+      const grid = this.navFor(e.owner, naval);
+      const canX = !grid.isBlocked(Math.floor(nx), Math.floor(e.pos.y));
+      const canY = !grid.isBlocked(Math.floor(e.pos.x), Math.floor(ny));
       if (canX) e.pos.x = nx;
       if (canY) e.pos.y = ny;
       if (!canX && !canY) {
@@ -986,6 +1156,26 @@ export class World {
     }
     const defenderStats = statsOf(target, this.player(target.owner));
     const dmg = computeDamage(stats, defenderStats);
+
+    // דיווח חזותי: יחידות טווח יורות קליע, מגע פוגעות ישירות
+    if (this.combat.length < 256) {
+      if (stats.range > 1.6) {
+        const weapon =
+          stats.attackType === 'siege' ? 'shell' : stats.attackType === 'pierce' && isFirearm(attacker.defId) ? 'bullet' : 'arrow';
+        this.combat.push({
+          type: 'shot',
+          weapon,
+          from: { x: attacker.pos.x, y: attacker.pos.y },
+          to: { x: target.pos.x, y: target.pos.y },
+        });
+      }
+      this.combat.push({
+        type: 'hit',
+        pos: { x: target.pos.x, y: target.pos.y },
+        heavy: stats.attackType === 'siege' || dmg >= 20,
+      });
+    }
+
     this.damage(target, dmg, attacker);
     const owner = this.player(target.owner);
     if (owner && !owner.isAI && this.time - (owner as unknown as { lastWarn?: number }).lastWarn! > 12) {
@@ -1027,7 +1217,7 @@ export class World {
     const res = this.map.resourceAt(tile.x, tile.y);
     if (!res || res.amount <= 0) {
       // המשאב נגמר — מחפשים אריח קרוב מאותו סוג
-      const next = this.findResourceTile(e.pos, e.order.resource, 14);
+      const next = this.findResourceTile(e.pos, e.order.resource, 14, def.class === 'ship');
       if (next) {
         this.setOrder(e, { kind: 'gather', tile: next, resource: e.order.resource });
       } else if (u.carrying && u.carrying.amount > 0) {
@@ -1053,6 +1243,13 @@ export class World {
     const want = rate * dt;
     const got = this.map.harvest(tile.x, tile.y, want);
     if (got > 0) {
+      if (this.combat.length < 256 && this.rng.next() < 0.06) {
+        this.combat.push({
+          type: 'work',
+          pos: { x: e.pos.x, y: e.pos.y },
+          kind: res.kind === 'wood' ? 'chop' : res.kind === 'food' ? 'build' : 'mine',
+        });
+      }
       if (!u.carrying || u.carrying.kind !== res.kind) u.carrying = { kind: res.kind, amount: 0 };
       u.carrying.amount = Math.min(capacity, u.carrying.amount + got);
       if (u.carrying.amount >= capacity) this.beginReturn(e, res.kind);
@@ -1061,7 +1258,7 @@ export class World {
   }
 
   private beginReturn(e: Entity, kind: ResourceKind): void {
-    const drop = this.findDropOff(e.owner, e.pos, kind);
+    const drop = this.findDropOff(e.owner, e.pos, kind, getUnit(e.defId).class === 'ship');
     if (!drop) return; // אין לאן לפרוק — ממשיכים לאסוף
     const resume: Order | undefined = e.order.kind === 'gather' ? { ...e.order } : e.order.resume;
     this.setOrder(e, { kind: 'return', targetId: drop.id, resume });
@@ -1076,14 +1273,15 @@ export class World {
     }
     let drop = this.get(e.order.targetId);
     if (!drop) {
-      drop = this.findDropOff(e.owner, e.pos, u.carrying.kind) ?? undefined;
+      drop = this.findDropOff(e.owner, e.pos, u.carrying.kind, def.class === 'ship') ?? undefined;
       if (!drop) {
         this.finishOrder(e);
         return;
       }
       e.order.targetId = drop.id;
     }
-    if (this.approachEntity(e, drop, dt, 0.6)) {
+    // ספינה עוגנת מהמים — היא לא יכולה להיצמד לקיר הנמל כמו פועל
+    if (this.approachEntity(e, drop, dt, def.class === 'ship' ? 1.9 : 0.6)) {
       player.add(u.carrying.kind, Math.floor(u.carrying.amount));
       u.carrying = null;
       this.finishOrder(e);
@@ -1108,6 +1306,9 @@ export class World {
     site.building!.progress = Math.min(1, site.building!.progress + rate * dt);
     site.hp = Math.max(1, Math.round(site.maxHp * (0.1 + 0.9 * site.building!.progress)));
     e.unit!.attackAnim = 1;
+    if (this.combat.length < 256 && this.rng.next() < 0.05) {
+      this.combat.push({ type: 'work', pos: { x: e.pos.x, y: e.pos.y }, kind: 'build' });
+    }
     if (site.building!.progress >= 1) {
       this.completeBuilding(site);
     }
@@ -1153,6 +1354,9 @@ export class World {
     }
     if (!this.approachEntity(e, target, dt, Math.max(1, def.range))) return;
     target.hp = Math.min(target.maxHp, target.hp + 6 * dt);
+    if (this.combat.length < 256 && this.rng.next() < 0.04) {
+      this.combat.push({ type: 'heal', pos: { x: target.pos.x, y: target.pos.y } });
+    }
   }
 
   // ===== מבנים =====
@@ -1171,7 +1375,7 @@ export class World {
       const item = b.trainQueue[0];
       item.remaining -= dt;
       if (item.remaining <= 0) {
-        const spawnAt = this.spawnPointFor(e);
+        const spawnAt = this.spawnPointFor(e, getUnit(item.unitId).class === 'ship');
         const unit = this.spawnUnit(item.unitId, e.owner, spawnAt);
         b.trainQueue.shift();
         if (unit) {
@@ -1181,7 +1385,8 @@ export class World {
             entityId: unit.id,
             defId: unit.defId,
           });
-          if (b.rally) {
+          const naval = getUnit(unit.defId).class === 'ship';
+          if (b.rally && (!naval || this.nav.isWater(Math.floor(b.rally.x), Math.floor(b.rally.y)))) {
             const rallyTile = { x: Math.floor(b.rally.x), y: Math.floor(b.rally.y) };
             const res = this.map.resourceAt(rallyTile.x, rallyTile.y);
             const uDef = getUnit(unit.defId);
@@ -1235,7 +1440,7 @@ export class World {
   }
 
   /** נקודת הופעה ליחידה חדשה — סמוך לקצה המבנה. */
-  private spawnPointFor(b: Entity): Vec2 {
+  private spawnPointFor(b: Entity, naval = false): Vec2 {
     const origin = buildingOrigin(b);
     const size = b.building?.size ?? 1;
     const candidates: Vec2[] = [];
@@ -1244,6 +1449,26 @@ export class World {
       candidates.push({ x: origin.x + i, y: origin.y + size });
       candidates.push({ x: origin.x - 1, y: origin.y + i });
       candidates.push({ x: origin.x + size, y: origin.y + i });
+    }
+    if (naval) {
+      // ספינה נולדת במים — קודם בטבעת הצמודה, ואם אין, בטבעת רחבה יותר
+      for (const c of candidates) {
+        if (this.nav.isWater(c.x, c.y) && !this.nav.isOccupied(c.x, c.y)) {
+          return { x: c.x + 0.5, y: c.y + 0.5 };
+        }
+      }
+      for (let r = 2; r <= 5; r++) {
+        for (let dy = -r; dy <= r; dy++) {
+          for (let dx = -r; dx <= r; dx++) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+            const x = origin.x + dx;
+            const y = origin.y + dy;
+            if (this.nav.isWater(x, y) && !this.nav.isOccupied(x, y)) {
+              return { x: x + 0.5, y: y + 0.5 };
+            }
+          }
+        }
+      }
     }
     for (const c of candidates) {
       if (!this.nav.isBlocked(c.x, c.y)) return { x: c.x + 0.5, y: c.y + 0.5 };
@@ -1277,6 +1502,14 @@ export class World {
   drainEvents(): GameEvent[] {
     const out = this.events;
     this.events = [];
+    return out;
+  }
+
+  /** שולף את דיווחי הקרב החזותיים ומנקה את התור. */
+  drainCombat(): CombatReport[] {
+    if (this.combat.length === 0) return [];
+    const out = this.combat;
+    this.combat = [];
     return out;
   }
 }

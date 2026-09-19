@@ -111,10 +111,7 @@ export class InputController {
     const p = this.localPos(ev);
     this.pointerPos = p;
     if (this.panning) {
-      this.camera.pan(
-        -(p.x - this.lastPan.x) / this.camera.zoom,
-        -(p.y - this.lastPan.y) / this.camera.zoom,
-      );
+      this.camera.panScreen(-(p.x - this.lastPan.x), -(p.y - this.lastPan.y));
       this.lastPan = p;
       return;
     }
@@ -173,7 +170,7 @@ export class InputController {
 
   /** תנועת מצלמה מתמשכת — נקרא בכל פריים. */
   updateCamera(dt: number): void {
-    const speed = (24 / this.camera.zoom) * 14 * this.scrollSpeed * dt;
+    const speed = (48 / this.camera.zoom) * 14 * this.scrollSpeed * dt;
     let dx = 0;
     let dy = 0;
     if (this.keys.has('arrowleft') || this.keys.has('a')) dx -= speed;
@@ -238,10 +235,7 @@ export class InputController {
       const prev = [...previous.values()];
       if (prev.length === 2) {
         const prevMid = { x: (prev[0].x + prev[1].x) / 2, y: (prev[0].y + prev[1].y) / 2 };
-        this.camera.pan(
-          -(mid.x - prevMid.x) / this.camera.zoom,
-          -(mid.y - prevMid.y) / this.camera.zoom,
-        );
+        this.camera.panScreen(-(mid.x - prevMid.x), -(mid.y - prevMid.y));
       }
       return;
     }
@@ -298,33 +292,46 @@ export class InputController {
     return { x: Math.round(world.x - size / 2), y: Math.round(world.y - size / 2) };
   }
 
+  /**
+   * מה נמצא מתחת לסמן. יחידות נבדקות במרחב המסך (הן מצוירות מעל האריח
+   * שלהן), ומבנים לפי טביעת הרגל שלהם בעולם.
+   */
   entityAt(worldPos: Vec2): Entity | undefined {
     const world = this.getWorld();
     if (!world) return undefined;
+    const screen = this.camera.worldToScreen(worldPos.x, worldPos.y, 0);
     let best: Entity | undefined;
     let bestScore = Infinity;
+
     for (const e of world.entities.values()) {
       if (!e.alive) continue;
-      if (e.kind === 'building') {
-        const o = buildingOrigin(e);
-        const size = e.building?.size ?? 1;
-        if (
-          worldPos.x >= o.x &&
-          worldPos.x < o.x + size &&
-          worldPos.y >= o.y &&
-          worldPos.y < o.y + size
-        ) {
-          const score = 10 + size;
-          if (score < bestScore) {
-            bestScore = score;
-            best = e;
-          }
-        }
-      } else {
-        const d = Math.hypot(e.pos.x - worldPos.x, e.pos.y - worldPos.y);
-        const radius = Math.max(0.45, 16 / this.camera.zoom);
-        if (d < radius && d < bestScore) {
+      if (e.kind === 'unit') {
+        const p = this.camera.worldToScreen(e.pos.x, e.pos.y, 0);
+        const dx = p.x - screen.x;
+        // מרכז הגוף נמצא מעל נקודת הקרקע
+        const dy = p.y - this.camera.zoom * 0.22 - screen.y;
+        const d = Math.hypot(dx, dy * 1.4);
+        if (d < this.camera.zoom * 0.34 && d < bestScore) {
           bestScore = d;
+          best = e;
+        }
+      }
+    }
+    if (best) return best;
+
+    for (const e of world.entities.values()) {
+      if (!e.alive || e.kind !== 'building') continue;
+      const o = buildingOrigin(e);
+      const size = e.building?.size ?? 1;
+      if (
+        worldPos.x >= o.x &&
+        worldPos.x < o.x + size &&
+        worldPos.y >= o.y &&
+        worldPos.y < o.y + size
+      ) {
+        const score = size;
+        if (score < bestScore) {
+          bestScore = score;
           best = e;
         }
       }
@@ -332,22 +339,33 @@ export class InputController {
     return best;
   }
 
+  /**
+   * בחירה במלבן. בהיטל איזומטרי מלבן על המסך הוא מעוין בעולם,
+   * ולכן בודקים כל ישות במרחב המסך ולא במרחב העולם.
+   */
   private entitiesInRect(rect: { x0: number; y0: number; x1: number; y1: number }): EntityId[] {
     const world = this.getWorld();
     if (!world) return [];
-    const a = this.camera.screenToWorld(Math.min(rect.x0, rect.x1), Math.min(rect.y0, rect.y1));
-    const b = this.camera.screenToWorld(Math.max(rect.x0, rect.x1), Math.max(rect.y0, rect.y1));
+    const minX = Math.min(rect.x0, rect.x1);
+    const maxX = Math.max(rect.x0, rect.x1);
+    const minY = Math.min(rect.y0, rect.y1);
+    const maxY = Math.max(rect.y0, rect.y1);
+    const inside = (e: Entity): boolean => {
+      const p = this.camera.worldToScreen(e.pos.x, e.pos.y, 0);
+      return p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY;
+    };
+
     const out: EntityId[] = [];
     for (const e of world.entities.values()) {
       if (!e.alive || e.kind !== 'unit') continue;
-      if (e.pos.x < a.x || e.pos.x > b.x || e.pos.y < a.y || e.pos.y > b.y) continue;
+      if (!inside(e)) continue;
       out.push(e.id);
     }
     // אם לא נבחרו יחידות — אולי מבנה יחיד בתוך המלבן
     if (out.length === 0) {
       for (const e of world.entities.values()) {
         if (!e.alive || e.kind !== 'building') continue;
-        if (e.pos.x < a.x || e.pos.x > b.x || e.pos.y < a.y || e.pos.y > b.y) continue;
+        if (!inside(e)) continue;
         out.push(e.id);
         break;
       }

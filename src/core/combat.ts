@@ -23,13 +23,15 @@ export type CombatStats = {
  * מוכפל בבונוסים הספציפיים של היחידה (bonusVs).
  */
 export const CLASS_MATCHUP: Record<UnitClass, Partial<Record<UnitClass, number>>> = {
-  infantry: { cavalry: 1.25, siege: 1.15, building: 0.6, air: 0.4 },
-  ranged: { infantry: 1.2, air: 0.85, building: 0.5, siege: 1.1 },
-  cavalry: { ranged: 1.3, siege: 1.25, worker: 1.2, building: 0.5, air: 0.35 },
-  siege: { building: 2.0, infantry: 1.1, cavalry: 0.7, air: 0.2 },
-  air: { siege: 1.3, worker: 1.2, ranged: 0.8, building: 0.8 },
-  worker: { building: 0.4, air: 0.2 },
-  building: { air: 0.6 },
+  infantry: { cavalry: 1.25, siege: 1.15, building: 0.6, air: 0.4, ship: 0.3 },
+  ranged: { infantry: 1.2, air: 0.85, building: 0.5, siege: 1.1, ship: 0.8 },
+  cavalry: { ranged: 1.3, siege: 1.25, worker: 1.2, building: 0.5, air: 0.35, ship: 0.25 },
+  siege: { building: 2.0, infantry: 1.1, cavalry: 0.7, air: 0.2, ship: 0.6 },
+  air: { siege: 1.3, worker: 1.2, ranged: 0.8, building: 0.8, ship: 1.2 },
+  worker: { building: 0.4, air: 0.2, ship: 0.3 },
+  // ספינות חזקות מול ספינות ומול חוף, וחלשות מול הגנה אווירית וקרקע רחוקה
+  ship: { ship: 1.15, building: 0.8, air: 0.3, worker: 1.2 },
+  building: { air: 0.6, ship: 1.1 },
 };
 
 /** נזק מינימלי — כדי שקרב לא ייתקע לעד. */

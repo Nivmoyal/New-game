@@ -12,6 +12,8 @@ export class FogOfWar {
   /** ספירת מקורות ראייה לכל אריח (0 = מעורפל). */
   private counts: Int16Array;
   private explored: Uint8Array;
+  /** עולה בכל שינוי — מאפשר לשכבת הציור לדעת מתי לבנות טקסטורה מחדש. */
+  revision = 0;
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -43,6 +45,7 @@ export class FogOfWar {
   /** מאפס את שכבת הנראות לפני חישוב מחדש (שומר על הנחקר). */
   clearVisible(): void {
     this.counts.fill(0);
+    this.revision++;
   }
 
   state(x: number, y: number): 0 | 1 | 2 {
@@ -64,6 +67,7 @@ export class FogOfWar {
   revealAll(): void {
     this.explored.fill(1);
     this.counts.fill(1);
+    this.revision++;
   }
 
   exploredRatio(): number {

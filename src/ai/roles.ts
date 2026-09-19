@@ -15,11 +15,14 @@ export type BuildingRole =
   | 'economy'
   | 'research'
   | 'wall'
+  | 'dock'
   | 'other';
 
 export function roleOf(def: BuildingDef): BuildingRole {
   if (def.isTownCenter) return 'townCenter';
-  if (def.id === 'wall') return 'wall';
+  if (def.id === 'wall' || def.gate) return 'wall';
+  // נמל הוא תפקיד בפני עצמו: הוא חייב חוף, ולכן ה-AI מטפל בו בנפרד
+  if (def.shore) return 'dock';
   if (def.attack && def.range) return 'defense';
   // מבנה שנותן הרבה מקום לאנשים נחשב "בית" גם אם הוא מאמן יחידות:
   // אחרת ה-AI היה בונה ממנו הרבה כ"מבנה צבא" ומרוקן את מלאי האוכל.

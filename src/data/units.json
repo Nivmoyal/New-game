@@ -1,1525 +1,1631 @@
 {
- "il_worker": {
-  "id": "il_worker",
-  "name": "פועל",
-  "emoji": "👷",
-  "desc": "אוסף משאבים ובונה מבנים",
-  "class": "worker",
-  "cost": {
-   "food": 50
+  "il_worker": {
+    "id": "il_worker",
+    "name": "פועל",
+    "emoji": "👷",
+    "desc": "אוסף משאבים ובונה מבנים",
+    "class": "worker",
+    "cost": {
+      "food": 50
+    },
+    "trainTime": 12,
+    "hp": 45,
+    "armor": 0,
+    "pierceArmor": 0,
+    "attack": 3,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.8,
+    "speed": 2.3,
+    "los": 6,
+    "pop": 1,
+    "radius": 0.35,
+    "carry": 12,
+    "gatherRate": {
+      "food": 0.58,
+      "wood": 0.52,
+      "stone": 0.42,
+      "gold": 0.46
+    },
+    "canBuild": true,
+    "canRepair": true
   },
-  "trainTime": 12,
-  "hp": 45,
-  "armor": 0,
-  "pierceArmor": 0,
-  "attack": 3,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.8,
-  "speed": 2.3,
-  "los": 6,
-  "pop": 1,
-  "radius": 0.35,
-  "carry": 12,
-  "gatherRate": {
-   "food": 0.58,
-   "wood": 0.52,
-   "stone": 0.42,
-   "gold": 0.46
+  "il_guard": {
+    "id": "il_guard",
+    "name": "מאבטח היישוב",
+    "emoji": "🛡️",
+    "desc": "כוח מגן מקומי",
+    "class": "infantry",
+    "cost": {
+      "food": 55,
+      "wood": 15
+    },
+    "trainTime": 14,
+    "hp": 65,
+    "armor": 1,
+    "pierceArmor": 1,
+    "attack": 6,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.5,
+    "speed": 2.0,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 1.6
+    }
   },
-  "canBuild": true,
-  "canRepair": true
- },
- "il_guard": {
-  "id": "il_guard",
-  "name": "שומר יישוב",
-  "emoji": "🛡️",
-  "desc": "לוחם הגנה בסיסי",
-  "class": "infantry",
-  "cost": {
-   "food": 55,
-   "wood": 15
+  "il_horse_scout": {
+    "id": "il_horse_scout",
+    "name": "סייר רכוב",
+    "emoji": "🐎",
+    "desc": "רוכב מהיר לגילוי שטח בשלבים הראשונים",
+    "class": "cavalry",
+    "cost": {
+      "food": 70
+    },
+    "trainTime": 16,
+    "hp": 105,
+    "armor": 1,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.6,
+    "speed": 3.4,
+    "los": 11,
+    "pop": 1,
+    "radius": 0.42,
+    "bonusVs": {
+      "ranged": 1.6,
+      "worker": 1.4
+    }
   },
-  "trainTime": 14,
-  "hp": 65,
-  "armor": 1,
-  "pierceArmor": 1,
-  "attack": 6,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.5,
-  "speed": 2.0,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 1.6
+  "il_infantry": {
+    "id": "il_infantry",
+    "name": "חייל חי\"ר",
+    "emoji": "🪖",
+    "desc": "לוחם רגלים עם רובה תבור",
+    "class": "infantry",
+    "cost": {
+      "food": 65,
+      "gold": 15
+    },
+    "trainTime": 17,
+    "hp": 95,
+    "armor": 2,
+    "pierceArmor": 2,
+    "attack": 9,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.4,
+    "speed": 2.1,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 1.8
+    }
+  },
+  "il_rifleman": {
+    "id": "il_rifleman",
+    "name": "רובאי",
+    "emoji": "🔫",
+    "desc": "אש מדויקת מטווח בינוני",
+    "class": "ranged",
+    "cost": {
+      "wood": 45,
+      "gold": 30
+    },
+    "trainTime": 18,
+    "hp": 60,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "pierce",
+    "range": 5.0,
+    "attackCooldown": 1.8,
+    "speed": 2.0,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.4
+    }
+  },
+  "il_scout": {
+    "id": "il_scout",
+    "name": "ג'יפ סיור",
+    "emoji": "🚙",
+    "desc": "רכב סיור מהיר — נפתח עם המעבר לעיירה",
+    "class": "cavalry",
+    "cost": {
+      "food": 60,
+      "gold": 40
+    },
+    "trainTime": 16,
+    "hp": 110,
+    "armor": 1,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.6,
+    "speed": 3.6,
+    "los": 11,
+    "pop": 1,
+    "radius": 0.4,
+    "bonusVs": {
+      "ranged": 1.7,
+      "worker": 1.4
+    }
+  },
+  "il_golani": {
+    "id": "il_golani",
+    "name": "לוחם גולני",
+    "emoji": "🎖️",
+    "desc": "לוחם חטיבתי מאומן היטב",
+    "class": "infantry",
+    "cost": {
+      "food": 80,
+      "gold": 35
+    },
+    "trainTime": 21,
+    "hp": 150,
+    "armor": 4,
+    "pierceArmor": 3,
+    "attack": 14,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.3,
+    "speed": 2.2,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.37,
+    "bonusVs": {
+      "cavalry": 1.9,
+      "building": 1.3
+    }
+  },
+  "il_apc": {
+    "id": "il_apc",
+    "name": "נגמ\"ש נמר",
+    "emoji": "🚐",
+    "desc": "נגמ\"ש כבד ומשוריין להסעת לוחמים",
+    "class": "cavalry",
+    "cost": {
+      "food": 60,
+      "gold": 60
+    },
+    "trainTime": 22,
+    "hp": 200,
+    "armor": 6,
+    "pierceArmor": 5,
+    "attack": 13,
+    "attackType": "melee",
+    "range": 1.2,
+    "attackCooldown": 1.5,
+    "speed": 3.1,
+    "los": 9,
+    "pop": 2,
+    "radius": 0.45,
+    "bonusVs": {
+      "ranged": 1.8,
+      "siege": 1.6
+    }
+  },
+  "il_tank": {
+    "id": "il_tank",
+    "name": "טנק מרכבה",
+    "emoji": "🦾",
+    "desc": "טנק הקרב הכבד — כוח פריצה נגד מבנים",
+    "class": "siege",
+    "cost": {
+      "wood": 80,
+      "gold": 100
+    },
+    "trainTime": 30,
+    "hp": 260,
+    "armor": 8,
+    "pierceArmor": 7,
+    "attack": 30,
+    "attackType": "siege",
+    "range": 5.5,
+    "attackCooldown": 3.0,
+    "speed": 1.6,
+    "los": 9,
+    "pop": 3,
+    "radius": 0.55,
+    "bonusVs": {
+      "building": 4.0,
+      "infantry": 1.2
+    }
+  },
+  "il_sniper": {
+    "id": "il_sniper",
+    "name": "צלף",
+    "emoji": "🎯",
+    "desc": "טווח ארוך ודיוק גבוה",
+    "class": "ranged",
+    "cost": {
+      "wood": 40,
+      "gold": 70
+    },
+    "trainTime": 24,
+    "hp": 55,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 20,
+    "attackType": "pierce",
+    "range": 8.0,
+    "attackCooldown": 3.0,
+    "speed": 1.9,
+    "los": 13,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.6,
+      "worker": 2.0
+    }
+  },
+  "il_commando": {
+    "id": "il_commando",
+    "name": "לוחם סיירת",
+    "emoji": "🥷",
+    "desc": "כוח מיוחד: חודר קווים, מהיר וקטלני",
+    "class": "infantry",
+    "cost": {
+      "food": 70,
+      "gold": 60
+    },
+    "trainTime": 23,
+    "hp": 120,
+    "armor": 3,
+    "pierceArmor": 4,
+    "attack": 18,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.1,
+    "speed": 2.9,
+    "los": 12,
+    "pop": 1,
+    "radius": 0.35,
+    "bonusVs": {
+      "ranged": 1.6,
+      "siege": 1.8
+    }
+  },
+  "il_drone": {
+    "id": "il_drone",
+    "name": "מל\"ט",
+    "emoji": "🛩️",
+    "desc": "כלי טיס בלתי מאויש לתצפית ותקיפה",
+    "class": "air",
+    "cost": {
+      "wood": 60,
+      "gold": 80
+    },
+    "trainTime": 26,
+    "hp": 90,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 16,
+    "attackType": "pierce",
+    "range": 4.5,
+    "attackCooldown": 2.2,
+    "speed": 4.2,
+    "los": 14,
+    "pop": 2,
+    "radius": 0.4,
+    "bonusVs": {
+      "siege": 1.8,
+      "worker": 1.5
+    }
+  },
+  "il_flak": {
+    "id": "il_flak",
+    "name": "סוללת יירוט ניידת",
+    "emoji": "🎆",
+    "desc": "מיירטת מטרות אוויריות בשטח",
+    "class": "ranged",
+    "cost": {
+      "wood": 55,
+      "gold": 55
+    },
+    "trainTime": 22,
+    "hp": 110,
+    "armor": 2,
+    "pierceArmor": 3,
+    "attack": 12,
+    "attackType": "flak",
+    "range": 6.5,
+    "attackCooldown": 1.6,
+    "speed": 2.0,
+    "los": 11,
+    "pop": 2,
+    "radius": 0.42,
+    "bonusVs": {
+      "air": 4.0
+    }
+  },
+  "il_medic": {
+    "id": "il_medic",
+    "name": "חובש קרבי",
+    "emoji": "⛑️",
+    "desc": "מפנה ומרפא לוחמים בשדה",
+    "class": "worker",
+    "cost": {
+      "food": 40,
+      "gold": 40
+    },
+    "trainTime": 20,
+    "hp": 60,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 0,
+    "attackType": "melee",
+    "range": 3.0,
+    "attackCooldown": 1.5,
+    "speed": 2.2,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.34,
+    "healer": true,
+    "canRepair": true
+  },
+  "il_elite": {
+    "id": "il_elite",
+    "name": "לוחם עילית",
+    "emoji": "⭐",
+    "desc": "פאר הצבא בשלב העיר",
+    "class": "infantry",
+    "cost": {
+      "food": 100,
+      "gold": 80
+    },
+    "trainTime": 28,
+    "hp": 210,
+    "armor": 6,
+    "pierceArmor": 6,
+    "attack": 22,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.2,
+    "speed": 2.4,
+    "los": 10,
+    "pop": 2,
+    "radius": 0.4,
+    "bonusVs": {
+      "cavalry": 1.6,
+      "building": 1.5
+    }
+  },
+  "jp_worker": {
+    "id": "jp_worker",
+    "name": "איכר",
+    "emoji": "🧑‍🌾",
+    "desc": "אוסף משאבים ובונה",
+    "class": "worker",
+    "cost": {
+      "food": 50
+    },
+    "trainTime": 12,
+    "hp": 45,
+    "armor": 0,
+    "pierceArmor": 0,
+    "attack": 3,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.8,
+    "speed": 2.3,
+    "los": 6,
+    "pop": 1,
+    "radius": 0.35,
+    "carry": 13,
+    "gatherRate": {
+      "food": 0.56,
+      "wood": 0.54,
+      "stone": 0.42,
+      "gold": 0.44
+    },
+    "canBuild": true,
+    "canRepair": true
+  },
+  "jp_ashigaru": {
+    "id": "jp_ashigaru",
+    "name": "אשיגארו",
+    "emoji": "🪖",
+    "desc": "חיל רגלים זול ומהיר לאימון",
+    "class": "infantry",
+    "cost": {
+      "food": 50,
+      "wood": 15
+    },
+    "trainTime": 12,
+    "hp": 70,
+    "armor": 1,
+    "pierceArmor": 1,
+    "attack": 7,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.4,
+    "speed": 2.2,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 1.5
+    }
+  },
+  "jp_yari": {
+    "id": "jp_yari",
+    "name": "יארי־אשיגארו",
+    "emoji": "🔱",
+    "desc": "נושאי חנית נגד פרשים",
+    "class": "infantry",
+    "cost": {
+      "food": 45,
+      "wood": 25
+    },
+    "trainTime": 14,
+    "hp": 80,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 7,
+    "attackType": "melee",
+    "range": 1.3,
+    "attackCooldown": 1.5,
+    "speed": 2.0,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 2.6
+    }
+  },
+  "jp_archer": {
+    "id": "jp_archer",
+    "name": "קשת יפני",
+    "emoji": "🏹",
+    "desc": "יומי ארוך, טווח מצוין",
+    "class": "ranged",
+    "cost": {
+      "wood": 45,
+      "gold": 25
+    },
+    "trainTime": 17,
+    "hp": 55,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "pierce",
+    "range": 5.5,
+    "attackCooldown": 1.9,
+    "speed": 2.0,
+    "los": 10,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.4
+    }
+  },
+  "jp_cavalry": {
+    "id": "jp_cavalry",
+    "name": "פרש יפני",
+    "emoji": "🐎",
+    "desc": "רוכב מהיר לאגפים",
+    "class": "cavalry",
+    "cost": {
+      "food": 75,
+      "gold": 25
+    },
+    "trainTime": 19,
+    "hp": 130,
+    "armor": 2,
+    "pierceArmor": 2,
+    "attack": 11,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.5,
+    "speed": 3.3,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.42,
+    "bonusVs": {
+      "ranged": 1.8,
+      "siege": 1.5
+    }
+  },
+  "jp_samurai": {
+    "id": "jp_samurai",
+    "name": "סמוראי",
+    "emoji": "⚔️",
+    "desc": "לוחם אליטה עם קוד כבוד",
+    "class": "infantry",
+    "cost": {
+      "food": 85,
+      "gold": 45
+    },
+    "trainTime": 22,
+    "hp": 165,
+    "armor": 4,
+    "pierceArmor": 3,
+    "attack": 16,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.2,
+    "speed": 2.3,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.37,
+    "bonusVs": {
+      "infantry": 1.5,
+      "cavalry": 1.4
+    }
+  },
+  "jp_catapult": {
+    "id": "jp_catapult",
+    "name": "מכונת מצור",
+    "emoji": "🪨",
+    "desc": "מנפצת חומות ומבנים",
+    "class": "siege",
+    "cost": {
+      "wood": 140,
+      "gold": 60
+    },
+    "trainTime": 30,
+    "hp": 150,
+    "armor": 2,
+    "pierceArmor": 6,
+    "attack": 34,
+    "attackType": "siege",
+    "range": 7.0,
+    "attackCooldown": 3.6,
+    "speed": 1.2,
+    "los": 9,
+    "pop": 3,
+    "radius": 0.55,
+    "bonusVs": {
+      "building": 4.5
+    }
+  },
+  "jp_daimyo": {
+    "id": "jp_daimyo",
+    "name": "דאימיו",
+    "emoji": "👑",
+    "desc": "איש הטירה — מעניק השראה ללוחמים",
+    "class": "cavalry",
+    "cost": {
+      "food": 120,
+      "gold": 120
+    },
+    "trainTime": 40,
+    "hp": 320,
+    "armor": 7,
+    "pierceArmor": 6,
+    "attack": 24,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.3,
+    "speed": 3.0,
+    "los": 12,
+    "pop": 3,
+    "radius": 0.48,
+    "bonusVs": {
+      "infantry": 1.4,
+      "building": 1.4
+    }
+  },
+  "jp_shinobi": {
+    "id": "jp_shinobi",
+    "name": "שינובי",
+    "emoji": "🥷",
+    "desc": "סייר זריז לחדירה מאחור",
+    "class": "infantry",
+    "cost": {
+      "food": 60,
+      "gold": 70
+    },
+    "trainTime": 22,
+    "hp": 100,
+    "armor": 2,
+    "pierceArmor": 4,
+    "attack": 19,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.0,
+    "speed": 3.0,
+    "los": 12,
+    "pop": 1,
+    "radius": 0.35,
+    "bonusVs": {
+      "worker": 2.2,
+      "siege": 1.7
+    }
+  },
+  "ar_worker": {
+    "id": "ar_worker",
+    "name": "עובד",
+    "emoji": "🧑‍🌾",
+    "desc": "אוסף משאבים ובונה",
+    "class": "worker",
+    "cost": {
+      "food": 50
+    },
+    "trainTime": 12,
+    "hp": 45,
+    "armor": 0,
+    "pierceArmor": 0,
+    "attack": 3,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.8,
+    "speed": 2.4,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.35,
+    "carry": 12,
+    "gatherRate": {
+      "food": 0.54,
+      "wood": 0.5,
+      "stone": 0.44,
+      "gold": 0.56
+    },
+    "canBuild": true,
+    "canRepair": true
+  },
+  "ar_spear": {
+    "id": "ar_spear",
+    "name": "נושא חנית",
+    "emoji": "🔱",
+    "desc": "הגנה יציבה מול פרשים",
+    "class": "infantry",
+    "cost": {
+      "food": 50,
+      "wood": 20
+    },
+    "trainTime": 14,
+    "hp": 78,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 7,
+    "attackType": "melee",
+    "range": 1.3,
+    "attackCooldown": 1.5,
+    "speed": 2.1,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 2.4
+    }
+  },
+  "ar_archer": {
+    "id": "ar_archer",
+    "name": "קשת",
+    "emoji": "🏹",
+    "desc": "מטח חצים מדויק",
+    "class": "ranged",
+    "cost": {
+      "wood": 40,
+      "gold": 25
+    },
+    "trainTime": 16,
+    "hp": 52,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "pierce",
+    "range": 5.0,
+    "attackCooldown": 1.8,
+    "speed": 2.1,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.4
+    }
+  },
+  "ar_camel": {
+    "id": "ar_camel",
+    "name": "רוכב גמלים",
+    "emoji": "🐪",
+    "desc": "עמיד במדבר ומצוין נגד פרשים",
+    "class": "cavalry",
+    "cost": {
+      "food": 70,
+      "gold": 30
+    },
+    "trainTime": 18,
+    "hp": 125,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 10,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.5,
+    "speed": 3.1,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.44,
+    "bonusVs": {
+      "cavalry": 2.2,
+      "ranged": 1.4
+    }
+  },
+  "ar_lighthorse": {
+    "id": "ar_lighthorse",
+    "name": "פרש קל",
+    "emoji": "🐎",
+    "desc": "מהיר במיוחד, מעולה לפשיטות",
+    "class": "cavalry",
+    "cost": {
+      "food": 65
+    },
+    "trainTime": 15,
+    "hp": 105,
+    "armor": 1,
+    "pierceArmor": 1,
+    "attack": 9,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.4,
+    "speed": 3.8,
+    "los": 12,
+    "pop": 1,
+    "radius": 0.42,
+    "bonusVs": {
+      "ranged": 1.9,
+      "worker": 1.5
+    }
+  },
+  "ar_horsearcher": {
+    "id": "ar_horsearcher",
+    "name": "קשת רכוב",
+    "emoji": "🏇",
+    "desc": "יורה תוך כדי תנועה",
+    "class": "ranged",
+    "cost": {
+      "wood": 45,
+      "gold": 60
+    },
+    "trainTime": 22,
+    "hp": 80,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 9,
+    "attackType": "pierce",
+    "range": 4.5,
+    "attackCooldown": 1.7,
+    "speed": 3.2,
+    "los": 11,
+    "pop": 2,
+    "radius": 0.42,
+    "bonusVs": {
+      "siege": 1.6
+    }
+  },
+  "ar_heavycav": {
+    "id": "ar_heavycav",
+    "name": "פרש כבד",
+    "emoji": "🐴",
+    "desc": "פרש משוריין לפריצת קווים",
+    "class": "cavalry",
+    "cost": {
+      "food": 90,
+      "gold": 60
+    },
+    "trainTime": 24,
+    "hp": 190,
+    "armor": 5,
+    "pierceArmor": 4,
+    "attack": 16,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.4,
+    "speed": 3.0,
+    "los": 9,
+    "pop": 2,
+    "radius": 0.46,
+    "bonusVs": {
+      "ranged": 1.8,
+      "siege": 1.6
+    }
+  },
+  "ar_mangonel": {
+    "id": "ar_mangonel",
+    "name": "מנג'ניק",
+    "emoji": "🪨",
+    "desc": "מכונת מצור בעלת טווח ארוך",
+    "class": "siege",
+    "cost": {
+      "wood": 150,
+      "gold": 60
+    },
+    "trainTime": 30,
+    "hp": 145,
+    "armor": 2,
+    "pierceArmor": 6,
+    "attack": 32,
+    "attackType": "siege",
+    "range": 7.5,
+    "attackCooldown": 3.6,
+    "speed": 1.2,
+    "los": 10,
+    "pop": 3,
+    "radius": 0.55,
+    "bonusVs": {
+      "building": 4.2
+    }
+  },
+  "ar_scholar": {
+    "id": "ar_scholar",
+    "name": "חכם",
+    "emoji": "📜",
+    "desc": "איש בית החוכמה — מרפא ומעודד מחקר",
+    "class": "worker",
+    "cost": {
+      "gold": 90
+    },
+    "trainTime": 26,
+    "hp": 70,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 0,
+    "attackType": "melee",
+    "range": 3.5,
+    "attackCooldown": 1.4,
+    "speed": 2.1,
+    "los": 10,
+    "pop": 1,
+    "radius": 0.34,
+    "healer": true
+  },
+  "rm_worker": {
+    "id": "rm_worker",
+    "name": "אזרח",
+    "emoji": "🧑‍🌾",
+    "desc": "אוסף משאבים ובונה",
+    "class": "worker",
+    "cost": {
+      "food": 50
+    },
+    "trainTime": 12,
+    "hp": 48,
+    "armor": 1,
+    "pierceArmor": 0,
+    "attack": 3,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.8,
+    "speed": 2.2,
+    "los": 6,
+    "pop": 1,
+    "radius": 0.35,
+    "carry": 12,
+    "gatherRate": {
+      "food": 0.54,
+      "wood": 0.5,
+      "stone": 0.55,
+      "gold": 0.44
+    },
+    "canBuild": true,
+    "canRepair": true
+  },
+  "rm_hastati": {
+    "id": "rm_hastati",
+    "name": "האסטאטי",
+    "emoji": "🪖",
+    "desc": "שורה ראשונה בלגיון",
+    "class": "infantry",
+    "cost": {
+      "food": 55,
+      "wood": 15
+    },
+    "trainTime": 14,
+    "hp": 80,
+    "armor": 2,
+    "pierceArmor": 2,
+    "attack": 7,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.4,
+    "speed": 2.1,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 1.6
+    }
+  },
+  "rm_legion": {
+    "id": "rm_legion",
+    "name": "לגיונר",
+    "emoji": "⚔️",
+    "desc": "חיל רגלים ממושמע ומשוריין",
+    "class": "infantry",
+    "cost": {
+      "food": 80,
+      "gold": 40
+    },
+    "trainTime": 21,
+    "hp": 170,
+    "armor": 5,
+    "pierceArmor": 4,
+    "attack": 15,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.3,
+    "speed": 2.1,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.37,
+    "bonusVs": {
+      "cavalry": 1.6,
+      "building": 1.4
+    }
+  },
+  "rm_archer": {
+    "id": "rm_archer",
+    "name": "קשת עזר",
+    "emoji": "🏹",
+    "desc": "כוחות עזר בעלי טווח",
+    "class": "ranged",
+    "cost": {
+      "wood": 45,
+      "gold": 25
+    },
+    "trainTime": 17,
+    "hp": 55,
+    "armor": 0,
+    "pierceArmor": 2,
+    "attack": 7,
+    "attackType": "pierce",
+    "range": 5.0,
+    "attackCooldown": 1.8,
+    "speed": 2.0,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.4
+    }
+  },
+  "rm_equites": {
+    "id": "rm_equites",
+    "name": "פרש רומי",
+    "emoji": "🐎",
+    "desc": "פרשים לאגפים ולמרדף",
+    "class": "cavalry",
+    "cost": {
+      "food": 80,
+      "gold": 25
+    },
+    "trainTime": 19,
+    "hp": 135,
+    "armor": 3,
+    "pierceArmor": 2,
+    "attack": 11,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.5,
+    "speed": 3.3,
+    "los": 10,
+    "pop": 1,
+    "radius": 0.42,
+    "bonusVs": {
+      "ranged": 1.8,
+      "siege": 1.5
+    }
+  },
+  "rm_ballista": {
+    "id": "rm_ballista",
+    "name": "בליסטרה",
+    "emoji": "⚙️",
+    "desc": "קליע מדויק לטווח ארוך",
+    "class": "siege",
+    "cost": {
+      "wood": 120,
+      "gold": 70
+    },
+    "trainTime": 28,
+    "hp": 130,
+    "armor": 2,
+    "pierceArmor": 6,
+    "attack": 26,
+    "attackType": "siege",
+    "range": 8.0,
+    "attackCooldown": 3.2,
+    "speed": 1.3,
+    "los": 11,
+    "pop": 3,
+    "radius": 0.52,
+    "bonusVs": {
+      "building": 3.0,
+      "infantry": 1.8
+    }
+  },
+  "rm_ram": {
+    "id": "rm_ram",
+    "name": "איל ניגוח",
+    "emoji": "🪵",
+    "desc": "מנפץ שערים וחומות",
+    "class": "siege",
+    "cost": {
+      "wood": 160
+    },
+    "trainTime": 30,
+    "hp": 260,
+    "armor": 3,
+    "pierceArmor": 9,
+    "attack": 22,
+    "attackType": "siege",
+    "range": 1.0,
+    "attackCooldown": 3.0,
+    "speed": 1.1,
+    "los": 6,
+    "pop": 3,
+    "radius": 0.55,
+    "bonusVs": {
+      "building": 7.0
+    }
+  },
+  "rm_centurion": {
+    "id": "rm_centurion",
+    "name": "קנטוריון",
+    "emoji": "🎖️",
+    "desc": "מפקד הלגיון",
+    "class": "infantry",
+    "cost": {
+      "food": 110,
+      "gold": 110
+    },
+    "trainTime": 38,
+    "hp": 300,
+    "armor": 8,
+    "pierceArmor": 7,
+    "attack": 23,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.2,
+    "speed": 2.4,
+    "los": 11,
+    "pop": 3,
+    "radius": 0.44,
+    "bonusVs": {
+      "infantry": 1.5,
+      "building": 1.5
+    }
+  },
+  "eg_worker": {
+    "id": "eg_worker",
+    "name": "פלאח",
+    "emoji": "🧑‍🌾",
+    "desc": "אוסף משאבים ובונה",
+    "class": "worker",
+    "cost": {
+      "food": 50
+    },
+    "trainTime": 12,
+    "hp": 45,
+    "armor": 0,
+    "pierceArmor": 0,
+    "attack": 3,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.8,
+    "speed": 2.3,
+    "los": 6,
+    "pop": 1,
+    "radius": 0.35,
+    "carry": 14,
+    "gatherRate": {
+      "food": 0.62,
+      "wood": 0.48,
+      "stone": 0.5,
+      "gold": 0.42
+    },
+    "canBuild": true,
+    "canRepair": true
+  },
+  "eg_spear": {
+    "id": "eg_spear",
+    "name": "לוחם חנית",
+    "emoji": "🔱",
+    "desc": "חומת חניתות מול פרשים",
+    "class": "infantry",
+    "cost": {
+      "food": 50,
+      "wood": 20
+    },
+    "trainTime": 13,
+    "hp": 75,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 7,
+    "attackType": "melee",
+    "range": 1.3,
+    "attackCooldown": 1.5,
+    "speed": 2.1,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 2.4
+    }
+  },
+  "eg_archer": {
+    "id": "eg_archer",
+    "name": "קשת נובי",
+    "emoji": "🏹",
+    "desc": "קשתים מהוללים בדיוקם",
+    "class": "ranged",
+    "cost": {
+      "wood": 40,
+      "gold": 30
+    },
+    "trainTime": 16,
+    "hp": 55,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 9,
+    "attackType": "pierce",
+    "range": 5.5,
+    "attackCooldown": 1.9,
+    "speed": 2.0,
+    "los": 10,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.5
+    }
+  },
+  "eg_chariot": {
+    "id": "eg_chariot",
+    "name": "מרכבה",
+    "emoji": "🛞",
+    "desc": "מרכבה מהירה לפריצה",
+    "class": "cavalry",
+    "cost": {
+      "wood": 60,
+      "food": 60
+    },
+    "trainTime": 18,
+    "hp": 140,
+    "armor": 2,
+    "pierceArmor": 3,
+    "attack": 11,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.5,
+    "speed": 3.4,
+    "los": 9,
+    "pop": 2,
+    "radius": 0.46,
+    "bonusVs": {
+      "ranged": 1.9,
+      "worker": 1.4
+    }
+  },
+  "eg_chariot_archer": {
+    "id": "eg_chariot_archer",
+    "name": "מרכבת קשת",
+    "emoji": "🏇",
+    "desc": "יורה מתוך מרכבה דוהרת",
+    "class": "ranged",
+    "cost": {
+      "wood": 70,
+      "gold": 55
+    },
+    "trainTime": 22,
+    "hp": 95,
+    "armor": 1,
+    "pierceArmor": 3,
+    "attack": 9,
+    "attackType": "pierce",
+    "range": 4.5,
+    "attackCooldown": 1.7,
+    "speed": 3.1,
+    "los": 11,
+    "pop": 2,
+    "radius": 0.44,
+    "bonusVs": {
+      "siege": 1.6
+    }
+  },
+  "eg_khopesh": {
+    "id": "eg_khopesh",
+    "name": "לוחם חרב",
+    "emoji": "⚔️",
+    "desc": "לוחם עילית עם חרב מעוקלת",
+    "class": "infantry",
+    "cost": {
+      "food": 80,
+      "gold": 40
+    },
+    "trainTime": 20,
+    "hp": 155,
+    "armor": 4,
+    "pierceArmor": 3,
+    "attack": 15,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.25,
+    "speed": 2.2,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.37,
+    "bonusVs": {
+      "infantry": 1.4,
+      "building": 1.3
+    }
+  },
+  "eg_catapult": {
+    "id": "eg_catapult",
+    "name": "מכונת אבנים",
+    "emoji": "🪨",
+    "desc": "מטילה אבני ענק",
+    "class": "siege",
+    "cost": {
+      "wood": 140,
+      "stone": 60
+    },
+    "trainTime": 30,
+    "hp": 150,
+    "armor": 2,
+    "pierceArmor": 6,
+    "attack": 33,
+    "attackType": "siege",
+    "range": 7.0,
+    "attackCooldown": 3.6,
+    "speed": 1.2,
+    "los": 9,
+    "pop": 3,
+    "radius": 0.55,
+    "bonusVs": {
+      "building": 4.3
+    }
+  },
+  "eg_priest": {
+    "id": "eg_priest",
+    "name": "כוהן",
+    "emoji": "⚱️",
+    "desc": "מרפא ומברך את הצבא",
+    "class": "worker",
+    "cost": {
+      "gold": 85
+    },
+    "trainTime": 26,
+    "hp": 65,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 0,
+    "attackType": "melee",
+    "range": 3.2,
+    "attackCooldown": 1.4,
+    "speed": 2.1,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.34,
+    "healer": true
+  },
+  "vk_worker": {
+    "id": "vk_worker",
+    "name": "איכר",
+    "emoji": "🧑‍🌾",
+    "desc": "אוסף משאבים ובונה",
+    "class": "worker",
+    "cost": {
+      "food": 50
+    },
+    "trainTime": 12,
+    "hp": 48,
+    "armor": 0,
+    "pierceArmor": 0,
+    "attack": 3,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.8,
+    "speed": 2.3,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.35,
+    "carry": 13,
+    "gatherRate": {
+      "food": 0.54,
+      "wood": 0.6,
+      "stone": 0.44,
+      "gold": 0.44
+    },
+    "canBuild": true,
+    "canRepair": true
+  },
+  "vk_bondi": {
+    "id": "vk_bondi",
+    "name": "בונדי",
+    "emoji": "🪓",
+    "desc": "חקלאי חופשי שיוצא לקרב — זול ומהיר לאימון",
+    "class": "infantry",
+    "cost": {
+      "food": 50,
+      "wood": 15
+    },
+    "trainTime": 11,
+    "hp": 72,
+    "armor": 1,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.4,
+    "speed": 2.2,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 1.5
+    }
+  },
+  "vk_spear": {
+    "id": "vk_spear",
+    "name": "נושא חנית",
+    "emoji": "🔱",
+    "desc": "חומת חניתות מול פרשים",
+    "class": "infantry",
+    "cost": {
+      "food": 50,
+      "wood": 22
+    },
+    "trainTime": 14,
+    "hp": 82,
+    "armor": 1,
+    "pierceArmor": 2,
+    "attack": 7,
+    "attackType": "melee",
+    "range": 1.3,
+    "attackCooldown": 1.5,
+    "speed": 2.1,
+    "los": 7,
+    "pop": 1,
+    "radius": 0.36,
+    "bonusVs": {
+      "cavalry": 2.5
+    }
+  },
+  "vk_archer": {
+    "id": "vk_archer",
+    "name": "קשת צפוני",
+    "emoji": "🏹",
+    "desc": "קשת עשוי עץ טקסוס, מדויק בקור",
+    "class": "ranged",
+    "cost": {
+      "wood": 42,
+      "gold": 25
+    },
+    "trainTime": 16,
+    "hp": 56,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 8,
+    "attackType": "pierce",
+    "range": 5.2,
+    "attackCooldown": 1.8,
+    "speed": 2.1,
+    "los": 10,
+    "pop": 1,
+    "radius": 0.34,
+    "bonusVs": {
+      "infantry": 1.4
+    }
+  },
+  "vk_raider": {
+    "id": "vk_raider",
+    "name": "פושט רכוב",
+    "emoji": "🐎",
+    "desc": "פושט מהיר שמכה ונעלם",
+    "class": "cavalry",
+    "cost": {
+      "food": 70,
+      "gold": 20
+    },
+    "trainTime": 17,
+    "hp": 120,
+    "armor": 2,
+    "pierceArmor": 2,
+    "attack": 10,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.45,
+    "speed": 3.5,
+    "los": 12,
+    "pop": 1,
+    "radius": 0.42,
+    "bonusVs": {
+      "ranged": 1.8,
+      "worker": 1.5
+    }
+  },
+  "vk_huscarl": {
+    "id": "vk_huscarl",
+    "name": "הוסקרל",
+    "emoji": "🛡️",
+    "desc": "שומר ראש מושבע — חומת מגנים עמידה",
+    "class": "infantry",
+    "cost": {
+      "food": 85,
+      "gold": 40
+    },
+    "trainTime": 21,
+    "hp": 175,
+    "armor": 5,
+    "pierceArmor": 5,
+    "attack": 15,
+    "attackType": "melee",
+    "range": 0.9,
+    "attackCooldown": 1.3,
+    "speed": 2.2,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.37,
+    "bonusVs": {
+      "cavalry": 1.7,
+      "building": 1.3
+    }
+  },
+  "vk_siege": {
+    "id": "vk_siege",
+    "name": "מכונת מצור",
+    "emoji": "🪨",
+    "desc": "מנפצת חומות מעץ אלון",
+    "class": "siege",
+    "cost": {
+      "wood": 140,
+      "gold": 55
+    },
+    "trainTime": 29,
+    "hp": 160,
+    "armor": 3,
+    "pierceArmor": 6,
+    "attack": 32,
+    "attackType": "siege",
+    "range": 7.0,
+    "attackCooldown": 3.5,
+    "speed": 1.25,
+    "los": 9,
+    "pop": 3,
+    "radius": 0.55,
+    "bonusVs": {
+      "building": 4.4
+    }
+  },
+  "vk_skald": {
+    "id": "vk_skald",
+    "name": "סקאלד",
+    "emoji": "🎻",
+    "desc": "משורר החצר — שירתו מרפאת את הלוחמים",
+    "class": "worker",
+    "cost": {
+      "gold": 85
+    },
+    "trainTime": 26,
+    "hp": 68,
+    "armor": 0,
+    "pierceArmor": 1,
+    "attack": 0,
+    "attackType": "melee",
+    "range": 3.2,
+    "attackCooldown": 1.4,
+    "speed": 2.2,
+    "los": 9,
+    "pop": 1,
+    "radius": 0.34,
+    "healer": true
+  },
+  "vk_jarl": {
+    "id": "vk_jarl",
+    "name": "יארל",
+    "emoji": "👑",
+    "desc": "אדון האחוזה — מוביל את אנשיו מהחזית",
+    "class": "infantry",
+    "cost": {
+      "food": 115,
+      "gold": 115
+    },
+    "trainTime": 38,
+    "hp": 310,
+    "armor": 8,
+    "pierceArmor": 7,
+    "attack": 24,
+    "attackType": "melee",
+    "range": 1.0,
+    "attackCooldown": 1.2,
+    "speed": 2.5,
+    "los": 12,
+    "pop": 3,
+    "radius": 0.44,
+    "bonusVs": {
+      "infantry": 1.4,
+      "building": 1.5
+    }
+  },
+  "fishing_boat": {
+    "id": "fishing_boat",
+    "name": "סירת דיג",
+    "emoji": "🛶",
+    "desc": "דגה מהים ומחזירה אוכל לנמל",
+    "class": "ship",
+    "cost": {
+      "wood": 55
+    },
+    "trainTime": 16,
+    "hp": 95,
+    "armor": 0,
+    "pierceArmor": 2,
+    "attack": 0,
+    "attackType": "pierce",
+    "range": 0,
+    "attackCooldown": 3,
+    "speed": 2.2,
+    "los": 8,
+    "pop": 1,
+    "radius": 0.45,
+    "carry": 18,
+    "gatherRate": {
+      "food": 0.72
+    }
+  },
+  "war_galley": {
+    "id": "war_galley",
+    "name": "ספינת קרב",
+    "emoji": "⛵",
+    "desc": "יורה מהים אל ספינות ואל החוף",
+    "class": "ship",
+    "cost": {
+      "wood": 95,
+      "gold": 35
+    },
+    "trainTime": 24,
+    "hp": 180,
+    "armor": 1,
+    "pierceArmor": 6,
+    "attack": 13,
+    "attackType": "pierce",
+    "range": 6.0,
+    "attackCooldown": 2.2,
+    "speed": 2.5,
+    "los": 10,
+    "pop": 2,
+    "radius": 0.5,
+    "bonusVs": {
+      "ship": 1.2
+    }
+  },
+  "vk_longship": {
+    "id": "vk_longship",
+    "name": "ספינת דרקון",
+    "emoji": "🐉",
+    "desc": "ספינת הוויקינגים — מהירה וקטלנית",
+    "class": "ship",
+    "cost": {
+      "wood": 110,
+      "gold": 45
+    },
+    "trainTime": 26,
+    "hp": 230,
+    "armor": 2,
+    "pierceArmor": 7,
+    "attack": 17,
+    "attackType": "pierce",
+    "range": 6.5,
+    "attackCooldown": 2.1,
+    "speed": 2.9,
+    "los": 11,
+    "pop": 2,
+    "radius": 0.52,
+    "bonusVs": {
+      "ship": 1.3,
+      "building": 1.2
+    }
   }
- },
- "il_infantry": {
-  "id": "il_infantry",
-  "name": "חייל חי\"ר",
-  "emoji": "🪖",
-  "desc": "עמוד השדרה של הצבא",
-  "class": "infantry",
-  "cost": {
-   "food": 65,
-   "gold": 15
-  },
-  "trainTime": 17,
-  "hp": 95,
-  "armor": 2,
-  "pierceArmor": 2,
-  "attack": 9,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.4,
-  "speed": 2.1,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 1.8
-  }
- },
- "il_rifleman": {
-  "id": "il_rifleman",
-  "name": "רובאי",
-  "emoji": "🔫",
-  "desc": "אש מטווח בינוני",
-  "class": "ranged",
-  "cost": {
-   "wood": 45,
-   "gold": 30
-  },
-  "trainTime": 18,
-  "hp": 60,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 8,
-  "attackType": "pierce",
-  "range": 5.0,
-  "attackCooldown": 1.8,
-  "speed": 2.0,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.4
-  }
- },
- "il_scout": {
-  "id": "il_scout",
-  "name": "ג'יפ סיור",
-  "emoji": "🚙",
-  "desc": "מהיר, מצוין לחקר המפה",
-  "class": "cavalry",
-  "cost": {
-   "food": 70
-  },
-  "trainTime": 16,
-  "hp": 110,
-  "armor": 1,
-  "pierceArmor": 1,
-  "attack": 8,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.6,
-  "speed": 3.6,
-  "los": 11,
-  "pop": 1,
-  "radius": 0.4,
-  "bonusVs": {
-   "ranged": 1.7,
-   "worker": 1.4
-  }
- },
- "il_golani": {
-  "id": "il_golani",
-  "name": "לוחם חטיבתי",
-  "emoji": "🎖️",
-  "desc": "חי\"ר עילית מאומן היטב",
-  "class": "infantry",
-  "cost": {
-   "food": 80,
-   "gold": 35
-  },
-  "trainTime": 21,
-  "hp": 150,
-  "armor": 4,
-  "pierceArmor": 3,
-  "attack": 14,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.3,
-  "speed": 2.2,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.37,
-  "bonusVs": {
-   "cavalry": 1.9,
-   "building": 1.3
-  }
- },
- "il_apc": {
-  "id": "il_apc",
-  "name": "נגמ\"ש",
-  "emoji": "🚐",
-  "desc": "רכב משוריין מהיר ועמיד",
-  "class": "cavalry",
-  "cost": {
-   "food": 60,
-   "gold": 60
-  },
-  "trainTime": 22,
-  "hp": 200,
-  "armor": 6,
-  "pierceArmor": 5,
-  "attack": 13,
-  "attackType": "melee",
-  "range": 1.2,
-  "attackCooldown": 1.5,
-  "speed": 3.1,
-  "los": 9,
-  "pop": 2,
-  "radius": 0.45,
-  "bonusVs": {
-   "ranged": 1.8,
-   "siege": 1.6
-  }
- },
- "il_tank": {
-  "id": "il_tank",
-  "name": "טנק",
-  "emoji": "🦾",
-  "desc": "כוח פריצה כבד נגד מבנים",
-  "class": "siege",
-  "cost": {
-   "wood": 80,
-   "gold": 100
-  },
-  "trainTime": 30,
-  "hp": 260,
-  "armor": 8,
-  "pierceArmor": 7,
-  "attack": 30,
-  "attackType": "siege",
-  "range": 5.5,
-  "attackCooldown": 3.0,
-  "speed": 1.6,
-  "los": 9,
-  "pop": 3,
-  "radius": 0.55,
-  "bonusVs": {
-   "building": 4.0,
-   "infantry": 1.2
-  }
- },
- "il_sniper": {
-  "id": "il_sniper",
-  "name": "צלף",
-  "emoji": "🎯",
-  "desc": "טווח ארוך ודיוק גבוה",
-  "class": "ranged",
-  "cost": {
-   "wood": 40,
-   "gold": 70
-  },
-  "trainTime": 24,
-  "hp": 55,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 20,
-  "attackType": "pierce",
-  "range": 8.0,
-  "attackCooldown": 3.0,
-  "speed": 1.9,
-  "los": 13,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.6,
-   "worker": 2.0
-  }
- },
- "il_commando": {
-  "id": "il_commando",
-  "name": "לוחם סיירת",
-  "emoji": "🥷",
-  "desc": "חודר קווים, מהיר וקטלני",
-  "class": "infantry",
-  "cost": {
-   "food": 70,
-   "gold": 60
-  },
-  "trainTime": 23,
-  "hp": 120,
-  "armor": 3,
-  "pierceArmor": 4,
-  "attack": 18,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.1,
-  "speed": 2.9,
-  "los": 12,
-  "pop": 1,
-  "radius": 0.35,
-  "bonusVs": {
-   "ranged": 1.6,
-   "siege": 1.8
-  }
- },
- "il_drone": {
-  "id": "il_drone",
-  "name": "מל\"ט",
-  "emoji": "🛩️",
-  "desc": "טס מעל המפה ותוקף מהאוויר",
-  "class": "air",
-  "cost": {
-   "wood": 60,
-   "gold": 80
-  },
-  "trainTime": 26,
-  "hp": 90,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 16,
-  "attackType": "pierce",
-  "range": 4.5,
-  "attackCooldown": 2.2,
-  "speed": 4.2,
-  "los": 14,
-  "pop": 2,
-  "radius": 0.4,
-  "bonusVs": {
-   "siege": 1.8,
-   "worker": 1.5
-  }
- },
- "il_flak": {
-  "id": "il_flak",
-  "name": "נ\"מ נייד",
-  "emoji": "🎆",
-  "desc": "מיירט יעדים אוויריים",
-  "class": "ranged",
-  "cost": {
-   "wood": 55,
-   "gold": 55
-  },
-  "trainTime": 22,
-  "hp": 110,
-  "armor": 2,
-  "pierceArmor": 3,
-  "attack": 12,
-  "attackType": "flak",
-  "range": 6.5,
-  "attackCooldown": 1.6,
-  "speed": 2.0,
-  "los": 11,
-  "pop": 2,
-  "radius": 0.42,
-  "bonusVs": {
-   "air": 4.0
-  }
- },
- "il_medic": {
-  "id": "il_medic",
-  "name": "חובש",
-  "emoji": "⛑️",
-  "desc": "מרפא יחידות ידידותיות",
-  "class": "worker",
-  "cost": {
-   "food": 40,
-   "gold": 40
-  },
-  "trainTime": 20,
-  "hp": 60,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 0,
-  "attackType": "melee",
-  "range": 3.0,
-  "attackCooldown": 1.5,
-  "speed": 2.2,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.34,
-  "healer": true,
-  "canRepair": true
- },
- "il_elite": {
-  "id": "il_elite",
-  "name": "יחידת עילית",
-  "emoji": "⭐",
-  "desc": "פאר הצבא בשלב העיר",
-  "class": "infantry",
-  "cost": {
-   "food": 100,
-   "gold": 80
-  },
-  "trainTime": 28,
-  "hp": 210,
-  "armor": 6,
-  "pierceArmor": 6,
-  "attack": 22,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.2,
-  "speed": 2.4,
-  "los": 10,
-  "pop": 2,
-  "radius": 0.4,
-  "bonusVs": {
-   "cavalry": 1.6,
-   "building": 1.5
-  }
- },
- "jp_worker": {
-  "id": "jp_worker",
-  "name": "איכר",
-  "emoji": "🧑‍🌾",
-  "desc": "אוסף משאבים ובונה",
-  "class": "worker",
-  "cost": {
-   "food": 50
-  },
-  "trainTime": 12,
-  "hp": 45,
-  "armor": 0,
-  "pierceArmor": 0,
-  "attack": 3,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.8,
-  "speed": 2.3,
-  "los": 6,
-  "pop": 1,
-  "radius": 0.35,
-  "carry": 13,
-  "gatherRate": {
-   "food": 0.56,
-   "wood": 0.54,
-   "stone": 0.42,
-   "gold": 0.44
-  },
-  "canBuild": true,
-  "canRepair": true
- },
- "jp_ashigaru": {
-  "id": "jp_ashigaru",
-  "name": "אשיגארו",
-  "emoji": "🪖",
-  "desc": "חיל רגלים זול ומהיר לאימון",
-  "class": "infantry",
-  "cost": {
-   "food": 50,
-   "wood": 15
-  },
-  "trainTime": 12,
-  "hp": 70,
-  "armor": 1,
-  "pierceArmor": 1,
-  "attack": 7,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.4,
-  "speed": 2.2,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 1.5
-  }
- },
- "jp_yari": {
-  "id": "jp_yari",
-  "name": "יארי־אשיגארו",
-  "emoji": "🔱",
-  "desc": "נושאי חנית נגד פרשים",
-  "class": "infantry",
-  "cost": {
-   "food": 45,
-   "wood": 25
-  },
-  "trainTime": 14,
-  "hp": 80,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 7,
-  "attackType": "melee",
-  "range": 1.3,
-  "attackCooldown": 1.5,
-  "speed": 2.0,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 2.6
-  }
- },
- "jp_archer": {
-  "id": "jp_archer",
-  "name": "קשת יפני",
-  "emoji": "🏹",
-  "desc": "יומי ארוך, טווח מצוין",
-  "class": "ranged",
-  "cost": {
-   "wood": 45,
-   "gold": 25
-  },
-  "trainTime": 17,
-  "hp": 55,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 8,
-  "attackType": "pierce",
-  "range": 5.5,
-  "attackCooldown": 1.9,
-  "speed": 2.0,
-  "los": 10,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.4
-  }
- },
- "jp_cavalry": {
-  "id": "jp_cavalry",
-  "name": "פרש יפני",
-  "emoji": "🐎",
-  "desc": "רוכב מהיר לאגפים",
-  "class": "cavalry",
-  "cost": {
-   "food": 75,
-   "gold": 25
-  },
-  "trainTime": 19,
-  "hp": 130,
-  "armor": 2,
-  "pierceArmor": 2,
-  "attack": 11,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.5,
-  "speed": 3.3,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.42,
-  "bonusVs": {
-   "ranged": 1.8,
-   "siege": 1.5
-  }
- },
- "jp_samurai": {
-  "id": "jp_samurai",
-  "name": "סמוראי",
-  "emoji": "⚔️",
-  "desc": "לוחם אליטה עם קוד כבוד",
-  "class": "infantry",
-  "cost": {
-   "food": 85,
-   "gold": 45
-  },
-  "trainTime": 22,
-  "hp": 165,
-  "armor": 4,
-  "pierceArmor": 3,
-  "attack": 16,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.2,
-  "speed": 2.3,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.37,
-  "bonusVs": {
-   "infantry": 1.5,
-   "cavalry": 1.4
-  }
- },
- "jp_catapult": {
-  "id": "jp_catapult",
-  "name": "מכונת מצור",
-  "emoji": "🪨",
-  "desc": "מנפצת חומות ומבנים",
-  "class": "siege",
-  "cost": {
-   "wood": 140,
-   "gold": 60
-  },
-  "trainTime": 30,
-  "hp": 150,
-  "armor": 2,
-  "pierceArmor": 6,
-  "attack": 34,
-  "attackType": "siege",
-  "range": 7.0,
-  "attackCooldown": 3.6,
-  "speed": 1.2,
-  "los": 9,
-  "pop": 3,
-  "radius": 0.55,
-  "bonusVs": {
-   "building": 4.5
-  }
- },
- "jp_daimyo": {
-  "id": "jp_daimyo",
-  "name": "דאימיו",
-  "emoji": "👑",
-  "desc": "איש הטירה — מעניק השראה ללוחמים",
-  "class": "cavalry",
-  "cost": {
-   "food": 120,
-   "gold": 120
-  },
-  "trainTime": 40,
-  "hp": 320,
-  "armor": 7,
-  "pierceArmor": 6,
-  "attack": 24,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.3,
-  "speed": 3.0,
-  "los": 12,
-  "pop": 3,
-  "radius": 0.48,
-  "bonusVs": {
-   "infantry": 1.4,
-   "building": 1.4
-  }
- },
- "jp_shinobi": {
-  "id": "jp_shinobi",
-  "name": "שינובי",
-  "emoji": "🥷",
-  "desc": "סייר זריז לחדירה מאחור",
-  "class": "infantry",
-  "cost": {
-   "food": 60,
-   "gold": 70
-  },
-  "trainTime": 22,
-  "hp": 100,
-  "armor": 2,
-  "pierceArmor": 4,
-  "attack": 19,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.0,
-  "speed": 3.0,
-  "los": 12,
-  "pop": 1,
-  "radius": 0.35,
-  "bonusVs": {
-   "worker": 2.2,
-   "siege": 1.7
-  }
- },
- "ar_worker": {
-  "id": "ar_worker",
-  "name": "עובד",
-  "emoji": "🧑‍🌾",
-  "desc": "אוסף משאבים ובונה",
-  "class": "worker",
-  "cost": {
-   "food": 50
-  },
-  "trainTime": 12,
-  "hp": 45,
-  "armor": 0,
-  "pierceArmor": 0,
-  "attack": 3,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.8,
-  "speed": 2.4,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.35,
-  "carry": 12,
-  "gatherRate": {
-   "food": 0.54,
-   "wood": 0.5,
-   "stone": 0.44,
-   "gold": 0.56
-  },
-  "canBuild": true,
-  "canRepair": true
- },
- "ar_spear": {
-  "id": "ar_spear",
-  "name": "נושא חנית",
-  "emoji": "🔱",
-  "desc": "הגנה יציבה מול פרשים",
-  "class": "infantry",
-  "cost": {
-   "food": 50,
-   "wood": 20
-  },
-  "trainTime": 14,
-  "hp": 78,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 7,
-  "attackType": "melee",
-  "range": 1.3,
-  "attackCooldown": 1.5,
-  "speed": 2.1,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 2.4
-  }
- },
- "ar_archer": {
-  "id": "ar_archer",
-  "name": "קשת",
-  "emoji": "🏹",
-  "desc": "מטח חצים מדויק",
-  "class": "ranged",
-  "cost": {
-   "wood": 40,
-   "gold": 25
-  },
-  "trainTime": 16,
-  "hp": 52,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 8,
-  "attackType": "pierce",
-  "range": 5.0,
-  "attackCooldown": 1.8,
-  "speed": 2.1,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.4
-  }
- },
- "ar_camel": {
-  "id": "ar_camel",
-  "name": "רוכב גמלים",
-  "emoji": "🐪",
-  "desc": "עמיד במדבר ומצוין נגד פרשים",
-  "class": "cavalry",
-  "cost": {
-   "food": 70,
-   "gold": 30
-  },
-  "trainTime": 18,
-  "hp": 125,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 10,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.5,
-  "speed": 3.1,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.44,
-  "bonusVs": {
-   "cavalry": 2.2,
-   "ranged": 1.4
-  }
- },
- "ar_lighthorse": {
-  "id": "ar_lighthorse",
-  "name": "פרש קל",
-  "emoji": "🐎",
-  "desc": "מהיר במיוחד, מעולה לפשיטות",
-  "class": "cavalry",
-  "cost": {
-   "food": 65
-  },
-  "trainTime": 15,
-  "hp": 105,
-  "armor": 1,
-  "pierceArmor": 1,
-  "attack": 9,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.4,
-  "speed": 3.8,
-  "los": 12,
-  "pop": 1,
-  "radius": 0.42,
-  "bonusVs": {
-   "ranged": 1.9,
-   "worker": 1.5
-  }
- },
- "ar_horsearcher": {
-  "id": "ar_horsearcher",
-  "name": "קשת רכוב",
-  "emoji": "🏇",
-  "desc": "יורה תוך כדי תנועה",
-  "class": "ranged",
-  "cost": {
-   "wood": 45,
-   "gold": 60
-  },
-  "trainTime": 22,
-  "hp": 80,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 9,
-  "attackType": "pierce",
-  "range": 4.5,
-  "attackCooldown": 1.7,
-  "speed": 3.2,
-  "los": 11,
-  "pop": 2,
-  "radius": 0.42,
-  "bonusVs": {
-   "siege": 1.6
-  }
- },
- "ar_heavycav": {
-  "id": "ar_heavycav",
-  "name": "פרש כבד",
-  "emoji": "🐴",
-  "desc": "פרש משוריין לפריצת קווים",
-  "class": "cavalry",
-  "cost": {
-   "food": 90,
-   "gold": 60
-  },
-  "trainTime": 24,
-  "hp": 190,
-  "armor": 5,
-  "pierceArmor": 4,
-  "attack": 16,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.4,
-  "speed": 3.0,
-  "los": 9,
-  "pop": 2,
-  "radius": 0.46,
-  "bonusVs": {
-   "ranged": 1.8,
-   "siege": 1.6
-  }
- },
- "ar_mangonel": {
-  "id": "ar_mangonel",
-  "name": "מנג'ניק",
-  "emoji": "🪨",
-  "desc": "מכונת מצור בעלת טווח ארוך",
-  "class": "siege",
-  "cost": {
-   "wood": 150,
-   "gold": 60
-  },
-  "trainTime": 30,
-  "hp": 145,
-  "armor": 2,
-  "pierceArmor": 6,
-  "attack": 32,
-  "attackType": "siege",
-  "range": 7.5,
-  "attackCooldown": 3.6,
-  "speed": 1.2,
-  "los": 10,
-  "pop": 3,
-  "radius": 0.55,
-  "bonusVs": {
-   "building": 4.2
-  }
- },
- "ar_scholar": {
-  "id": "ar_scholar",
-  "name": "חכם",
-  "emoji": "📜",
-  "desc": "איש בית החוכמה — מרפא ומעודד מחקר",
-  "class": "worker",
-  "cost": {
-   "gold": 90
-  },
-  "trainTime": 26,
-  "hp": 70,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 0,
-  "attackType": "melee",
-  "range": 3.5,
-  "attackCooldown": 1.4,
-  "speed": 2.1,
-  "los": 10,
-  "pop": 1,
-  "radius": 0.34,
-  "healer": true
- },
- "rm_worker": {
-  "id": "rm_worker",
-  "name": "אזרח",
-  "emoji": "🧑‍🌾",
-  "desc": "אוסף משאבים ובונה",
-  "class": "worker",
-  "cost": {
-   "food": 50
-  },
-  "trainTime": 12,
-  "hp": 48,
-  "armor": 1,
-  "pierceArmor": 0,
-  "attack": 3,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.8,
-  "speed": 2.2,
-  "los": 6,
-  "pop": 1,
-  "radius": 0.35,
-  "carry": 12,
-  "gatherRate": {
-   "food": 0.54,
-   "wood": 0.5,
-   "stone": 0.55,
-   "gold": 0.44
-  },
-  "canBuild": true,
-  "canRepair": true
- },
- "rm_hastati": {
-  "id": "rm_hastati",
-  "name": "האסטאטי",
-  "emoji": "🪖",
-  "desc": "שורה ראשונה בלגיון",
-  "class": "infantry",
-  "cost": {
-   "food": 55,
-   "wood": 15
-  },
-  "trainTime": 14,
-  "hp": 80,
-  "armor": 2,
-  "pierceArmor": 2,
-  "attack": 7,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.4,
-  "speed": 2.1,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 1.6
-  }
- },
- "rm_legion": {
-  "id": "rm_legion",
-  "name": "לגיונר",
-  "emoji": "⚔️",
-  "desc": "חיל רגלים ממושמע ומשוריין",
-  "class": "infantry",
-  "cost": {
-   "food": 80,
-   "gold": 40
-  },
-  "trainTime": 21,
-  "hp": 170,
-  "armor": 5,
-  "pierceArmor": 4,
-  "attack": 15,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.3,
-  "speed": 2.1,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.37,
-  "bonusVs": {
-   "cavalry": 1.6,
-   "building": 1.4
-  }
- },
- "rm_archer": {
-  "id": "rm_archer",
-  "name": "קשת עזר",
-  "emoji": "🏹",
-  "desc": "כוחות עזר בעלי טווח",
-  "class": "ranged",
-  "cost": {
-   "wood": 45,
-   "gold": 25
-  },
-  "trainTime": 17,
-  "hp": 55,
-  "armor": 0,
-  "pierceArmor": 2,
-  "attack": 7,
-  "attackType": "pierce",
-  "range": 5.0,
-  "attackCooldown": 1.8,
-  "speed": 2.0,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.4
-  }
- },
- "rm_equites": {
-  "id": "rm_equites",
-  "name": "פרש רומי",
-  "emoji": "🐎",
-  "desc": "פרשים לאגפים ולמרדף",
-  "class": "cavalry",
-  "cost": {
-   "food": 80,
-   "gold": 25
-  },
-  "trainTime": 19,
-  "hp": 135,
-  "armor": 3,
-  "pierceArmor": 2,
-  "attack": 11,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.5,
-  "speed": 3.3,
-  "los": 10,
-  "pop": 1,
-  "radius": 0.42,
-  "bonusVs": {
-   "ranged": 1.8,
-   "siege": 1.5
-  }
- },
- "rm_ballista": {
-  "id": "rm_ballista",
-  "name": "בליסטרה",
-  "emoji": "⚙️",
-  "desc": "קליע מדויק לטווח ארוך",
-  "class": "siege",
-  "cost": {
-   "wood": 120,
-   "gold": 70
-  },
-  "trainTime": 28,
-  "hp": 130,
-  "armor": 2,
-  "pierceArmor": 6,
-  "attack": 26,
-  "attackType": "siege",
-  "range": 8.0,
-  "attackCooldown": 3.2,
-  "speed": 1.3,
-  "los": 11,
-  "pop": 3,
-  "radius": 0.52,
-  "bonusVs": {
-   "building": 3.0,
-   "infantry": 1.8
-  }
- },
- "rm_ram": {
-  "id": "rm_ram",
-  "name": "איל ניגוח",
-  "emoji": "🪵",
-  "desc": "מנפץ שערים וחומות",
-  "class": "siege",
-  "cost": {
-   "wood": 160
-  },
-  "trainTime": 30,
-  "hp": 260,
-  "armor": 3,
-  "pierceArmor": 9,
-  "attack": 22,
-  "attackType": "siege",
-  "range": 1.0,
-  "attackCooldown": 3.0,
-  "speed": 1.1,
-  "los": 6,
-  "pop": 3,
-  "radius": 0.55,
-  "bonusVs": {
-   "building": 7.0
-  }
- },
- "rm_centurion": {
-  "id": "rm_centurion",
-  "name": "קנטוריון",
-  "emoji": "🎖️",
-  "desc": "מפקד הלגיון",
-  "class": "infantry",
-  "cost": {
-   "food": 110,
-   "gold": 110
-  },
-  "trainTime": 38,
-  "hp": 300,
-  "armor": 8,
-  "pierceArmor": 7,
-  "attack": 23,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.2,
-  "speed": 2.4,
-  "los": 11,
-  "pop": 3,
-  "radius": 0.44,
-  "bonusVs": {
-   "infantry": 1.5,
-   "building": 1.5
-  }
- },
- "eg_worker": {
-  "id": "eg_worker",
-  "name": "פלאח",
-  "emoji": "🧑‍🌾",
-  "desc": "אוסף משאבים ובונה",
-  "class": "worker",
-  "cost": {
-   "food": 50
-  },
-  "trainTime": 12,
-  "hp": 45,
-  "armor": 0,
-  "pierceArmor": 0,
-  "attack": 3,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.8,
-  "speed": 2.3,
-  "los": 6,
-  "pop": 1,
-  "radius": 0.35,
-  "carry": 14,
-  "gatherRate": {
-   "food": 0.62,
-   "wood": 0.48,
-   "stone": 0.5,
-   "gold": 0.42
-  },
-  "canBuild": true,
-  "canRepair": true
- },
- "eg_spear": {
-  "id": "eg_spear",
-  "name": "לוחם חנית",
-  "emoji": "🔱",
-  "desc": "חומת חניתות מול פרשים",
-  "class": "infantry",
-  "cost": {
-   "food": 50,
-   "wood": 20
-  },
-  "trainTime": 13,
-  "hp": 75,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 7,
-  "attackType": "melee",
-  "range": 1.3,
-  "attackCooldown": 1.5,
-  "speed": 2.1,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 2.4
-  }
- },
- "eg_archer": {
-  "id": "eg_archer",
-  "name": "קשת נובי",
-  "emoji": "🏹",
-  "desc": "קשתים מהוללים בדיוקם",
-  "class": "ranged",
-  "cost": {
-   "wood": 40,
-   "gold": 30
-  },
-  "trainTime": 16,
-  "hp": 55,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 9,
-  "attackType": "pierce",
-  "range": 5.5,
-  "attackCooldown": 1.9,
-  "speed": 2.0,
-  "los": 10,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.5
-  }
- },
- "eg_chariot": {
-  "id": "eg_chariot",
-  "name": "מרכבה",
-  "emoji": "🛞",
-  "desc": "מרכבה מהירה לפריצה",
-  "class": "cavalry",
-  "cost": {
-   "wood": 60,
-   "food": 60
-  },
-  "trainTime": 18,
-  "hp": 140,
-  "armor": 2,
-  "pierceArmor": 3,
-  "attack": 11,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.5,
-  "speed": 3.4,
-  "los": 9,
-  "pop": 2,
-  "radius": 0.46,
-  "bonusVs": {
-   "ranged": 1.9,
-   "worker": 1.4
-  }
- },
- "eg_chariot_archer": {
-  "id": "eg_chariot_archer",
-  "name": "מרכבת קשת",
-  "emoji": "🏇",
-  "desc": "יורה מתוך מרכבה דוהרת",
-  "class": "ranged",
-  "cost": {
-   "wood": 70,
-   "gold": 55
-  },
-  "trainTime": 22,
-  "hp": 95,
-  "armor": 1,
-  "pierceArmor": 3,
-  "attack": 9,
-  "attackType": "pierce",
-  "range": 4.5,
-  "attackCooldown": 1.7,
-  "speed": 3.1,
-  "los": 11,
-  "pop": 2,
-  "radius": 0.44,
-  "bonusVs": {
-   "siege": 1.6
-  }
- },
- "eg_khopesh": {
-  "id": "eg_khopesh",
-  "name": "לוחם חרב",
-  "emoji": "⚔️",
-  "desc": "לוחם עילית עם חרב מעוקלת",
-  "class": "infantry",
-  "cost": {
-   "food": 80,
-   "gold": 40
-  },
-  "trainTime": 20,
-  "hp": 155,
-  "armor": 4,
-  "pierceArmor": 3,
-  "attack": 15,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.25,
-  "speed": 2.2,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.37,
-  "bonusVs": {
-   "infantry": 1.4,
-   "building": 1.3
-  }
- },
- "eg_catapult": {
-  "id": "eg_catapult",
-  "name": "מכונת אבנים",
-  "emoji": "🪨",
-  "desc": "מטילה אבני ענק",
-  "class": "siege",
-  "cost": {
-   "wood": 140,
-   "stone": 60
-  },
-  "trainTime": 30,
-  "hp": 150,
-  "armor": 2,
-  "pierceArmor": 6,
-  "attack": 33,
-  "attackType": "siege",
-  "range": 7.0,
-  "attackCooldown": 3.6,
-  "speed": 1.2,
-  "los": 9,
-  "pop": 3,
-  "radius": 0.55,
-  "bonusVs": {
-   "building": 4.3
-  }
- },
- "eg_priest": {
-  "id": "eg_priest",
-  "name": "כוהן",
-  "emoji": "⚱️",
-  "desc": "מרפא ומברך את הצבא",
-  "class": "worker",
-  "cost": {
-   "gold": 85
-  },
-  "trainTime": 26,
-  "hp": 65,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 0,
-  "attackType": "melee",
-  "range": 3.2,
-  "attackCooldown": 1.4,
-  "speed": 2.1,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.34,
-  "healer": true
- },
- "vk_worker": {
-  "id": "vk_worker",
-  "name": "איכר",
-  "emoji": "🧑‍🌾",
-  "desc": "אוסף משאבים ובונה",
-  "class": "worker",
-  "cost": {
-   "food": 50
-  },
-  "trainTime": 12,
-  "hp": 48,
-  "armor": 0,
-  "pierceArmor": 0,
-  "attack": 3,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.8,
-  "speed": 2.3,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.35,
-  "carry": 13,
-  "gatherRate": {
-   "food": 0.54,
-   "wood": 0.6,
-   "stone": 0.44,
-   "gold": 0.44
-  },
-  "canBuild": true,
-  "canRepair": true
- },
- "vk_bondi": {
-  "id": "vk_bondi",
-  "name": "בונדי",
-  "emoji": "🪓",
-  "desc": "חקלאי חופשי שיוצא לקרב — זול ומהיר לאימון",
-  "class": "infantry",
-  "cost": {
-   "food": 50,
-   "wood": 15
-  },
-  "trainTime": 11,
-  "hp": 72,
-  "armor": 1,
-  "pierceArmor": 1,
-  "attack": 8,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.4,
-  "speed": 2.2,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 1.5
-  }
- },
- "vk_spear": {
-  "id": "vk_spear",
-  "name": "נושא חנית",
-  "emoji": "🔱",
-  "desc": "חומת חניתות מול פרשים",
-  "class": "infantry",
-  "cost": {
-   "food": 50,
-   "wood": 22
-  },
-  "trainTime": 14,
-  "hp": 82,
-  "armor": 1,
-  "pierceArmor": 2,
-  "attack": 7,
-  "attackType": "melee",
-  "range": 1.3,
-  "attackCooldown": 1.5,
-  "speed": 2.1,
-  "los": 7,
-  "pop": 1,
-  "radius": 0.36,
-  "bonusVs": {
-   "cavalry": 2.5
-  }
- },
- "vk_archer": {
-  "id": "vk_archer",
-  "name": "קשת צפוני",
-  "emoji": "🏹",
-  "desc": "קשת עשוי עץ טקסוס, מדויק בקור",
-  "class": "ranged",
-  "cost": {
-   "wood": 42,
-   "gold": 25
-  },
-  "trainTime": 16,
-  "hp": 56,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 8,
-  "attackType": "pierce",
-  "range": 5.2,
-  "attackCooldown": 1.8,
-  "speed": 2.1,
-  "los": 10,
-  "pop": 1,
-  "radius": 0.34,
-  "bonusVs": {
-   "infantry": 1.4
-  }
- },
- "vk_raider": {
-  "id": "vk_raider",
-  "name": "פושט רכוב",
-  "emoji": "🐎",
-  "desc": "פושט מהיר שמכה ונעלם",
-  "class": "cavalry",
-  "cost": {
-   "food": 70,
-   "gold": 20
-  },
-  "trainTime": 17,
-  "hp": 120,
-  "armor": 2,
-  "pierceArmor": 2,
-  "attack": 10,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.45,
-  "speed": 3.5,
-  "los": 12,
-  "pop": 1,
-  "radius": 0.42,
-  "bonusVs": {
-   "ranged": 1.8,
-   "worker": 1.5
-  }
- },
- "vk_huscarl": {
-  "id": "vk_huscarl",
-  "name": "הוסקרל",
-  "emoji": "🛡️",
-  "desc": "שומר ראש מושבע — חומת מגנים עמידה",
-  "class": "infantry",
-  "cost": {
-   "food": 85,
-   "gold": 40
-  },
-  "trainTime": 21,
-  "hp": 175,
-  "armor": 5,
-  "pierceArmor": 5,
-  "attack": 15,
-  "attackType": "melee",
-  "range": 0.9,
-  "attackCooldown": 1.3,
-  "speed": 2.2,
-  "los": 8,
-  "pop": 1,
-  "radius": 0.37,
-  "bonusVs": {
-   "cavalry": 1.7,
-   "building": 1.3
-  }
- },
- "vk_siege": {
-  "id": "vk_siege",
-  "name": "מכונת מצור",
-  "emoji": "🪨",
-  "desc": "מנפצת חומות מעץ אלון",
-  "class": "siege",
-  "cost": {
-   "wood": 140,
-   "gold": 55
-  },
-  "trainTime": 29,
-  "hp": 160,
-  "armor": 3,
-  "pierceArmor": 6,
-  "attack": 32,
-  "attackType": "siege",
-  "range": 7.0,
-  "attackCooldown": 3.5,
-  "speed": 1.25,
-  "los": 9,
-  "pop": 3,
-  "radius": 0.55,
-  "bonusVs": {
-   "building": 4.4
-  }
- },
- "vk_skald": {
-  "id": "vk_skald",
-  "name": "סקאלד",
-  "emoji": "🎻",
-  "desc": "משורר החצר — שירתו מרפאת את הלוחמים",
-  "class": "worker",
-  "cost": {
-   "gold": 85
-  },
-  "trainTime": 26,
-  "hp": 68,
-  "armor": 0,
-  "pierceArmor": 1,
-  "attack": 0,
-  "attackType": "melee",
-  "range": 3.2,
-  "attackCooldown": 1.4,
-  "speed": 2.2,
-  "los": 9,
-  "pop": 1,
-  "radius": 0.34,
-  "healer": true
- },
- "vk_jarl": {
-  "id": "vk_jarl",
-  "name": "יארל",
-  "emoji": "👑",
-  "desc": "אדון האחוזה — מוביל את אנשיו מהחזית",
-  "class": "infantry",
-  "cost": {
-   "food": 115,
-   "gold": 115
-  },
-  "trainTime": 38,
-  "hp": 310,
-  "armor": 8,
-  "pierceArmor": 7,
-  "attack": 24,
-  "attackType": "melee",
-  "range": 1.0,
-  "attackCooldown": 1.2,
-  "speed": 2.5,
-  "los": 12,
-  "pop": 3,
-  "radius": 0.44,
-  "bonusVs": {
-   "infantry": 1.4,
-   "building": 1.5
-  }
- }
 }

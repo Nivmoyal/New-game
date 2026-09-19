@@ -228,7 +228,7 @@ describe('אומת הויקינגים', () => {
   it('הלונגהאוס מסווג כבית ולא כמבנה צבא (כדי שה-AI לא יציף יחידות)', () => {
     expect(roleOf(getBuilding('vk_longhouse'))).toBe('house');
     expect(roleOf(getBuilding('vk_mead_hall'))).toBe('house');
-    expect(roleOf(getBuilding('vk_harbor'))).toBe('economy');
+    expect(roleOf(getBuilding('vk_harbor'))).toBe('dock');
   });
 
   it('בחירת "דרך הסוחרים" פותחת נמל ומחזקת מסחר', () => {
