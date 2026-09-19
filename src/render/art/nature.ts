@@ -252,3 +252,67 @@ export function drawResource(
       break;
   }
 }
+
+const FLOWERS = ['#e8d45a', '#e07a9a', '#d8e0ec', '#c98adf'];
+
+/**
+ * פרטי קרקע קטנים — קווצות עשב, פרחים וחצץ.
+ *
+ * נצרבים יחד עם שכבת הקרקע המטמונה, ולכן הם לא עולים דבר בזמן ריצה.
+ * מה שמופיע באריח נקבע בגיבוב שלו, כך שהמראה יציב לאורך כל המשחק.
+ */
+export function drawGroundProps(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  x: number,
+  y: number,
+  terrain: string,
+  worn: boolean,
+): void {
+  if (worn || cam.zoom < 26) return;
+  const grass = terrain === 'grass' || terrain === 'forest';
+  const dry = terrain === 'sand' || terrain === 'dirt';
+  if (!grass && !dry) return;
+
+  const n = grass ? Math.floor(tileHash(x, y, 71) * 4) : Math.floor(tileHash(x, y, 83) * 3);
+  for (let i = 0; i < n; i++) {
+    const hx = tileHash(x, y, 101 + i * 7);
+    const hy = tileHash(x, y, 211 + i * 7);
+    const pick = tileHash(x, y, 307 + i * 13);
+    const p = cam.worldToScreen(x + 0.15 + hx * 0.7, y + 0.15 + hy * 0.7, 0);
+
+    if (grass) {
+      if (pick > 0.93) {
+        // פרח — נקודת צבע קטנה על גבעול
+        const stem = cam.worldToScreen(x + 0.15 + hx * 0.7, y + 0.15 + hy * 0.7, 0.07);
+        ctx.strokeStyle = '#3f7a33';
+        ctx.lineWidth = Math.max(0.6, cam.zoom * 0.012);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(stem.x, stem.y);
+        ctx.stroke();
+        ctx.fillStyle = FLOWERS[Math.floor(pick * 1000) % FLOWERS.length];
+        ctx.beginPath();
+        ctx.arc(stem.x, stem.y, Math.max(0.8, cam.zoom * 0.022), 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // קווצת עשב — שלושה קווים קצרים שיוצאים מנקודה אחת
+        ctx.strokeStyle = pick > 0.5 ? '#35702f' : '#47893a';
+        ctx.lineWidth = Math.max(0.7, cam.zoom * 0.018);
+        ctx.beginPath();
+        for (const dx of [-0.07, 0, 0.07]) {
+          const t = cam.worldToScreen(x + 0.15 + hx * 0.7 + dx, y + 0.15 + hy * 0.7, 0.15);
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(t.x, t.y);
+        }
+        ctx.stroke();
+      }
+    } else {
+      // חצץ — אבן זעירה שטוחה
+      ctx.fillStyle = pick > 0.5 ? '#bfae8c' : '#a89877';
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y, Math.max(0.8, cam.zoom * 0.03), Math.max(0.5, cam.zoom * 0.016), 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}

@@ -182,6 +182,15 @@ export function drawGableRoof(
       cam.worldToScreen(ox + ow, oy + od, baseZ),
       cam.worldToScreen(ox + ow, midY, baseZ + peak),
     ], side);
+    const rows = Math.max(2, Math.round(od * 2.4));
+    drawRoofCourses(ctx, cam,
+      { x: ox, y: midY, z: baseZ + peak }, { x: ox + ow, y: midY, z: baseZ + peak },
+      { x: ox, y: oy + od, z: baseZ }, { x: ox + ow, y: oy + od, z: baseZ },
+      rows, shade(base, -0.42));
+    drawRoofCourses(ctx, cam,
+      { x: ox, y: midY, z: baseZ + peak }, { x: ox + ow, y: midY, z: baseZ + peak },
+      { x: ox, y: oy, z: baseZ }, { x: ox + ow, y: oy, z: baseZ },
+      rows, shade(base, -0.06));
   } else {
     const midX = ox + ow / 2;
     poly(ctx, [
@@ -201,6 +210,15 @@ export function drawGableRoof(
       cam.worldToScreen(ox + ow, oy + od, baseZ),
       cam.worldToScreen(midX, oy + od, baseZ + peak),
     ], side);
+    const rows = Math.max(2, Math.round(ow * 2.4));
+    drawRoofCourses(ctx, cam,
+      { x: midX, y: oy, z: baseZ + peak }, { x: midX, y: oy + od, z: baseZ + peak },
+      { x: ox + ow, y: oy, z: baseZ }, { x: ox + ow, y: oy + od, z: baseZ },
+      rows, shade(base, -0.44));
+    drawRoofCourses(ctx, cam,
+      { x: midX, y: oy, z: baseZ + peak }, { x: midX, y: oy + od, z: baseZ + peak },
+      { x: ox, y: oy, z: baseZ }, { x: ox, y: oy + od, z: baseZ },
+      rows, shade(base, -0.08));
   }
 }
 
@@ -232,6 +250,14 @@ export function drawHipRoof(
   poly(ctx, [c[0], c[3], apex], shade(base, -0.34)); // אחורי-שמאלי
   poly(ctx, [c[1], c[2], apex], shade(base, -0.06)); // קדמי-ימני
   poly(ctx, [c[2], c[3], apex], shade(base, -0.24)); // קדמי-שמאלי
+  const rows = Math.max(2, Math.round(Math.min(ow, od) * 2));
+  const top = { x: ox + ow / 2, y: oy + od / 2, z: baseZ + peak };
+  drawRoofCourses(ctx, cam, top, top,
+    { x: ox + ow, y: oy, z: baseZ }, { x: ox + ow, y: oy + od, z: baseZ },
+    rows, shade(base, -0.34));
+  drawRoofCourses(ctx, cam, top, top,
+    { x: ox, y: oy + od, z: baseZ }, { x: ox + ow, y: oy + od, z: baseZ },
+    rows, shade(base, -0.46));
 }
 
 /** צל אליפטי על הקרקע. */
@@ -521,5 +547,209 @@ export function drawCastShadowEllipse(
   ctx.beginPath();
   ctx.ellipse(0, 0, Math.max(2, radius * cam.zoom * 0.5 + len * 0.5), Math.max(1.5, radius * cam.zoom * 0.28), 0, 0, Math.PI * 2);
   ctx.fill();
+  ctx.restore();
+}
+
+// ===== פירוט פני שטח =====
+
+/**
+ * רמת הפירוט לפי הזום. בזום נמוך המבנים קטנים מכדי שפרט ייקרא,
+ * וציור חלונות ונדבכים רק יוצר רעש (ועולה זמן). לכן הפירוט נדלק
+ * בהדרגה: קודם פתחים, ואחר כך מרקם הקיר.
+ */
+export function detailLevel(cam: Camera): 0 | 1 | 2 {
+  if (cam.zoom < 30) return 0;
+  if (cam.zoom < 50) return 1;
+  return 2;
+}
+
+/** גיבוב דטרמיניסטי קטן — כדי שאותו מבנה ייראה אותו דבר בכל פריים. */
+function hash3(a: number, b: number, c: number): number {
+  let h = (a * 374761393 + b * 668265263 + c * 2147483647) >>> 0;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
+/**
+ * נקודה על פאה אנכית של תיבה.
+ * `side` הוא 'left' (הפאה שפונה אל +y) או 'right' (אל +x).
+ * `u` רץ 0..1 לאורך הפאה, `v` רץ 0..1 מהקרקע אל הגג.
+ */
+export function facePoint(
+  cam: Camera,
+  wx: number, wy: number, w: number, d: number, h: number,
+  side: 'left' | 'right',
+  u: number, v: number,
+  baseZ = 0,
+): Vec2 {
+  return side === 'left'
+    ? cam.worldToScreen(wx + u * w, wy + d, baseZ + v * h)
+    : cam.worldToScreen(wx + w, wy + u * d, baseZ + v * h);
+}
+
+export type FacadeOpts = {
+  /** נדבכי אבן אופקיים */
+  courses?: number;
+  /** קרשים אנכיים */
+  planks?: number;
+  /** חלונות בכל פאה: עמודות × שורות */
+  windows?: number;
+  windowRows?: number;
+  /** חלונות מוארים (ערב/מבנה פעיל) */
+  lit?: boolean;
+  /** דלת במרכז הפאה השמאלית */
+  door?: boolean;
+  seed?: number;
+  baseZ?: number;
+};
+
+const LIT_WINDOW = '#ffd98a';
+
+/**
+ * מצייר את מרקם הקיר ואת הפתחים על שתי הפאות הנראות של תיבה.
+ * נקרא אחרי `drawBox` על אותן קואורדינטות בדיוק.
+ */
+export function drawFacade(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  wx: number, wy: number, w: number, d: number, h: number,
+  wallColor: string,
+  opts: FacadeOpts = {},
+): void {
+  const level = detailLevel(cam);
+  if (level === 0 || h < 0.12) return;
+  const seed = opts.seed ?? 0;
+  const baseZ = opts.baseZ ?? 0;
+  const sides: Array<'left' | 'right'> = ['left', 'right'];
+  const pt = (side: 'left' | 'right', u: number, v: number) =>
+    facePoint(cam, wx, wy, w, d, h, side, u, v, baseZ);
+
+  // מרקם הקיר — רק בזום גבוה
+  if (level === 2) {
+    ctx.save();
+    ctx.lineWidth = Math.max(0.6, cam.zoom * 0.012);
+    if (opts.courses && opts.courses > 1) {
+      ctx.strokeStyle = shade(wallColor, -0.24);
+      for (const side of sides) {
+        for (let i = 1; i < opts.courses; i++) {
+          const v = i / opts.courses;
+          const a = pt(side, 0, v);
+          const b = pt(side, 1, v);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+    if (opts.planks && opts.planks > 1) {
+      ctx.strokeStyle = shade(wallColor, -0.2);
+      for (const side of sides) {
+        for (let i = 1; i < opts.planks; i++) {
+          const u = i / opts.planks;
+          const a = pt(side, u, 0);
+          const b = pt(side, u, 1);
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // חלונות
+  const cols = opts.windows ?? 0;
+  if (cols > 0) {
+    const rows = opts.windowRows ?? 1;
+    // חלונות גבוהים מרוחבם — אחרת הם נקראים כפס ולא כפתח
+    const uw = Math.min(0.13, 0.42 / cols);
+    const vh = Math.min(0.34, 0.52 / rows);
+    const dark = shade(wallColor, -0.62);
+    const sill = shade(wallColor, -0.3);
+    for (const side of sides) {
+      for (let r = 0; r < rows; r++) {
+        const vc = rows === 1 ? 0.56 : 0.34 + (r / (rows - 1)) * 0.42;
+        for (let c = 0; c < cols; c++) {
+          const uc = (c + 0.5) / cols;
+          const litHere = opts.lit && hash3(seed + (side === 'left' ? 11 : 23), r, c) > 0.45;
+          poly(ctx, [
+            pt(side, uc - uw / 2, vc - vh / 2),
+            pt(side, uc + uw / 2, vc - vh / 2),
+            pt(side, uc + uw / 2, vc + vh / 2),
+            pt(side, uc - uw / 2, vc + vh / 2),
+          ], litHere ? LIT_WINDOW : dark);
+          if (level === 2) {
+            // אדן
+            poly(ctx, [
+              pt(side, uc - uw * 0.62, vc - vh / 2),
+              pt(side, uc + uw * 0.62, vc - vh / 2),
+              pt(side, uc + uw * 0.62, vc - vh / 2 - 0.035),
+              pt(side, uc - uw * 0.62, vc - vh / 2 - 0.035),
+            ], sill);
+          }
+        }
+      }
+    }
+  }
+
+  // דלת — על הפאה שפונה אל הצופה
+  if (opts.door) {
+    const uw = Math.min(0.2, 0.9 / Math.max(1, w));
+    const vh = Math.min(0.5, 0.36 / h + 0.16);
+    const frame = shade(wallColor, -0.34);
+    const leaf = shade(wallColor, -0.7);
+    poly(ctx, [
+      pt('left', 0.5 - uw * 0.8, 0),
+      pt('left', 0.5 + uw * 0.8, 0),
+      pt('left', 0.5 + uw * 0.8, vh + 0.05),
+      pt('left', 0.5 - uw * 0.8, vh + 0.05),
+    ], frame);
+    poly(ctx, [
+      pt('left', 0.5 - uw / 2, 0),
+      pt('left', 0.5 + uw / 2, 0),
+      pt('left', 0.5 + uw / 2, vh),
+      pt('left', 0.5 - uw / 2, vh),
+    ], leaf);
+  }
+}
+
+/**
+ * שורות רעפים על מדרון גג.
+ * המדרון מוגדר בארבע פינות עולם (עם גובה לכל אחת), והשורות מצוירות
+ * במקביל לרכס — כך הן נראות נכון גם אחרי ההטיה האיזומטרית.
+ */
+export function drawRoofCourses(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  ridgeA: { x: number; y: number; z: number },
+  ridgeB: { x: number; y: number; z: number },
+  eaveA: { x: number; y: number; z: number },
+  eaveB: { x: number; y: number; z: number },
+  rows: number,
+  color: string,
+): void {
+  if (detailLevel(cam) < 2 || rows < 2) return;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(0.6, cam.zoom * 0.014);
+  for (let i = 1; i < rows; i++) {
+    const t = i / rows;
+    const a = cam.worldToScreen(
+      ridgeA.x + (eaveA.x - ridgeA.x) * t,
+      ridgeA.y + (eaveA.y - ridgeA.y) * t,
+      ridgeA.z + (eaveA.z - ridgeA.z) * t,
+    );
+    const b = cam.worldToScreen(
+      ridgeB.x + (eaveB.x - ridgeB.x) * t,
+      ridgeB.y + (eaveB.y - ridgeB.y) * t,
+      ridgeB.z + (eaveB.z - ridgeB.z) * t,
+    );
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  }
   ctx.restore();
 }

@@ -1,13 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { Camera } from '../src/render/camera';
 import {
+  detailLevel,
   drawCastShadow,
   drawCastShadowEllipse,
+  drawFacade,
+  facePoint,
   hexToRgb,
   mix,
   shade,
   shadowScreenOffset,
 } from '../src/render/iso';
+import { GroundWear } from '../src/render/groundwear';
+import { drawGroundProps } from '../src/render/art/nature';
 import {
   DIRECTIONS,
   angleOfDirection,
@@ -454,5 +459,119 @@ describe('צללים מוטלים', () => {
     drawCastShadowEllipse(r.ctx, cam2(), 10, 10, 0.22, 0.8);
     expect(r.ellipses).toBe(1);
     expect(r.fills).toBe(1);
+  });
+});
+
+describe('פירוט פני שטח', () => {
+  it('רמת הפירוט עולה עם הזום', () => {
+    const cam = cam2();
+    cam.zoom = 20;
+    expect(detailLevel(cam)).toBe(0);
+    cam.zoom = 40;
+    expect(detailLevel(cam)).toBe(1);
+    cam.zoom = 70;
+    expect(detailLevel(cam)).toBe(2);
+  });
+
+  it('נקודה על פאה: u רץ לאורך הפאה ו-v מהקרקע לגג', () => {
+    const cam = cam2();
+    const ground = facePoint(cam, 10, 10, 2, 2, 1, 'left', 0, 0);
+    const top = facePoint(cam, 10, 10, 2, 2, 1, 'left', 0, 1);
+    // v=1 הוא גובה המבנה — גבוה יותר על המסך
+    expect(top.y).toBeLessThan(ground.y);
+    expect(top.x).toBeCloseTo(ground.x, 6);
+    // u=1 על הפאה השמאלית הוא הפינה בקצה ציר x
+    const far = facePoint(cam, 10, 10, 2, 2, 1, 'left', 1, 0);
+    expect(far).toEqual(cam.worldToScreen(12, 12, 0));
+    // הפאה הימנית רצה לאורך ציר y
+    expect(facePoint(cam, 10, 10, 2, 2, 1, 'right', 1, 0)).toEqual(cam.worldToScreen(12, 12, 0));
+  });
+
+  it('בזום נמוך לא מצוירים פרטי קיר כלל', () => {
+    const cam = cam2();
+    cam.zoom = 20;
+    const r = recordCtx();
+    drawFacade(r.ctx, cam, 10, 10, 2, 2, 0.5, '#e8dfc8', { windows: 3, door: true, courses: 4 });
+    expect(r.fills).toBe(0);
+  });
+
+  it('בזום גבוה מצוירים חלונות בשתי הפאות ודלת אחת', () => {
+    const cam = cam2();
+    cam.zoom = 70;
+    const plain = recordCtx();
+    drawFacade(plain.ctx, cam, 10, 10, 2, 2, 0.5, '#e8dfc8', { windows: 2 });
+    // שני חלונות בכל פאה, וכל חלון מקבל גם אדן ברמת פירוט 2
+    expect(plain.fills).toBe(8);
+    const withDoor = recordCtx();
+    drawFacade(withDoor.ctx, cam, 10, 10, 2, 2, 0.5, '#e8dfc8', { windows: 2, door: true });
+    expect(withDoor.fills).toBe(10);
+  });
+
+  it('לכל אומה יש מרקם קיר משלה', () => {
+    const textures = new Set(allNations().map((n) => paletteFor(n.id, '#fff').texture));
+    expect(textures.size).toBeGreaterThan(1);
+    expect(paletteFor('vikings', '#fff').texture).toBe('wood');
+    expect(paletteFor('rome', '#fff').texture).toBe('stone');
+  });
+
+  it('פרטי קרקע לא מצוירים על מים או על שביל שנשחק', () => {
+    const cam = cam2();
+    cam.zoom = 70;
+    const water = recordCtx();
+    drawGroundProps(water.ctx, cam, 10, 10, 'water', false);
+    expect(water.fills + water.pts.length).toBe(0);
+    const worn = recordCtx();
+    drawGroundProps(worn.ctx, cam, 10, 10, 'grass', true);
+    expect(worn.fills + worn.pts.length).toBe(0);
+  });
+});
+
+describe('שחיקת קרקע', () => {
+  it('אריח שעוברים בו מספיק הופך לשביל, ורק פעם אחת', () => {
+    const world = new World({
+      seed: 31,
+      map: { width: 48, height: 48 },
+      players: [{ id: 0, name: 'א', nationId: 'israel', branchChoices: { settlement: 'kibbutz' } }],
+    });
+    const tc = world.townCenterOf(0)!;
+    const worker = world.entitiesOf(0).find((e) => e.defId === 'il_worker')!;
+    const a = { x: tc.pos.x + 6, y: tc.pos.y + 6 };
+    const b = { x: tc.pos.x - 2, y: tc.pos.y - 2 };
+
+    // מעבר יחיד לא שוחק אריח — שביל נוצר רק מתנועה חוזרת על אותו קו
+    const wear = new GroundWear();
+    const worn: string[] = [];
+    for (let trip = 0; trip < 8; trip++) {
+      world.assignOrder(worker, { kind: 'move', target: trip % 2 === 0 ? a : b });
+      for (let i = 0; i < 300; i++) {
+        world.update(1 / 30);
+        for (const t of wear.step(world, 1 / 30)) worn.push(`${t.x},${t.y}`);
+        if (worker.unit!.path.length === 0 && i > 5) break;
+      }
+    }
+    expect(worn.length).toBeGreaterThan(0);
+    // אין כפילויות — אריח נשחק פעם אחת בלבד
+    expect(new Set(worn).size).toBe(worn.length);
+    const [x, y] = worn[0].split(',').map(Number);
+    expect(wear.isWorn(x, y)).toBe(true);
+    expect(wear.isWorn(0, 0)).toBe(false);
+    // מחוץ לגבולות המפה אינו קורס
+    expect(wear.isWorn(-1, 5)).toBe(false);
+    expect(wear.isWorn(999, 5)).toBe(false);
+  });
+
+  it('יחידה שעומדת במקום אינה שוחקת את הקרקע', () => {
+    const world = new World({
+      seed: 32,
+      map: { width: 32, height: 32 },
+      players: [{ id: 0, name: 'א', nationId: 'israel', branchChoices: { settlement: 'kibbutz' } }],
+    });
+    const wear = new GroundWear();
+    let worn = 0;
+    for (let i = 0; i < 200; i++) {
+      world.update(1 / 30);
+      worn += wear.step(world, 1 / 30).length;
+    }
+    expect(worn).toBe(0);
   });
 });

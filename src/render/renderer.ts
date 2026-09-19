@@ -11,6 +11,7 @@ import { directionIndex, screenAngleOf, skinFor, type Action, type PersonStyle }
 import { FRAMES, PersonSprites } from './art/spritecache';
 import { drawResource } from './art/nature';
 import { TerrainLayer } from './terrain';
+import { GroundWear } from './groundwear';
 import { Effects } from './effects';
 import { archetypeOf, drawStructure, paletteFor } from './art/structures';
 import { drawVehicle } from './art/vehicles';
@@ -28,6 +29,9 @@ export class Renderer {
   readonly camera = new Camera();
   private ctx: CanvasRenderingContext2D;
   private terrain = new TerrainLayer();
+  /** שבילי עפר שנשחקים במקומות שעוברים בהם הרבה. */
+  private wear = new GroundWear();
+  private lastFrameTime = -1;
   private people = new PersonSprites();
   /** אפקטים של קרב — יריות, פגיעות, פיצוצים ואבק. */
   readonly effects = new Effects();
@@ -43,6 +47,7 @@ export class Renderer {
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) throw new Error('לא ניתן ליצור הקשר ציור דו-ממדי');
     this.ctx = ctx;
+    this.terrain.attachWear(this.wear);
   }
 
   resize(width: number, height: number, dpr = 1): void {
@@ -58,6 +63,7 @@ export class Renderer {
   /** מאלץ צריבה מחדש של כל שכבת הקרקע (מפה חדשה / טעינת משחק). */
   markTerrainDirty(): void {
     this.terrain.invalidateAll();
+    this.wear.reset(0, 0);
   }
 
   render(world: World, viewer: Player, state: RenderState, now: number): void {
@@ -73,6 +79,12 @@ export class Renderer {
     }
     const dirty = world.map.consumeDirtyTiles();
     if (dirty.length > 0) this.terrain.invalidateTiles(dirty);
+
+    // שחיקת קרקע: אריח שעברו בו מספיק הופך לשביל עפר
+    const dt = this.lastFrameTime < 0 ? 0 : Math.min(0.25, (now - this.lastFrameTime) / 1000);
+    this.lastFrameTime = now;
+    const worn = this.wear.step(world, dt);
+    if (worn.length > 0) this.terrain.invalidateTiles(worn);
 
     // דיווחי הקרב מהסימולציה הופכים לחלקיקים
     for (const c of world.drainCombat()) {

@@ -3,8 +3,9 @@ import type { Terrain, Vec2 } from '../core/types';
 import type { World } from '../core/world';
 import { Camera } from './camera';
 import { poly, shade, tileDiamond } from './iso';
-import { drawResource } from './art/nature';
+import { drawGroundProps, drawResource } from './art/nature';
 import { grainTexture, MATERIALS } from './art/textures';
+import type { GroundWear } from './groundwear';
 
 /** גובה תבליט לכל סוג קרקע (ביחידות אריח). */
 export const TERRAIN_HEIGHT: Record<Terrain, number> = {
@@ -40,6 +41,12 @@ type Chunk = { canvas: HTMLCanvasElement; center: Vec2; zoom: number };
 export class TerrainLayer {
   private chunks = new Map<string, Chunk>();
   private zoomBucket = 0;
+  private wear: GroundWear | null = null;
+
+  /** מחבר את שכבת השחיקה — אריחים שנשחקו נצרבים כעפר. */
+  attachWear(wear: GroundWear): void {
+    this.wear = wear;
+  }
 
   invalidateTiles(tiles: Vec2[]): void {
     for (const t of tiles) {
@@ -127,6 +134,14 @@ export class TerrainLayer {
         const t = world.map.inBounds(wx, wy) ? world.map.terrainAt(wx, wy) : 'water';
         ctx.fillStyle = MATERIALS[t].base;
         ctx.fillRect(tx * GROUND_PX, ty * GROUND_PX, GROUND_PX, GROUND_PX);
+        // שביל שנשחק — נצבע כאן, לפני הטשטוש, כך שהקצה שלו מתרכך מעצמו
+        if (this.wear?.isWorn(wx, wy)) {
+          ctx.save();
+          ctx.globalAlpha = 0.62;
+          ctx.fillStyle = MATERIALS.dirt.base;
+          ctx.fillRect(tx * GROUND_PX, ty * GROUND_PX, GROUND_PX, GROUND_PX);
+          ctx.restore();
+        }
       }
     }
 
@@ -246,7 +261,11 @@ export class TerrainLayer {
       for (let x = from; x <= to; x++) {
         const y = sum - x;
         const res = world.map.resourceAt(x, y);
-        if (!res || res.visual === 'fish') continue;
+        if (!res) {
+          drawGroundProps(ctx, local, x, y, world.map.terrainAt(x, y), this.wear?.isWorn(x, y) ?? false);
+          continue;
+        }
+        if (res.visual === 'fish') continue;
         drawResource(ctx, local, x, y, res, time);
       }
     }
