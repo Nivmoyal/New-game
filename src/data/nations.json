@@ -4,11 +4,13 @@
     "name": "ישראל",
     "flag": "🇮🇱",
     "color": "#3b82f6",
-    "desc": "אומת בונים: מתחילים ביישוב קטן — קיבוץ או מושב — וגדלים ליישוב, לעיירה ולעיר. דגש על חקלאות, חינוך, תעשייה וטכנולוגיה.",
+    "desc": "אומת בונים: מתחילים ביישוב קטן וגדלים ליישוב גדול, לעיירה ולעיר. דגש על חקלאות, חינוך, תעשייה וטכנולוגיה.",
     "bonuses": [
-      "בחירה בין קיבוץ למושב בתחילת המשחק",
+      "יישוב מגובש: +10% איסוף ובנייה מהירה יותר",
+      "חינוך ומחקר מהירים ב-15%",
+      "+1 אוכלוסייה לכל בית",
       "בחירת זרוע צבאית בשלב העיירה",
-      "מבנים אזרחיים ייחודיים: מגדל מים, בית ספר, בית חולים ובורסה"
+      "מבנים אזרחיים ייחודיים: מגדל מים, בית ספר, חדר אוכל, בית חולים ובורסה"
     ],
     "worker": "il_worker",
     "townCenter": "il_tc",
@@ -47,7 +49,8 @@
             "mill",
             "lumber_camp",
             "mining_camp",
-            "il_watertower"
+            "il_watertower",
+            "barracks"
           ],
           "units": [
             "il_worker",
@@ -78,15 +81,15 @@
         },
         "unlocks": {
           "buildings": [
-            "barracks",
+            "tower",
             "archery_range",
             "stable",
             "blacksmith",
-            "tower",
             "wall",
             "gate",
             "dock",
-            "il_school"
+            "il_school",
+            "il_dining_hall"
           ],
           "units": [
             "il_infantry",
@@ -192,100 +195,6 @@
       }
     ],
     "branches": [
-      {
-        "id": "settlement",
-        "name": "סוג היישוב",
-        "desc": "בוחרים לפני תחילת המשחק — משפיע על כל מסלול הצמיחה.",
-        "atStage": 1,
-        "options": [
-          {
-            "id": "kibbutz",
-            "name": "קיבוץ",
-            "emoji": "🌻",
-            "desc": "כלכלה שיתופית: כולם עובדים יחד, חדר אוכל משותף ומפעל. בסוף המסלול — עיר תעשייה והייטק.",
-            "highlights": [
-              "+15% קצב איסוף משאבים",
-              "חדר אוכל ומפעל",
-              "מחקר מהיר ב-20%",
-              "+1 שריון לכל היחידות בעיר"
-            ],
-            "modifiers": {
-              "gatherMult": {
-                "all": 1.15
-              },
-              "researchSpeedMult": 1.2,
-              "unitArmorBonus": 1,
-              "buildSpeedMult": 1.1
-            },
-            "unlocks": {
-              "buildings": [
-                "il_dining_hall",
-                "il_factory",
-                "il_hightech"
-              ],
-              "techs": [
-                "industry",
-                "education"
-              ]
-            },
-            "centerNames": [
-              "קיבוץ",
-              "יישוב גדול",
-              "עיירה",
-              "עיר תעשייה והייטק"
-            ],
-            "centerEmojis": [
-              "🌻",
-              "🏡",
-              "🏬",
-              "🏭"
-            ]
-          },
-          {
-            "id": "moshav",
-            "name": "מושב",
-            "emoji": "🚜",
-            "desc": "משקים פרטיים: בתים וחוות זולים, יותר מקום לאנשים. בסוף המסלול — עיר מסחר וחקלאות.",
-            "highlights": [
-              "בתים וחוות זולים ב-25%",
-              "+3 אוכלוסייה לכל בית",
-              "+30% זהב ממסחר",
-              "+20% איסוף אוכל"
-            ],
-            "modifiers": {
-              "buildingCostMult": 0.85,
-              "houseCapBonus": 3,
-              "tradeGoldMult": 1.3,
-              "gatherMult": {
-                "food": 1.2
-              }
-            },
-            "unlocks": {
-              "buildings": [
-                "il_exchange",
-                "market",
-                "il_dining_hall"
-              ],
-              "techs": [
-                "caravan",
-                "coinage"
-              ]
-            },
-            "centerNames": [
-              "מושב",
-              "יישוב גדול",
-              "עיירה",
-              "עיר מסחר וחקלאות"
-            ],
-            "centerEmojis": [
-              "🚜",
-              "🏡",
-              "🏬",
-              "🏪"
-            ]
-          }
-        ]
-      },
       {
         "id": "army",
         "name": "זרוע צבאית",
@@ -403,7 +312,15 @@
           }
         ]
       }
-    ]
+    ],
+    "modifiers": {
+      "gatherMult": {
+        "all": 1.1
+      },
+      "researchSpeedMult": 1.15,
+      "buildSpeedMult": 1.05,
+      "houseCapBonus": 1
+    }
   },
   "japan": {
     "id": "japan",
@@ -452,7 +369,8 @@
             "mill",
             "lumber_camp",
             "mining_camp",
-            "jp_shrine"
+            "jp_shrine",
+            "barracks"
           ],
           "units": [
             "jp_worker",
@@ -482,11 +400,10 @@
         },
         "unlocks": {
           "buildings": [
-            "barracks",
+            "tower",
             "archery_range",
             "stable",
             "blacksmith",
-            "tower",
             "wall",
             "gate",
             "dock"
@@ -662,10 +579,10 @@
   },
   "arabs": {
     "id": "arabs",
-    "name": "ערבים",
+    "name": "הח'ליפות",
     "flag": "🏜️",
     "color": "#22c55e",
-    "desc": "בהשראת תור הזהב של האימפריות והח'ליפויות: מאהל ונווה מדבר שהופכים לעיירת שוק ולעיר גדולה בסגנון בגדאד ודמשק — מרכזי מדע, מסחר ואדריכלות.",
+    "desc": "ח'ליפות תור הזהב: מאהל ונווה מדבר שהופכים לעיירת שוק ולעיר גדולה בסגנון בגדאד ודמשק — מרכזי מדע, מסחר ואדריכלות.",
     "bonuses": [
       "מסחר חזק — זהב זורם מהשווקים",
       "בתי חוכמה: מחקר מהיר ב-25%",
@@ -707,7 +624,8 @@
             "farm",
             "mill",
             "lumber_camp",
-            "mining_camp"
+            "mining_camp",
+            "barracks"
           ],
           "units": [
             "ar_worker",
@@ -737,11 +655,10 @@
         },
         "unlocks": {
           "buildings": [
-            "barracks",
+            "tower",
             "archery_range",
             "stable",
             "blacksmith",
-            "tower",
             "wall",
             "gate",
             "dock",
@@ -962,7 +879,8 @@
             "farm",
             "mill",
             "lumber_camp",
-            "mining_camp"
+            "mining_camp",
+            "barracks"
           ],
           "units": [
             "rm_worker",
@@ -992,11 +910,10 @@
         },
         "unlocks": {
           "buildings": [
-            "barracks",
+            "tower",
             "archery_range",
             "stable",
             "blacksmith",
-            "tower",
             "wall",
             "gate",
             "dock",
@@ -1153,7 +1070,8 @@
             "mill",
             "lumber_camp",
             "mining_camp",
-            "eg_granary"
+            "eg_granary",
+            "barracks"
           ],
           "units": [
             "eg_worker",
@@ -1183,11 +1101,10 @@
         },
         "unlocks": {
           "buildings": [
-            "barracks",
+            "tower",
             "archery_range",
             "stable",
             "blacksmith",
-            "tower",
             "wall",
             "gate",
             "dock",
@@ -1345,7 +1262,8 @@
             "mill",
             "lumber_camp",
             "mining_camp",
-            "vk_longhouse"
+            "vk_longhouse",
+            "barracks"
           ],
           "units": [
             "vk_worker",
@@ -1375,10 +1293,9 @@
         },
         "unlocks": {
           "buildings": [
-            "barracks",
+            "tower",
             "archery_range",
             "stable",
-            "tower",
             "wall",
             "gate",
             "dock",

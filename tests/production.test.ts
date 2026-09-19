@@ -53,8 +53,9 @@ describe('בנייה', () => {
     const w = world();
     w.player(0)!.resources = { ...RICH };
     const tc = w.townCenterOf(0)!;
-    const spot = w.findPlacementNear('barracks', { x: tc.pos.x + 8, y: tc.pos.y }, 12)!;
-    expect(w.startConstruction(0, 'barracks', spot)).toBeNull();
+    // הקסרקטין פתוח כבר משלב 1; מגרש הקשתים נפתח רק בשלב 2
+    const spot = w.findPlacementNear('archery_range', { x: tc.pos.x + 8, y: tc.pos.y }, 12)!;
+    expect(w.startConstruction(0, 'archery_range', spot)).toBeNull();
   });
 
   it('לא ניתן לבנות על מים או על מבנה קיים', () => {

@@ -4,7 +4,6 @@ import {
   applyCostMult,
   branchesAtStage,
   DATA,
-  findBranchOption,
   getBuilding,
   getNation,
   getTech,
@@ -127,11 +126,10 @@ describe('שלמות הנתונים', () => {
     }
   });
 
-  it('לישראל יש בחירת קיבוץ/מושב לפני המשחק ובחירת צבא בשלב 3', () => {
+  it('לישראל אין בחירת נקודת פתיחה — רק בחירת זרוע בשלב 3', () => {
     const israel = getNation('israel');
-    const settlement = branchesAtStage(israel, 1);
-    expect(settlement).toHaveLength(1);
-    expect(settlement[0].options.map((o) => o.id).sort()).toEqual(['kibbutz', 'moshav']);
+    // היישוב הישראלי אחד, בלי פיצול לקיבוץ/מושב
+    expect(branchesAtStage(israel, 1)).toHaveLength(0);
 
     const army = branchesAtStage(israel, 3);
     expect(army).toHaveLength(1);
@@ -157,10 +155,7 @@ describe('שלמות הנתונים', () => {
 
   it('שמות שלבי הצמיחה של ישראל תואמים לבקשה', () => {
     const israel = getNation('israel');
-    const kibbutz = findBranchOption(israel, 'settlement', 'kibbutz')!;
-    const moshav = findBranchOption(israel, 'settlement', 'moshav')!;
-    expect(kibbutz.centerNames![0]).toBe('קיבוץ');
-    expect(moshav.centerNames![0]).toBe('מושב');
+    expect(israel.stages[0].name).toBe('יישוב קטן');
     expect(israel.stages[1].name).toBe('יישוב גדול');
     expect(israel.stages[2].name).toBe('עיירה');
     expect(israel.stages[3].name).toBe('עיר');
