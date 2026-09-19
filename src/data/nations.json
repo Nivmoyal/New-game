@@ -85,11 +85,14 @@
             "tower",
             "wall",
             "gate",
+            "dock",
             "il_school"
           ],
           "units": [
             "il_infantry",
-            "il_rifleman"
+            "il_rifleman",
+            "fishing_boat",
+            "war_galley"
           ],
           "techs": [
             "weapons_infantry",
@@ -485,12 +488,15 @@
             "blacksmith",
             "tower",
             "wall",
-            "gate"
+            "gate",
+            "dock"
           ],
           "units": [
             "jp_archer",
             "jp_yari",
-            "jp_cavalry"
+            "jp_cavalry",
+            "fishing_boat",
+            "war_galley"
           ],
           "techs": [
             "weapons_infantry",
@@ -738,12 +744,15 @@
             "tower",
             "wall",
             "gate",
+            "dock",
             "ar_caravanserai"
           ],
           "units": [
             "ar_archer",
             "ar_camel",
-            "ar_lighthorse"
+            "ar_lighthorse",
+            "fishing_boat",
+            "war_galley"
           ],
           "techs": [
             "weapons_infantry",
@@ -990,11 +999,14 @@
             "tower",
             "wall",
             "gate",
+            "dock",
             "rm_aqueduct"
           ],
           "units": [
             "rm_archer",
-            "rm_equites"
+            "rm_equites",
+            "fishing_boat",
+            "war_galley"
           ],
           "techs": [
             "weapons_infantry",
@@ -1178,11 +1190,14 @@
             "tower",
             "wall",
             "gate",
+            "dock",
             "eg_obelisk"
           ],
           "units": [
             "eg_archer",
-            "eg_chariot"
+            "eg_chariot",
+            "fishing_boat",
+            "war_galley"
           ],
           "techs": [
             "weapons_infantry",
@@ -1366,13 +1381,16 @@
             "tower",
             "wall",
             "gate",
+            "dock",
             "vk_forge",
             "vk_mead_hall"
           ],
           "units": [
             "vk_spear",
             "vk_archer",
-            "vk_raider"
+            "vk_raider",
+            "fishing_boat",
+            "vk_longship"
           ],
           "techs": [
             "weapons_infantry",

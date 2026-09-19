@@ -1,5 +1,6 @@
 import type { Camera } from '../camera';
 import { drawBox, drawCastShadowEllipse, drawColumn, faceColors, poly, shade } from '../iso';
+import { drawShip, type ShipKind } from './ships';
 
 /**
  * כלי רכב וכלי מצור — מצוירים כתיבות תלת-ממדיות עם פרטים.
@@ -17,7 +18,13 @@ export type VehicleKind =
   | 'catapult'
   | 'ram'
   | 'ballista'
-  | 'chariot';
+  | 'chariot'
+  | 'boat'
+  | 'galley'
+  | 'longship';
+
+/** כלי שיט — מצוירים במודול נפרד, לפי כיוון הפלגה אמיתי. */
+export const SHIP_KINDS = new Set<VehicleKind>(['boat', 'galley', 'longship']);
 
 /** פס זיהוי בצבע השחקן על גג הרכב. */
 function ownerStripe(
@@ -49,6 +56,11 @@ export function drawVehicle(
   time: number,
   scale = 1,
 ): void {
+  if (SHIP_KINDS.has(kind)) {
+    drawShip(ctx, cam, kind as ShipKind, wx, wy, facing, owner, time);
+    return;
+  }
+
   const s = 0.72 * scale;
   const x = wx - s / 2;
   const y = wy - s * 0.38;

@@ -13,7 +13,7 @@ import {
 } from '../src/data';
 import { RESOURCE_KINDS, type UnitClass } from '../src/core/types';
 
-const ALL_CLASSES: UnitClass[] = ['worker', 'infantry', 'ranged', 'cavalry', 'siege', 'air', 'building'];
+const ALL_CLASSES: UnitClass[] = ['worker', 'infantry', 'ranged', 'cavalry', 'siege', 'air', 'ship', 'building'];
 
 describe('שלמות הנתונים', () => {
   it('כל ההפניות בין קבצי הנתונים תקינות', () => {

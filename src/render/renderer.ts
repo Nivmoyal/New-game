@@ -229,6 +229,7 @@ export class Renderer {
       seed: e.id,
       links: barrier ? this.wallLinks(world, origin, e.owner) : undefined,
       gateOpen: arch === 'gate' ? this.gateOpen(world, e) : false,
+      waterSide: arch === 'port' ? waterSideOf(world, origin, size) : undefined,
     });
 
     const topZ = size * 0.55 + 0.6;
@@ -548,4 +549,20 @@ function healthColor(ratio: number): string {
   if (ratio > 0.6) return '#4ade80';
   if (ratio > 0.3) return '#facc15';
   return '#f87171';
+}
+
+/** מאיזה צד של הנמל נמצאים המים — כדי להפנות את המזח לשם. */
+function waterSideOf(world: World, origin: Vec2, size: number): 'n' | 's' | 'e' | 'w' {
+  const counts: Record<'n' | 's' | 'e' | 'w', number> = { n: 0, s: 0, e: 0, w: 0 };
+  for (let i = -1; i <= size; i++) {
+    if (world.nav.isWater(origin.x + i, origin.y - 1)) counts.n++;
+    if (world.nav.isWater(origin.x + i, origin.y + size)) counts.s++;
+    if (world.nav.isWater(origin.x - 1, origin.y + i)) counts.w++;
+    if (world.nav.isWater(origin.x + size, origin.y + i)) counts.e++;
+  }
+  let best: 'n' | 's' | 'e' | 'w' = 'e';
+  for (const side of ['n', 's', 'e', 'w'] as const) {
+    if (counts[side] > counts[best]) best = side;
+  }
+  return best;
 }

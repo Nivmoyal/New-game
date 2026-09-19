@@ -264,13 +264,44 @@ export function generateMap(opts: MapOptions = {}): GameMap {
     }
   }
 
-  // דגים במים רדודים
-  const fishSpots = Math.round(((width * height) / 2000) * (0.5 + preset.water));
-  for (let i = 0; i < fishSpots; i++) {
-    const cx = rng.int(2, width - 3);
-    const cy = rng.int(2, height - 3);
-    if (map.terrainAt(cx, cy) !== 'water') continue;
-    map.addResource(cx, cy, { kind: 'food', amount: 200, visual: 'fish' });
+  // דגה — כמות נגזרת משטח המים בפועל.
+  // הגרסה הקודמת הגרילה אריחים בכל המפה וקיוותה שייפלו על מים, ולכן
+  // אפילו במפת הפיורדים נוצר מוקד דגה אחד בלבד.
+  const waterTiles: Vec2[] = [];
+  for (let y = 2; y < height - 2; y++) {
+    for (let x = 2; x < width - 2; x++) {
+      const t = map.terrainAt(x, y);
+      if (t !== 'water' && t !== 'shallow') continue;
+      if (map.resourceAt(x, y)) continue;
+      waterTiles.push({ x, y });
+    }
+  }
+  const fishSpots = Math.min(70, Math.floor(waterTiles.length / 55));
+  const taken: Vec2[] = [];
+  for (let i = 0; i < fishSpots && waterTiles.length > 0; i++) {
+    // מרחק מינימלי בין מוקדים, כדי שלא ייווצר גוש דגה אחד
+    let pick: Vec2 | null = null;
+    for (let tries = 0; tries < 24 && !pick; tries++) {
+      const c = waterTiles[rng.int(0, waterTiles.length - 1)];
+      if (taken.some((t) => Math.abs(t.x - c.x) < 5 && Math.abs(t.y - c.y) < 5)) continue;
+      pick = c;
+    }
+    if (!pick) continue;
+    taken.push(pick);
+    // אשכול קטן — מוקד דגה אחד הוא 1–3 אריחים
+    const cluster = 1 + rng.int(0, 2);
+    let placed = 0;
+    for (let dy = -1; dy <= 1 && placed < cluster; dy++) {
+      for (let dx = -1; dx <= 1 && placed < cluster; dx++) {
+        const x = pick.x + dx;
+        const y = pick.y + dy;
+        const t = map.inBounds(x, y) ? map.terrainAt(x, y) : 'grass';
+        if (t !== 'water' && t !== 'shallow') continue;
+        if (map.resourceAt(x, y)) continue;
+        map.addResource(x, y, { kind: 'food', amount: 220, visual: 'fish' });
+        placed++;
+      }
+    }
   }
 
   map.startPositions = pickStartPositions(map, playerCount, rng);
@@ -309,6 +340,52 @@ function isStartViable(map: GameMap, cx: number, cy: number): boolean {
   return true;
 }
 
+/** גודל מינימלי של גוף מים שנחשב "ים" — מתחתיו זו שלולית שאין בה מה לעשות. */
+export const MIN_HARBOR_WATER = 14;
+
+/**
+ * מסמן אריחי מים ששייכים לגוף מים גדול מספיק לנמל.
+ * מריצים פעם אחת ליצירת מפה, ומשתמשים גם לבחירת נקודות פתיחה.
+ */
+export function bigWaterMask(map: GameMap, minSize = MIN_HARBOR_WATER): Uint8Array {
+  const w = map.width;
+  const h = map.height;
+  const isWater = (x: number, y: number) => {
+    const t = map.terrainAt(x, y);
+    return t === 'water' || t === 'shallow';
+  };
+  const mask = new Uint8Array(w * h);
+  const seen = new Uint8Array(w * h);
+  const stack: number[] = [];
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const start = y * w + x;
+      if (seen[start] || !isWater(x, y)) continue;
+      const body: number[] = [];
+      stack.length = 0;
+      stack.push(start);
+      seen[start] = 1;
+      while (stack.length > 0) {
+        const i = stack.pop()!;
+        body.push(i);
+        const cx = i % w;
+        const cy = (i - cx) / w;
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const j = ny * w + nx;
+          if (seen[j] || !isWater(nx, ny)) continue;
+          seen[j] = 1;
+          stack.push(j);
+        }
+      }
+      if (body.length >= minSize) for (const i of body) mask[i] = 1;
+    }
+  }
+  return mask;
+}
+
 export function pickStartPositions(map: GameMap, count: number, rng: Rng): Vec2[] {
   void rng;
   const margin = Math.round(Math.min(map.width, map.height) * 0.1) + 5;
@@ -317,13 +394,37 @@ export function pickStartPositions(map: GameMap, count: number, rng: Rng): Vec2[
 
   // סריקה בגריד; הצעד גדל במפות גדולות כדי להחזיק את מספר המועמדים סביר
   const stride = Math.max(2, Math.round(Math.max(map.width, map.height) / 48));
-  const candidates: Vec2[] = [];
+  let candidates: Vec2[] = [];
   for (let y = margin; y < map.height - margin; y += stride) {
     for (let x = margin; x < map.width - margin; x += stride) {
       if (!onMainland(x, y)) continue;
       if (!isStartViable(map, x, y)) continue;
       candidates.push({ x, y });
     }
+  }
+
+  // במפה ימית מעדיפים נקודות פתיחה עם גישה לחוף — אחרת יוצא שצד אחד
+  // יושב על הים והשני תקוע ביבשה, ולכל אחד מהם משחק אחר לגמרי.
+  // "ים" הוא גוף מים שאפשר לבנות עליו נמל — לא כל שלולית.
+  // בלי ההבחנה הזו יוצא שצד אחד יושב על הים והשני על ביצה, ולכל אחד
+  // מהם משחק אחר לגמרי.
+  const bigWater = bigWaterMask(map);
+  let seaTiles = 0;
+  for (let i = 0; i < bigWater.length; i++) seaTiles += bigWater[i];
+  if (seaTiles / (map.width * map.height) > 0.04) {
+    const coastRange = 20;
+    const coastal = candidates.filter((c) => {
+      for (let dy = -coastRange; dy <= coastRange; dy += 2) {
+        for (let dx = -coastRange; dx <= coastRange; dx += 2) {
+          const x = c.x + dx;
+          const y = c.y + dy;
+          if (!map.inBounds(x, y)) continue;
+          if (bigWater[y * map.width + x]) return true;
+        }
+      }
+      return false;
+    });
+    if (coastal.length >= count * 3) candidates = coastal;
   }
 
   if (candidates.length === 0) {

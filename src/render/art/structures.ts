@@ -79,6 +79,7 @@ const BY_ID: Record<string, Archetype> = {
   vk_longhouse: 'longhouse',
   vk_mead_hall: 'longhouse',
   vk_harbor: 'port',
+  dock: 'port',
   vk_forge: 'workshop',
 };
 
@@ -86,6 +87,7 @@ export function archetypeOf(def: BuildingDef): Archetype {
   const direct = BY_ID[def.id];
   if (direct) return direct;
   if (def.gate) return 'gate';
+  if (def.shore) return 'port';
   if (def.isTownCenter) return 'townCenter';
   if (def.attack && def.range) return 'tower';
   if (def.trains?.length) return 'barracks';
@@ -165,6 +167,8 @@ export function drawStructure(
     links?: WallLinks;
     /** שער פתוח כשיחידה ידידותית לידו */
     gateOpen?: boolean;
+    /** לאיזה כיוון נמצאים המים — הנמל מפנה את המזח לשם */
+    waterSide?: 'n' | 's' | 'e' | 'w';
   } = {},
 ): void {
   const progress = opts.progress ?? 1;
@@ -247,7 +251,7 @@ export function drawStructure(
       drawHospital(ctx, cam, x, y, s, pal);
       break;
     case 'port':
-      drawPort(ctx, cam, x, y, s, pal);
+      drawPort(ctx, cam, x, y, s, pal, opts.waterSide ?? 'e');
       break;
   }
 }
@@ -907,6 +911,9 @@ function drawHospital(
   void pal;
 }
 
+/**
+ * נמל. המזח מופנה אל המים — אחרת הוא נראה כמו רציף שנבנה על הדשא.
+ */
 function drawPort(
   ctx: CanvasRenderingContext2D,
   cam: Camera,
@@ -914,13 +921,38 @@ function drawPort(
   y: number,
   s: number,
   pal: StructurePalette,
+  waterSide: 'n' | 's' | 'e' | 'w',
 ): void {
-  drawBox(ctx, cam, x, y, s * 0.6, s * 0.6, 0.36, faceColors(pal.wall));
-  facade(ctx, cam, x, y, s * 0.6, s * 0.6, 0.36, pal, pal.wall, { windows: 1, door: true, seed: 45 });
-  drawRoof(pal.roofStyle, ctx, cam, x, y, s * 0.6, s * 0.6, 0.36, 0.24, pal.roof, true);
-  // מזח
-  drawBox(ctx, cam, x + s * 0.62, y + s * 0.1, s * 0.36, s * 0.8, 0.08, faceColors('#8a6b47'));
-  for (let i = 0; i < 3; i++) {
-    drawColumn(ctx, cam, x + s * 0.7 + i * 0.25, y + s * 0.85, 0.04, 0.3, '#6b4a2f');
-  }
+  // מחסן הנמל יושב בצד ההפוך למים
+  const b = s * 0.58;
+  const house = {
+    n: { x: x + (s - b) / 2, y: y + s - b },
+    s: { x: x + (s - b) / 2, y },
+    e: { x, y: y + (s - b) / 2 },
+    w: { x: x + s - b, y: y + (s - b) / 2 },
+  }[waterSide];
+  // המזח נמתח אל המים
+  const pier = {
+    n: { x: x + s * 0.2, y, w: s * 0.6, d: s * 0.36 },
+    s: { x: x + s * 0.2, y: y + s * 0.64, w: s * 0.6, d: s * 0.36 },
+    e: { x: x + s * 0.64, y: y + s * 0.2, w: s * 0.36, d: s * 0.6 },
+    w: { x, y: y + s * 0.2, w: s * 0.36, d: s * 0.6 },
+  }[waterSide];
+
+  const pierFirst = waterSide === 'n' || waterSide === 'w';
+  const drawPier = () => {
+    drawBox(ctx, cam, pier.x, pier.y, pier.w, pier.d, 0.1, faceColors('#8a6b47'));
+    for (let i = 0; i < 3; i++) {
+      const t = 0.2 + i * 0.3;
+      const px = waterSide === 'n' || waterSide === 's' ? pier.x + pier.w * t : pier.x + pier.w * 0.85;
+      const py = waterSide === 'n' || waterSide === 's' ? pier.y + pier.d * 0.85 : pier.y + pier.d * t;
+      drawColumn(ctx, cam, px, py, 0.045, 0.34, '#6b4a2f');
+    }
+  };
+
+  if (pierFirst) drawPier();
+  drawBox(ctx, cam, house.x, house.y, b, b, 0.38, faceColors(pal.wall));
+  facade(ctx, cam, house.x, house.y, b, b, 0.38, pal, pal.wall, { windows: 1, door: true, seed: 45 });
+  drawRoof(pal.roofStyle, ctx, cam, house.x, house.y, b, b, 0.38, 0.26, pal.roof, true);
+  if (!pierFirst) drawPier();
 }

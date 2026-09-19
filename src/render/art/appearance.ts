@@ -1,6 +1,6 @@
 import type { UnitDef } from '../../data/schema';
 import type { PersonStyle } from './people';
-import type { VehicleKind } from './vehicles';
+import { SHIP_KINDS, type VehicleKind } from './vehicles';
 
 /**
  * איך כל יחידה נראית. ברירת המחדל נגזרת ממחלקת היחידה,
@@ -36,6 +36,9 @@ const VEHICLES: Record<string, VehicleKind> = {
   rm_ram: 'ram',
   eg_chariot: 'chariot',
   eg_chariot_archer: 'chariot',
+  fishing_boat: 'boat',
+  war_galley: 'galley',
+  vk_longship: 'longship',
 };
 
 const PEOPLE: Record<string, UnitLook['kind'] extends never ? never : NonNullable<PersonStyle['tool']>> = {
@@ -122,6 +125,8 @@ function defaultTool(def: UnitDef): NonNullable<PersonStyle['tool']> {
 export function lookFor(def: UnitDef): UnitLook {
   const vehicle = VEHICLES[def.id];
   if (vehicle) return { kind: 'vehicle', vehicle };
+  // ברירת מחדל לכלי שיט שאין להם רשומה
+  if (def.class === 'ship') return { kind: 'vehicle', vehicle: def.gatherRate ? 'boat' : 'galley' };
   // ברירת מחדל לפרשים שאין להם רשומה: רוכבים על סוס
   if (def.class === 'cavalry') return { kind: 'vehicle', vehicle: 'horse' };
   return {
@@ -142,5 +147,7 @@ export function isVehicle(defId: string): boolean {
 /** האם היחידה מצוירת כרכב ממונע (להבדיל מרכיבה על בעל חיים). */
 export function isMotorised(defId: string): boolean {
   const v = VEHICLES[defId];
-  return !!v && v !== 'horse' && v !== 'camel';
+  if (!v) return false;
+  // סוס, גמל וכלי שיט אינם "ממונעים" — ההגבלה נועדה לרכב מנועי בלבד
+  return v !== 'horse' && v !== 'camel' && !SHIP_KINDS.has(v);
 }

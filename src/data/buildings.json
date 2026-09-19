@@ -1077,7 +1077,16 @@
       "caravan",
       "coinage"
     ],
-    "limit": 4
+    "limit": 4,
+    "trains": [
+      "fishing_boat",
+      "vk_longship"
+    ],
+    "dropOff": [
+      "food",
+      "gold"
+    ],
+    "shore": true
   },
   "vk_forge": {
     "id": "vk_forge",
@@ -1102,5 +1111,29 @@
       "masonry",
       "engineering"
     ]
+  },
+  "dock": {
+    "id": "dock",
+    "name": "נמל",
+    "emoji": "⚓",
+    "desc": "נבנה על החוף: סירות דיג, ספינות קרב ופריקת דגה",
+    "size": 3,
+    "cost": {
+      "wood": 110
+    },
+    "buildTime": 28,
+    "hp": 900,
+    "armor": 2,
+    "pierceArmor": 6,
+    "los": 9,
+    "trains": [
+      "fishing_boat",
+      "war_galley"
+    ],
+    "dropOff": [
+      "food"
+    ],
+    "shore": true,
+    "limit": 3
   }
 }

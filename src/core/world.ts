@@ -12,7 +12,7 @@ import {
   type Order,
 } from './entities';
 import { FOG_VISIBLE } from './fog';
-import { GameMap, generateMap, type MapOptions } from './gamemap';
+import { GameMap, generateMap, type MapOptions, MIN_HARBOR_WATER } from './gamemap';
 import { beginStageTransition, tickStageTransition } from './growth';
 import { computeDamage, maxHpFor, statsOf, type CombatStats } from './combat';
 import { findPath, formationOffsets, rotateOffsets, smoothPath, type PathGrid } from './pathfinding';
@@ -60,6 +60,13 @@ export class NavGrid implements PathGrid {
     return this.map.isBlocked(x, y);
   }
 
+  /** אריח שספינה יכולה לשוט בו. */
+  isWater(x: number, y: number): boolean {
+    if (x < 0 || y < 0 || x >= this.width || y >= this.height) return false;
+    const t = this.map.terrainAt(x, y);
+    return t === 'water' || t === 'shallow';
+  }
+
   setOccupied(x: number, y: number, value: boolean): void {
     if (x < 0 || y < 0 || x >= this.width || y >= this.height) return;
     this.occupied[y * this.width + x] = value ? 1 : 0;
@@ -91,19 +98,26 @@ export class TeamNavView implements PathGrid {
   readonly width: number;
   readonly height: number;
 
-  constructor(private nav: NavGrid, private friendly: (owner: PlayerId) => boolean) {
+  constructor(
+    private nav: NavGrid,
+    private friendly: (owner: PlayerId) => boolean,
+    /** ניווט ימי: המים פתוחים והיבשה חסומה — היפוך מוחלט של הרגיל. */
+    private naval = false,
+  ) {
     this.width = nav.width;
     this.height = nav.height;
   }
 
   isBlocked(x: number, y: number): boolean {
+    if (this.naval) return !this.nav.isWater(x, y) || this.nav.isOccupied(x, y);
     const b = this.nav.barrierAt(x, y);
     if (b && b.gate && this.friendly(b.owner)) return this.nav.groundBlocked(x, y);
     return this.nav.isBlocked(x, y);
   }
 
   speedAt(x: number, y: number): number {
-    return this.nav.speedAt(x, y);
+    // במים אין הפרשי מהירות — כולם שטים אותו דבר
+    return this.naval ? 1 : this.nav.speedAt(x, y);
   }
 }
 
@@ -143,7 +157,7 @@ export class World {
   readonly map: GameMap;
   readonly nav: NavGrid;
   /** מבט ניווט לכל שחקן — שערים של בני ברית פתוחים בו. */
-  private navViews = new Map<PlayerId, PathGrid>();
+  private navViews = new Map<string, PathGrid>();
   readonly players: Player[];
   readonly entities = new Map<EntityId, Entity>();
   readonly rng: Rng;
@@ -268,7 +282,10 @@ export class World {
     const player = this.player(owner);
     if (!player) return null;
     const def = getUnit(defId);
-    const free = this.map.findFreeTile(pos.x, pos.y, 14) ?? { x: Math.floor(pos.x), y: Math.floor(pos.y) };
+    // ספינה נולדת במים; findFreeTile מחפש יבשה ולכן היה מעיף אותה לחוף
+    const free = def.class === 'ship'
+      ? { x: Math.floor(pos.x), y: Math.floor(pos.y) }
+      : this.map.findFreeTile(pos.x, pos.y, 14) ?? { x: Math.floor(pos.x), y: Math.floor(pos.y) };
     const e = createUnit(def, owner, { x: free.x + 0.5, y: free.y + 0.5 }, maxHpFor(defId, 'unit', player));
     this.entities.set(e.id, e);
     this.addToGrid(e);
@@ -293,7 +310,48 @@ export class World {
     return e;
   }
 
+  /**
+   * האם יש ים אמיתי בטבעת שסביב טביעת הרגל — תנאי לבניית נמל.
+   *
+   * לא מספיק שיש אריח מים אחד: נמל על שלולית היה יוצר ספינות כלואות.
+   * לכן נספר גוף המים הצמוד (עד תקרה), ונדרש שיהיה מספיק גדול כדי
+   * שיהיה לאן לשוט.
+   */
+  private touchesWater(tile: Vec2, size: number): boolean {
+    const seeds: Vec2[] = [];
+    for (let i = -1; i <= size; i++) {
+      for (const [x, y] of [
+        [tile.x + i, tile.y - 1], [tile.x + i, tile.y + size],
+        [tile.x - 1, tile.y + i], [tile.x + size, tile.y + i],
+      ]) {
+        if (this.nav.isWater(x, y)) seeds.push({ x, y });
+      }
+    }
+    if (seeds.length === 0) return false;
+
+    const cap = MIN_HARBOR_WATER;
+    const seen = new Set<number>();
+    const queue: Vec2[] = [seeds[0]];
+    seen.add(seeds[0].y * this.map.width + seeds[0].x);
+    let count = 0;
+    while (queue.length > 0 && count < cap) {
+      const c = queue.pop()!;
+      count++;
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const x = c.x + dx;
+        const y = c.y + dy;
+        if (!this.nav.isWater(x, y)) continue;
+        const key = y * this.map.width + x;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        queue.push({ x, y });
+      }
+    }
+    return count >= cap;
+  }
+
   canPlaceBuilding(def: BuildingDef, tile: Vec2): boolean {
+    if (def.shore && !this.touchesWater(tile, def.size)) return false;
     for (let dy = 0; dy < def.size; dy++) {
       for (let dx = 0; dx < def.size; dx++) {
         const x = tile.x + dx;
@@ -328,12 +386,13 @@ export class World {
    * מבט הניווט של צד — שערים של בני הברית פתוחים בו.
    * נשמר במטמון לכל שחקן, כך שאין הקצאה בכל חישוב מסלול.
    */
-  private navFor(owner: PlayerId): PathGrid {
-    let view = this.navViews.get(owner);
+  private navFor(owner: PlayerId, naval = false): PathGrid {
+    const key = naval ? `${owner}|n` : `${owner}`;
+    let view = this.navViews.get(key);
     if (!view) {
       const myTeam = this.player(owner)?.team ?? owner;
-      view = new TeamNavView(this.nav, (o) => (this.player(o)?.team ?? o) === myTeam);
-      this.navViews.set(owner, view);
+      view = new TeamNavView(this.nav, (o) => (this.player(o)?.team ?? o) === myTeam, naval);
+      this.navViews.set(key, view);
     }
     return view;
   }
@@ -439,13 +498,15 @@ export class World {
   // ===== שאילתות עזר =====
 
   /** נקודת פריקה קרובה ביותר לסוג משאב. */
-  findDropOff(owner: PlayerId, from: Vec2, kind: ResourceKind): Entity | null {
+  findDropOff(owner: PlayerId, from: Vec2, kind: ResourceKind, shoreOnly = false): Entity | null {
     let best: Entity | null = null;
     let bestDist = Infinity;
     for (const e of this.entities.values()) {
       if (!e.alive || e.owner !== owner || e.kind !== 'building') continue;
       if (!e.building?.complete) continue;
       const def = getBuilding(e.defId);
+      // ספינה יכולה לפרוק רק בנמל — מבנה חוף שהיא מסוגלת להגיע אליו
+      if (shoreOnly && !def.shore) continue;
       const drop = def.dropOff;
       if (!drop) continue;
       if (drop !== 'all' && !drop.includes(kind)) continue;
@@ -459,7 +520,7 @@ export class World {
   }
 
   /** אריח משאב פנוי קרוב לנקודה, מסוג מסוים. */
-  findResourceTile(from: Vec2, kind: ResourceKind, maxRadius = 22): Vec2 | null {
+  findResourceTile(from: Vec2, kind: ResourceKind, maxRadius = 22, onWater = false): Vec2 | null {
     let best: Vec2 | null = null;
     let bestDist = Infinity;
     const cx = Math.floor(from.x);
@@ -473,6 +534,8 @@ export class World {
           const y = cy + dy;
           const res = this.map.resourceAt(x, y);
           if (!res || res.kind !== kind || res.amount <= 0) continue;
+          // דגה נאספת רק מסירה, וכל השאר רק מהיבשה
+          if ((res.visual === 'fish') !== onWater) continue;
           const d = dx * dx + dy * dy;
           if (d < bestDist) {
             bestDist = d;
@@ -551,6 +614,12 @@ export class World {
 
   assignOrder(e: Entity, order: Order, queue = false): void {
     if (!e.alive) return;
+    // דגה נאספת רק מסירה, ושאר המשאבים רק מהיבשה — פקודה הפוכה
+    // הייתה שולחת את היחידה למקום שהיא לא יכולה להגיע אליו
+    if (order.kind === 'gather' && order.tile && e.unit) {
+      const water = this.nav.isWater(order.tile.x, order.tile.y);
+      if (water !== (getUnit(e.defId).class === 'ship')) return;
+    }
     if (queue) {
       e.queue.push(order);
       if (e.order.kind === 'idle') this.startNextOrder(e);
@@ -856,6 +925,7 @@ export class World {
     }
 
     const flying = def.class === 'air';
+    const naval = def.class === 'ship';
     u.repathCooldown -= dt;
 
     const goalChanged =
@@ -865,7 +935,7 @@ export class World {
       if (this.pathBudget > 0) {
         this.pathBudget--;
         u.goal = { x: goal.x, y: goal.y };
-        const grid = this.navFor(e.owner);
+        const grid = this.navFor(e.owner, naval);
         const result = findPath(grid, e.pos, goal, {
           stopDistance: stopDistance > 1 ? stopDistance - 0.5 : 0,
           maxNodes: 9000,
@@ -915,7 +985,9 @@ export class World {
       }
     }
 
-    const terrain = flying ? 1 : Math.max(0.25, this.map.speedAt(Math.floor(e.pos.x), Math.floor(e.pos.y)));
+    const terrain = flying || naval
+      ? 1
+      : Math.max(0.25, this.map.speedAt(Math.floor(e.pos.x), Math.floor(e.pos.y)));
     const speed = stats.speed * terrain;
     const nx = e.pos.x + dirX * speed * dt;
     const ny = e.pos.y + dirY * speed * dt;
@@ -927,7 +999,7 @@ export class World {
       e.pos.y = Math.max(0.5, Math.min(this.map.height - 0.5, ny));
     } else {
       // תנועה עם החלקה לאורך מכשולים
-      const grid = this.navFor(e.owner);
+      const grid = this.navFor(e.owner, naval);
       const canX = !grid.isBlocked(Math.floor(nx), Math.floor(e.pos.y));
       const canY = !grid.isBlocked(Math.floor(e.pos.x), Math.floor(ny));
       if (canX) e.pos.x = nx;
@@ -1145,7 +1217,7 @@ export class World {
     const res = this.map.resourceAt(tile.x, tile.y);
     if (!res || res.amount <= 0) {
       // המשאב נגמר — מחפשים אריח קרוב מאותו סוג
-      const next = this.findResourceTile(e.pos, e.order.resource, 14);
+      const next = this.findResourceTile(e.pos, e.order.resource, 14, def.class === 'ship');
       if (next) {
         this.setOrder(e, { kind: 'gather', tile: next, resource: e.order.resource });
       } else if (u.carrying && u.carrying.amount > 0) {
@@ -1186,7 +1258,7 @@ export class World {
   }
 
   private beginReturn(e: Entity, kind: ResourceKind): void {
-    const drop = this.findDropOff(e.owner, e.pos, kind);
+    const drop = this.findDropOff(e.owner, e.pos, kind, getUnit(e.defId).class === 'ship');
     if (!drop) return; // אין לאן לפרוק — ממשיכים לאסוף
     const resume: Order | undefined = e.order.kind === 'gather' ? { ...e.order } : e.order.resume;
     this.setOrder(e, { kind: 'return', targetId: drop.id, resume });
@@ -1201,14 +1273,15 @@ export class World {
     }
     let drop = this.get(e.order.targetId);
     if (!drop) {
-      drop = this.findDropOff(e.owner, e.pos, u.carrying.kind) ?? undefined;
+      drop = this.findDropOff(e.owner, e.pos, u.carrying.kind, def.class === 'ship') ?? undefined;
       if (!drop) {
         this.finishOrder(e);
         return;
       }
       e.order.targetId = drop.id;
     }
-    if (this.approachEntity(e, drop, dt, 0.6)) {
+    // ספינה עוגנת מהמים — היא לא יכולה להיצמד לקיר הנמל כמו פועל
+    if (this.approachEntity(e, drop, dt, def.class === 'ship' ? 1.9 : 0.6)) {
       player.add(u.carrying.kind, Math.floor(u.carrying.amount));
       u.carrying = null;
       this.finishOrder(e);
@@ -1302,7 +1375,7 @@ export class World {
       const item = b.trainQueue[0];
       item.remaining -= dt;
       if (item.remaining <= 0) {
-        const spawnAt = this.spawnPointFor(e);
+        const spawnAt = this.spawnPointFor(e, getUnit(item.unitId).class === 'ship');
         const unit = this.spawnUnit(item.unitId, e.owner, spawnAt);
         b.trainQueue.shift();
         if (unit) {
@@ -1312,7 +1385,8 @@ export class World {
             entityId: unit.id,
             defId: unit.defId,
           });
-          if (b.rally) {
+          const naval = getUnit(unit.defId).class === 'ship';
+          if (b.rally && (!naval || this.nav.isWater(Math.floor(b.rally.x), Math.floor(b.rally.y)))) {
             const rallyTile = { x: Math.floor(b.rally.x), y: Math.floor(b.rally.y) };
             const res = this.map.resourceAt(rallyTile.x, rallyTile.y);
             const uDef = getUnit(unit.defId);
@@ -1366,7 +1440,7 @@ export class World {
   }
 
   /** נקודת הופעה ליחידה חדשה — סמוך לקצה המבנה. */
-  private spawnPointFor(b: Entity): Vec2 {
+  private spawnPointFor(b: Entity, naval = false): Vec2 {
     const origin = buildingOrigin(b);
     const size = b.building?.size ?? 1;
     const candidates: Vec2[] = [];
@@ -1375,6 +1449,26 @@ export class World {
       candidates.push({ x: origin.x + i, y: origin.y + size });
       candidates.push({ x: origin.x - 1, y: origin.y + i });
       candidates.push({ x: origin.x + size, y: origin.y + i });
+    }
+    if (naval) {
+      // ספינה נולדת במים — קודם בטבעת הצמודה, ואם אין, בטבעת רחבה יותר
+      for (const c of candidates) {
+        if (this.nav.isWater(c.x, c.y) && !this.nav.isOccupied(c.x, c.y)) {
+          return { x: c.x + 0.5, y: c.y + 0.5 };
+        }
+      }
+      for (let r = 2; r <= 5; r++) {
+        for (let dy = -r; dy <= r; dy++) {
+          for (let dx = -r; dx <= r; dx++) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+            const x = origin.x + dx;
+            const y = origin.y + dy;
+            if (this.nav.isWater(x, y) && !this.nav.isOccupied(x, y)) {
+              return { x: x + 0.5, y: y + 0.5 };
+            }
+          }
+        }
+      }
     }
     for (const c of candidates) {
       if (!this.nav.isBlocked(c.x, c.y)) return { x: c.x + 0.5, y: c.y + 0.5 };
