@@ -1,0 +1,1536 @@
+{
+ "israel": {
+  "id": "israel",
+  "name": "ישראל",
+  "flag": "🇮🇱",
+  "color": "#3b82f6",
+  "desc": "אומת בונים: מתחילים ביישוב קטן — קיבוץ או מושב — וגדלים ליישוב, לעיירה ולעיר. דגש על חקלאות, חינוך, תעשייה וטכנולוגיה.",
+  "bonuses": [
+   "בחירה בין קיבוץ למושב בתחילת המשחק",
+   "בחירת זרוע צבאית בשלב העיירה",
+   "מבנים אזרחיים ייחודיים: מגדל מים, בית ספר, בית חולים ובורסה"
+  ],
+  "worker": "il_worker",
+  "townCenter": "il_tc",
+  "uniques": [
+   "מגדל מים",
+   "חדר אוכל",
+   "בית ספר",
+   "בסיס צבאי",
+   "מערכת הגנה אווירית",
+   "בית חולים",
+   "בורסה"
+  ],
+  "startingBuildings": [
+   "il_tc"
+  ],
+  "startingUnits": [
+   "il_worker",
+   "il_worker",
+   "il_worker",
+   "il_worker",
+   "il_scout"
+  ],
+  "stages": [
+   {
+    "index": 1,
+    "name": "יישוב קטן",
+    "emoji": "🌱",
+    "desc": "ההתחלה: כמה בתים, שדה ומגדל מים.",
+    "controlRadius": 15,
+    "centerEmoji": "🏘️",
+    "centerName": "מרכז היישוב",
+    "unlocks": {
+     "buildings": [
+      "house",
+      "farm",
+      "mill",
+      "lumber_camp",
+      "mining_camp",
+      "il_watertower"
+     ],
+     "units": [
+      "il_worker",
+      "il_guard"
+     ]
+    }
+   },
+   {
+    "index": 2,
+    "name": "יישוב גדול",
+    "emoji": "🏡",
+    "desc": "היישוב מתרחב: קסרקטין, נפחייה ומגדלי שמירה.",
+    "controlRadius": 22,
+    "popBonus": 5,
+    "centerEmoji": "🏡",
+    "centerName": "מרכז היישוב הגדול",
+    "requires": {
+     "resources": {
+      "food": 400,
+      "wood": 250
+     },
+     "population": 12,
+     "buildings": {
+      "house": 2
+     },
+     "time": 40
+    },
+    "unlocks": {
+     "buildings": [
+      "barracks",
+      "archery_range",
+      "stable",
+      "blacksmith",
+      "tower",
+      "wall",
+      "il_school"
+     ],
+     "units": [
+      "il_infantry",
+      "il_rifleman",
+      "il_scout"
+     ],
+     "techs": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "town_watch",
+      "coinage"
+     ]
+    }
+   },
+   {
+    "index": 3,
+    "name": "עיירה",
+    "emoji": "🏙️",
+    "desc": "עיירה עם שוק, בית חולים ובסיס צבאי. כאן בוחרים זרוע צבאית.",
+    "controlRadius": 30,
+    "popBonus": 10,
+    "centerEmoji": "🏬",
+    "centerName": "מרכז העיירה",
+    "requires": {
+     "resources": {
+      "food": 800,
+      "wood": 600,
+      "gold": 250
+     },
+     "population": 25,
+     "buildings": {
+      "house": 4,
+      "barracks": 1
+     },
+     "time": 60
+    },
+    "unlocks": {
+     "buildings": [
+      "market",
+      "temple",
+      "siege_workshop",
+      "academy",
+      "il_military_base",
+      "il_hospital"
+     ],
+     "units": [
+      "il_medic"
+     ],
+     "techs": [
+      "armor_cavalry",
+      "husbandry",
+      "siege_engineering",
+      "caravan",
+      "engineering",
+      "logistics",
+      "devotion",
+      "education"
+     ]
+    }
+   },
+   {
+    "index": 4,
+    "name": "עיר",
+    "emoji": "🌆",
+    "desc": "עיר מלאה: מצודה, בורסה, מפעלים והייטק.",
+    "controlRadius": 40,
+    "popBonus": 20,
+    "centerEmoji": "🌆",
+    "centerName": "מרכז העיר",
+    "requires": {
+     "resources": {
+      "food": 1400,
+      "wood": 1000,
+      "stone": 400,
+      "gold": 600
+     },
+     "population": 45,
+     "buildings": {
+      "market": 1,
+      "il_military_base": 1
+     },
+     "time": 90
+    },
+    "unlocks": {
+     "buildings": [
+      "fortress",
+      "il_exchange",
+      "il_hightech",
+      "il_factory"
+     ],
+     "units": [
+      "il_elite"
+     ],
+     "techs": [
+      "industry"
+     ]
+    }
+   }
+  ],
+  "branches": [
+   {
+    "id": "settlement",
+    "name": "סוג היישוב",
+    "desc": "בוחרים לפני תחילת המשחק — משפיע על כל מסלול הצמיחה.",
+    "atStage": 1,
+    "options": [
+     {
+      "id": "kibbutz",
+      "name": "קיבוץ",
+      "emoji": "🌻",
+      "desc": "כלכלה שיתופית: כולם עובדים יחד, חדר אוכל משותף ומפעל. בסוף המסלול — עיר תעשייה והייטק.",
+      "highlights": [
+       "+15% קצב איסוף משאבים",
+       "חדר אוכל ומפעל",
+       "מחקר מהיר ב-20%",
+       "+1 שריון לכל היחידות בעיר"
+      ],
+      "modifiers": {
+       "gatherMult": {
+        "all": 1.15
+       },
+       "researchSpeedMult": 1.2,
+       "unitArmorBonus": 1,
+       "buildSpeedMult": 1.1
+      },
+      "unlocks": {
+       "buildings": [
+        "il_dining_hall",
+        "il_factory",
+        "il_hightech"
+       ],
+       "techs": [
+        "industry",
+        "education"
+       ]
+      },
+      "centerNames": [
+       "קיבוץ",
+       "יישוב גדול",
+       "עיירה",
+       "עיר תעשייה והייטק"
+      ],
+      "centerEmojis": [
+       "🌻",
+       "🏡",
+       "🏬",
+       "🏭"
+      ]
+     },
+     {
+      "id": "moshav",
+      "name": "מושב",
+      "emoji": "🚜",
+      "desc": "משקים פרטיים: בתים וחוות זולים, יותר מקום לאנשים. בסוף המסלול — עיר מסחר וחקלאות.",
+      "highlights": [
+       "בתים וחוות זולים ב-25%",
+       "+3 אוכלוסייה לכל בית",
+       "+30% זהב ממסחר",
+       "+20% איסוף אוכל"
+      ],
+      "modifiers": {
+       "buildingCostMult": 0.85,
+       "houseCapBonus": 3,
+       "tradeGoldMult": 1.3,
+       "gatherMult": {
+        "food": 1.2
+       }
+      },
+      "unlocks": {
+       "buildings": [
+        "il_exchange",
+        "market",
+        "il_dining_hall"
+       ],
+       "techs": [
+        "caravan",
+        "coinage"
+       ]
+      },
+      "centerNames": [
+       "מושב",
+       "יישוב גדול",
+       "עיירה",
+       "עיר מסחר וחקלאות"
+      ],
+      "centerEmojis": [
+       "🚜",
+       "🏡",
+       "🏬",
+       "🏪"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "army",
+    "name": "זרוע צבאית",
+    "desc": "נבחרת עם המעבר לשלב העיירה.",
+    "atStage": 3,
+    "options": [
+     {
+      "id": "infantry",
+      "name": "חי\"ר",
+      "emoji": "🎖️",
+      "desc": "חטיבות רגליות מאומנות היטב — עמידות וזולות יחסית.",
+      "highlights": [
+       "לוחם חטיבתי",
+       "+10% תקיפה לחי\"ר",
+       "+1 שריון לחי\"ר"
+      ],
+      "modifiers": {
+       "unitAttackMult": {
+        "infantry": 1.1
+       },
+       "unitHpMult": 1.05
+      },
+      "unlocks": {
+       "units": [
+        "il_golani"
+       ],
+       "techs": [
+        "weapons_infantry",
+        "armor_infantry"
+       ]
+      }
+     },
+     {
+      "id": "armor",
+      "name": "שריון",
+      "emoji": "🚐",
+      "desc": "רכב משוריין וטנקים — כוח פריצה כבד.",
+      "highlights": [
+       "נגמ\"ש וטנק",
+       "+1 שריון לכל היחידות",
+       "מצוין נגד מבנים"
+      ],
+      "modifiers": {
+       "unitArmorBonus": 1,
+       "unitAttackMult": {
+        "siege": 1.1
+       }
+      },
+      "unlocks": {
+       "units": [
+        "il_apc",
+        "il_tank"
+       ],
+       "buildings": [
+        "siege_workshop"
+       ],
+       "techs": [
+        "armor_cavalry",
+        "siege_engineering"
+       ]
+      }
+     },
+     {
+      "id": "special",
+      "name": "צלפים וכוחות מיוחדים",
+      "emoji": "🎯",
+      "desc": "יחידות קטנות, מדויקות ומהירות.",
+      "highlights": [
+       "צלף ולוחם סיירת",
+       "+2 טווח ראייה",
+       "מצוין נגד פועלים ומצור"
+      ],
+      "modifiers": {
+       "losBonus": 2,
+       "unitAttackMult": {
+        "ranged": 1.1
+       }
+      },
+      "unlocks": {
+       "units": [
+        "il_sniper",
+        "il_commando"
+       ],
+       "techs": [
+        "fletching",
+        "town_watch"
+       ]
+      }
+     },
+     {
+      "id": "airdefense",
+      "name": "הגנה אווירית",
+      "emoji": "📡",
+      "desc": "שליטה בשמיים: מל\"טים, נ\"מ נייד ומערכות יירוט.",
+      "highlights": [
+       "מל\"ט ונ\"מ נייד",
+       "מערכת הגנה אווירית",
+       "שליטה בשמיים"
+      ],
+      "modifiers": {
+       "unitAttackMult": {
+        "air": 1.1
+       },
+       "losBonus": 1
+      },
+      "unlocks": {
+       "units": [
+        "il_drone",
+        "il_flak"
+       ],
+       "buildings": [
+        "il_airdefense"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "japan": {
+  "id": "japan",
+  "name": "יפן",
+  "flag": "🇯🇵",
+  "color": "#ef4444",
+  "desc": "מכפר חקלאי שקט, דרך כפר מבוצר ועיירת טירה, ועד עיר גדולה. לוחמי עילית ומבני הגנה חזקים.",
+  "bonuses": [
+   "יחידות עילית חזקות (סמוראי, דאימיו)",
+   "מבני הגנה עמידים במיוחד (טירה)",
+   "אשיגארו זולים ומהירים לאימון"
+  ],
+  "worker": "jp_worker",
+  "townCenter": "jp_tc",
+  "uniques": [
+   "טירה",
+   "דוג'ו",
+   "מקדש הכפר"
+  ],
+  "modifiers": {
+   "buildingHpMult": 1.15
+  },
+  "startingBuildings": [
+   "jp_tc"
+  ],
+  "startingUnits": [
+   "jp_worker",
+   "jp_worker",
+   "jp_worker",
+   "jp_worker",
+   "jp_cavalry"
+  ],
+  "stages": [
+   {
+    "index": 1,
+    "name": "כפר חקלאי",
+    "emoji": "🌾",
+    "desc": "שדות אורז, בתי עץ ומקדש קטן.",
+    "controlRadius": 15,
+    "centerEmoji": "🏘️",
+    "centerName": "מרכז הכפר",
+    "unlocks": {
+     "buildings": [
+      "house",
+      "farm",
+      "mill",
+      "lumber_camp",
+      "mining_camp",
+      "jp_shrine"
+     ],
+     "units": [
+      "jp_worker",
+      "jp_ashigaru"
+     ]
+    }
+   },
+   {
+    "index": 2,
+    "name": "כפר מבוצר",
+    "emoji": "🏯",
+    "desc": "חומות עץ, קסרקטין וקשתים.",
+    "controlRadius": 22,
+    "popBonus": 5,
+    "centerEmoji": "🏡",
+    "centerName": "מרכז הכפר המבוצר",
+    "requires": {
+     "resources": {
+      "food": 400,
+      "wood": 250
+     },
+     "population": 12,
+     "buildings": {
+      "house": 2
+     },
+     "time": 40
+    },
+    "unlocks": {
+     "buildings": [
+      "barracks",
+      "archery_range",
+      "stable",
+      "blacksmith",
+      "tower",
+      "wall"
+     ],
+     "units": [
+      "jp_archer",
+      "jp_yari",
+      "jp_cavalry"
+     ],
+     "techs": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "town_watch",
+      "coinage"
+     ]
+    }
+   },
+   {
+    "index": 3,
+    "name": "עיירת טירה",
+    "emoji": "🏯",
+    "desc": "טירה במרכז, דוג'ו לאימון סמוראים ושוק שוקק.",
+    "controlRadius": 30,
+    "popBonus": 10,
+    "centerEmoji": "🏯",
+    "centerName": "עיירת הטירה",
+    "requires": {
+     "resources": {
+      "food": 800,
+      "wood": 600,
+      "gold": 250
+     },
+     "population": 25,
+     "buildings": {
+      "house": 4,
+      "barracks": 1
+     },
+     "time": 60
+    },
+    "unlocks": {
+     "buildings": [
+      "market",
+      "temple",
+      "siege_workshop",
+      "academy",
+      "jp_dojo",
+      "jp_castle"
+     ],
+     "units": [
+      "jp_samurai",
+      "jp_catapult"
+     ],
+     "techs": [
+      "armor_cavalry",
+      "husbandry",
+      "siege_engineering",
+      "caravan",
+      "engineering",
+      "logistics",
+      "devotion",
+      "education"
+     ]
+    }
+   },
+   {
+    "index": 4,
+    "name": "עיר גדולה",
+    "emoji": "🌆",
+    "desc": "עיר נמל ומסחר גדולה סביב הטירה.",
+    "controlRadius": 40,
+    "popBonus": 20,
+    "centerEmoji": "🌆",
+    "centerName": "מרכז העיר",
+    "requires": {
+     "resources": {
+      "food": 1400,
+      "wood": 1000,
+      "stone": 400,
+      "gold": 600
+     },
+     "population": 45,
+     "buildings": {
+      "market": 1,
+      "jp_castle": 1
+     },
+     "time": 90
+    },
+    "unlocks": {
+     "buildings": [
+      "fortress"
+     ],
+     "units": [
+      "jp_daimyo",
+      "jp_shinobi"
+     ],
+     "techs": [
+      "industry"
+     ]
+    }
+   }
+  ],
+  "branches": [
+   {
+    "id": "clan",
+    "name": "דרך החמולה",
+    "desc": "נבחרת עם המעבר לעיירת הטירה.",
+    "atStage": 3,
+    "options": [
+     {
+      "id": "bushido",
+      "name": "דרך הלוחם",
+      "emoji": "⚔️",
+      "desc": "אימון בלתי פוסק — סמוראים חזקים במיוחד.",
+      "highlights": [
+       "+15% תקיפה לחי\"ר",
+       "+10% חיים ליחידות",
+       "שינובי"
+      ],
+      "modifiers": {
+       "unitAttackMult": {
+        "infantry": 1.15
+       },
+       "unitHpMult": 1.1
+      },
+      "unlocks": {
+       "units": [
+        "jp_samurai",
+        "jp_shinobi"
+       ],
+       "techs": [
+        "weapons_infantry",
+        "devotion"
+       ]
+      }
+     },
+     {
+      "id": "merchants",
+      "name": "דרך הסוחרים",
+      "emoji": "⛩️",
+      "desc": "נמלים ושווקים — כלכלה חזקה ומחקר מהיר.",
+      "highlights": [
+       "+20% זהב ממסחר",
+       "+15% איסוף משאבים",
+       "מחקר מהיר"
+      ],
+      "modifiers": {
+       "tradeGoldMult": 1.2,
+       "gatherMult": {
+        "all": 1.15
+       },
+       "researchSpeedMult": 1.15
+      },
+      "unlocks": {
+       "buildings": [
+        "market",
+        "academy"
+       ],
+       "techs": [
+        "caravan",
+        "coinage",
+        "education"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "arabs": {
+  "id": "arabs",
+  "name": "ערבים",
+  "flag": "🏜️",
+  "color": "#22c55e",
+  "desc": "בהשראת תור הזהב של האימפריות והח'ליפויות: מאהל ונווה מדבר שהופכים לעיירת שוק ולעיר גדולה בסגנון בגדאד ודמשק — מרכזי מדע, מסחר ואדריכלות.",
+  "bonuses": [
+   "מסחר חזק — זהב זורם מהשווקים",
+   "בתי חוכמה: מחקר מהיר ב-25%",
+   "רוכבי גמלים ופרשים קלים מהירים במיוחד"
+  ],
+  "worker": "ar_worker",
+  "townCenter": "ar_tc",
+  "uniques": [
+   "בית חוכמה",
+   "בזאר",
+   "חאן שיירות"
+  ],
+  "modifiers": {
+   "researchSpeedMult": 1.25,
+   "tradeGoldMult": 1.2
+  },
+  "startingBuildings": [
+   "ar_tc"
+  ],
+  "startingUnits": [
+   "ar_worker",
+   "ar_worker",
+   "ar_worker",
+   "ar_worker",
+   "ar_lighthorse"
+  ],
+  "stages": [
+   {
+    "index": 1,
+    "name": "מאהל בנווה מדבר",
+    "emoji": "🏕️",
+    "desc": "אוהלים סביב באר מים ודקלים.",
+    "controlRadius": 16,
+    "centerEmoji": "🏕️",
+    "centerName": "מרכז המאהל",
+    "unlocks": {
+     "buildings": [
+      "house",
+      "farm",
+      "mill",
+      "lumber_camp",
+      "mining_camp"
+     ],
+     "units": [
+      "ar_worker",
+      "ar_spear"
+     ]
+    }
+   },
+   {
+    "index": 2,
+    "name": "כפר נווה",
+    "emoji": "🌴",
+    "desc": "בתי חומר, בארות ושיירות ראשונות.",
+    "controlRadius": 23,
+    "popBonus": 5,
+    "centerEmoji": "🏡",
+    "centerName": "מרכז הכפר",
+    "requires": {
+     "resources": {
+      "food": 400,
+      "wood": 250
+     },
+     "population": 12,
+     "buildings": {
+      "house": 2
+     },
+     "time": 40
+    },
+    "unlocks": {
+     "buildings": [
+      "barracks",
+      "archery_range",
+      "stable",
+      "blacksmith",
+      "tower",
+      "wall",
+      "ar_caravanserai"
+     ],
+     "units": [
+      "ar_archer",
+      "ar_camel",
+      "ar_lighthorse"
+     ],
+     "techs": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "town_watch",
+      "coinage"
+     ]
+    }
+   },
+   {
+    "index": 3,
+    "name": "עיירת שוק",
+    "emoji": "🏬",
+    "desc": "בזאר שוקק, חאן שיירות ובית חוכמה.",
+    "controlRadius": 31,
+    "popBonus": 10,
+    "centerEmoji": "🏬",
+    "centerName": "מרכז העיירה",
+    "requires": {
+     "resources": {
+      "food": 800,
+      "wood": 600,
+      "gold": 250
+     },
+     "population": 25,
+     "buildings": {
+      "house": 4,
+      "barracks": 1
+     },
+     "time": 60
+    },
+    "unlocks": {
+     "buildings": [
+      "market",
+      "temple",
+      "siege_workshop",
+      "academy",
+      "ar_bazaar",
+      "ar_wisdom_house"
+     ],
+     "units": [
+      "ar_horsearcher",
+      "ar_mangonel",
+      "ar_scholar"
+     ],
+     "techs": [
+      "armor_cavalry",
+      "husbandry",
+      "siege_engineering",
+      "caravan",
+      "engineering",
+      "logistics",
+      "devotion",
+      "education"
+     ]
+    }
+   },
+   {
+    "index": 4,
+    "name": "עיר גדולה",
+    "emoji": "🕌",
+    "desc": "עיר מעגלית גדולה: ספריות, גנים ושווקים אינסופיים.",
+    "controlRadius": 41,
+    "popBonus": 20,
+    "centerEmoji": "🌆",
+    "centerName": "מרכז העיר",
+    "requires": {
+     "resources": {
+      "food": 1400,
+      "wood": 1000,
+      "stone": 400,
+      "gold": 600
+     },
+     "population": 45,
+     "buildings": {
+      "ar_bazaar": 1,
+      "ar_wisdom_house": 1
+     },
+     "time": 90
+    },
+    "unlocks": {
+     "buildings": [
+      "fortress"
+     ],
+     "units": [
+      "ar_heavycav"
+     ],
+     "techs": [
+      "industry"
+     ]
+    }
+   }
+  ],
+  "branches": [
+   {
+    "id": "path",
+    "name": "דרך העיר",
+    "desc": "נבחרת עם המעבר לעיירת השוק.",
+    "atStage": 3,
+    "options": [
+     {
+      "id": "trade",
+      "name": "דרך המסחר",
+      "emoji": "🐫",
+      "desc": "שיירות בין ערים — זהב בלי סוף.",
+      "highlights": [
+       "+35% זהב ממסחר",
+       "+15% איסוף",
+       "פרשים קלים זולים"
+      ],
+      "modifiers": {
+       "tradeGoldMult": 1.35,
+       "gatherMult": {
+        "all": 1.15
+       },
+       "unitCostMult": 0.95
+      },
+      "unlocks": {
+       "buildings": [
+        "ar_bazaar",
+        "ar_caravanserai"
+       ],
+       "techs": [
+        "caravan",
+        "coinage"
+       ]
+      }
+     },
+     {
+      "id": "science",
+      "name": "דרך המדע",
+      "emoji": "📚",
+      "desc": "אסטרונומיה, רפואה ומתמטיקה — מחקר בלתי מנוצח.",
+      "highlights": [
+       "מחקר מהיר ב-40%",
+       "+1 שריון ליחידות",
+       "+2 טווח ראייה"
+      ],
+      "modifiers": {
+       "researchSpeedMult": 1.4,
+       "unitArmorBonus": 1,
+       "losBonus": 2
+      },
+      "unlocks": {
+       "buildings": [
+        "ar_wisdom_house",
+        "academy"
+       ],
+       "techs": [
+        "education",
+        "engineering",
+        "masonry"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "rome": {
+  "id": "rome",
+  "name": "רומא",
+  "flag": "🏛️",
+  "color": "#a855f7",
+  "desc": "מכפר קטן על גבעה, דרך עיירה מסודרת ומוניקיפיום, ועד עיר אימפריאלית עם פורום ואמות מים. הנדסה, כבישים וארגון.",
+  "bonuses": [
+   "מבנים עמידים ובנייה מהירה",
+   "לגיונרים ממושמעים ומשוריינים",
+   "אזרחים כורים אבן מהר יותר"
+  ],
+  "worker": "rm_worker",
+  "townCenter": "rm_tc",
+  "uniques": [
+   "פורום",
+   "אמת מים",
+   "מחנה לגיון"
+  ],
+  "modifiers": {
+   "buildSpeedMult": 1.2,
+   "buildingHpMult": 1.1
+  },
+  "startingBuildings": [
+   "rm_tc"
+  ],
+  "startingUnits": [
+   "rm_worker",
+   "rm_worker",
+   "rm_worker",
+   "rm_worker",
+   "rm_equites"
+  ],
+  "stages": [
+   {
+    "index": 1,
+    "name": "כפר על הגבעה",
+    "emoji": "🌿",
+    "desc": "בקתות, שדות ומעיין.",
+    "controlRadius": 15,
+    "centerEmoji": "🏘️",
+    "centerName": "מרכז הכפר",
+    "unlocks": {
+     "buildings": [
+      "house",
+      "farm",
+      "mill",
+      "lumber_camp",
+      "mining_camp"
+     ],
+     "units": [
+      "rm_worker",
+      "rm_hastati"
+     ]
+    }
+   },
+   {
+    "index": 2,
+    "name": "עיירה",
+    "emoji": "🏡",
+    "desc": "רחובות ישרים, נפחייה ומגדלים.",
+    "controlRadius": 22,
+    "popBonus": 5,
+    "centerEmoji": "🏡",
+    "centerName": "מרכז העיירה",
+    "requires": {
+     "resources": {
+      "food": 400,
+      "wood": 250
+     },
+     "population": 12,
+     "buildings": {
+      "house": 2
+     },
+     "time": 40
+    },
+    "unlocks": {
+     "buildings": [
+      "barracks",
+      "archery_range",
+      "stable",
+      "blacksmith",
+      "tower",
+      "wall",
+      "rm_aqueduct"
+     ],
+     "units": [
+      "rm_archer",
+      "rm_equites"
+     ],
+     "techs": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "town_watch",
+      "coinage"
+     ]
+    }
+   },
+   {
+    "index": 3,
+    "name": "מוניקיפיום",
+    "emoji": "🏛️",
+    "desc": "פורום, מחנה לגיון וסדנאות מצור.",
+    "controlRadius": 30,
+    "popBonus": 10,
+    "centerEmoji": "🏛️",
+    "centerName": "מרכז המוניקיפיום",
+    "requires": {
+     "resources": {
+      "food": 800,
+      "wood": 600,
+      "gold": 250
+     },
+     "population": 25,
+     "buildings": {
+      "house": 4,
+      "barracks": 1
+     },
+     "time": 60
+    },
+    "unlocks": {
+     "buildings": [
+      "market",
+      "temple",
+      "siege_workshop",
+      "academy",
+      "rm_forum",
+      "rm_castrum"
+     ],
+     "units": [
+      "rm_legion",
+      "rm_ballista",
+      "rm_ram"
+     ],
+     "techs": [
+      "armor_cavalry",
+      "husbandry",
+      "siege_engineering",
+      "caravan",
+      "engineering",
+      "logistics",
+      "devotion",
+      "education"
+     ]
+    }
+   },
+   {
+    "index": 4,
+    "name": "עיר אימפריאלית",
+    "emoji": "🌆",
+    "desc": "עיר שיש ואמות מים, כיכרות ומצודות.",
+    "controlRadius": 40,
+    "popBonus": 20,
+    "centerEmoji": "🌆",
+    "centerName": "מרכז העיר",
+    "requires": {
+     "resources": {
+      "food": 1400,
+      "wood": 1000,
+      "stone": 400,
+      "gold": 600
+     },
+     "population": 45,
+     "buildings": {
+      "rm_forum": 1,
+      "rm_castrum": 1
+     },
+     "time": 90
+    },
+    "unlocks": {
+     "buildings": [
+      "fortress"
+     ],
+     "units": [
+      "rm_centurion"
+     ],
+     "techs": [
+      "industry"
+     ]
+    }
+   }
+  ]
+ },
+ "egypt": {
+  "id": "egypt",
+  "name": "מצרים",
+  "flag": "🐫",
+  "color": "#eab308",
+  "desc": "מכפר על גדת הנהר, דרך יישוב מקדשים ועיירת נומוס, ועד עיר גדולה עם פירמידה. חקלאות שופעת וקשתים מהוללים.",
+  "bonuses": [
+   "פלאחים אוספים אוכל מהר יותר ונושאים יותר",
+   "קשתים נובים חזקים במיוחד",
+   "פירמידה — מונומנט שמעניק בונוס עצום"
+  ],
+  "worker": "eg_worker",
+  "townCenter": "eg_tc",
+  "uniques": [
+   "אסם",
+   "אובליסק",
+   "פירמידה"
+  ],
+  "modifiers": {
+   "gatherMult": {
+    "food": 1.15
+   }
+  },
+  "startingBuildings": [
+   "eg_tc"
+  ],
+  "startingUnits": [
+   "eg_worker",
+   "eg_worker",
+   "eg_worker",
+   "eg_worker",
+   "eg_chariot"
+  ],
+  "stages": [
+   {
+    "index": 1,
+    "name": "כפר על הנהר",
+    "emoji": "🌊",
+    "desc": "שדות שלחין, אסם ובתי בוץ.",
+    "controlRadius": 15,
+    "centerEmoji": "🏘️",
+    "centerName": "מרכז הכפר",
+    "unlocks": {
+     "buildings": [
+      "house",
+      "farm",
+      "mill",
+      "lumber_camp",
+      "mining_camp",
+      "eg_granary"
+     ],
+     "units": [
+      "eg_worker",
+      "eg_spear"
+     ]
+    }
+   },
+   {
+    "index": 2,
+    "name": "יישוב מקדשים",
+    "emoji": "🏺",
+    "desc": "מקדש, אובליסק וקשתים ראשונים.",
+    "controlRadius": 22,
+    "popBonus": 5,
+    "centerEmoji": "🏡",
+    "centerName": "מרכז היישוב",
+    "requires": {
+     "resources": {
+      "food": 400,
+      "wood": 250
+     },
+     "population": 12,
+     "buildings": {
+      "house": 2
+     },
+     "time": 40
+    },
+    "unlocks": {
+     "buildings": [
+      "barracks",
+      "archery_range",
+      "stable",
+      "blacksmith",
+      "tower",
+      "wall",
+      "eg_obelisk"
+     ],
+     "units": [
+      "eg_archer",
+      "eg_chariot"
+     ],
+     "techs": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "town_watch",
+      "coinage"
+     ]
+    }
+   },
+   {
+    "index": 3,
+    "name": "עיירת נומוס",
+    "emoji": "🏯",
+    "desc": "מרכז מחוז: שוק, מקדש גדול וסדנת מצור.",
+    "controlRadius": 30,
+    "popBonus": 10,
+    "centerEmoji": "🏬",
+    "centerName": "מרכז הנומוס",
+    "requires": {
+     "resources": {
+      "food": 800,
+      "wood": 600,
+      "gold": 250
+     },
+     "population": 25,
+     "buildings": {
+      "house": 4,
+      "barracks": 1
+     },
+     "time": 60
+    },
+    "unlocks": {
+     "buildings": [
+      "market",
+      "temple",
+      "siege_workshop",
+      "academy"
+     ],
+     "units": [
+      "eg_khopesh",
+      "eg_chariot_archer",
+      "eg_catapult",
+      "eg_priest"
+     ],
+     "techs": [
+      "armor_cavalry",
+      "husbandry",
+      "siege_engineering",
+      "caravan",
+      "engineering",
+      "logistics",
+      "devotion",
+      "education"
+     ]
+    }
+   },
+   {
+    "index": 4,
+    "name": "עיר גדולה",
+    "emoji": "🔺",
+    "desc": "עיר מלכותית עם פירמידה ומצודות.",
+    "controlRadius": 40,
+    "popBonus": 20,
+    "centerEmoji": "🌆",
+    "centerName": "מרכז העיר",
+    "requires": {
+     "resources": {
+      "food": 1400,
+      "wood": 1000,
+      "stone": 400,
+      "gold": 600
+     },
+     "population": 45,
+     "buildings": {
+      "market": 1,
+      "temple": 1
+     },
+     "time": 90
+    },
+    "unlocks": {
+     "buildings": [
+      "fortress",
+      "eg_pyramid"
+     ],
+     "units": [],
+     "techs": [
+      "industry"
+     ]
+    }
+   }
+  ]
+ },
+ "vikings": {
+  "id": "vikings",
+  "name": "ויקינגים",
+  "flag": "⚓",
+  "color": "#06b6d4",
+  "desc": "בהשראת עמי הצפון: מתחילים בחוות חוף קטנה וגדלים לכפר לונגהאוס, לעיירת נמל ולעיר סוחרים גדולה. חקלאים־לוחמים, ספנים, אומני עץ ומתכת, וסוחרים שמגיעים רחוק.",
+  "bonuses": [
+   "בונדי — חיל רגלים זול ומהיר במיוחד לאימון",
+   "סיירים מצטיינים: +2 טווח ראייה לכל היחידות",
+   "נמלי סחר שמכניסים זהב ואוכל בהתמדה"
+  ],
+  "worker": "vk_worker",
+  "townCenter": "vk_tc",
+  "uniques": [
+   "לונגהאוס",
+   "אולם המשתה",
+   "נמל סחר",
+   "בית מלאכה"
+  ],
+  "modifiers": {
+   "losBonus": 2,
+   "unitCostMult": 0.95,
+   "gatherMult": {
+    "wood": 1.1
+   }
+  },
+  "startingBuildings": [
+   "vk_tc"
+  ],
+  "startingUnits": [
+   "vk_worker",
+   "vk_worker",
+   "vk_worker",
+   "vk_worker",
+   "vk_raider"
+  ],
+  "stages": [
+   {
+    "index": 1,
+    "name": "חוות חוף",
+    "emoji": "🛖",
+    "desc": "בית ארוך אחד, שדה שעורה וסירת דיג.",
+    "controlRadius": 15,
+    "centerEmoji": "🛖",
+    "centerName": "מרכז החווה",
+    "unlocks": {
+     "buildings": [
+      "house",
+      "farm",
+      "mill",
+      "lumber_camp",
+      "mining_camp",
+      "vk_longhouse"
+     ],
+     "units": [
+      "vk_worker",
+      "vk_bondi"
+     ]
+    }
+   },
+   {
+    "index": 2,
+    "name": "כפר לונגהאוס",
+    "emoji": "🏡",
+    "desc": "כמה בתים ארוכים, בית מלאכה וגדר עץ.",
+    "controlRadius": 22,
+    "popBonus": 5,
+    "centerEmoji": "🏡",
+    "centerName": "מרכז הכפר",
+    "requires": {
+     "resources": {
+      "food": 400,
+      "wood": 250
+     },
+     "population": 12,
+     "buildings": {
+      "house": 2
+     },
+     "time": 40
+    },
+    "unlocks": {
+     "buildings": [
+      "barracks",
+      "archery_range",
+      "stable",
+      "tower",
+      "wall",
+      "vk_forge",
+      "vk_mead_hall"
+     ],
+     "units": [
+      "vk_spear",
+      "vk_archer",
+      "vk_raider"
+     ],
+     "techs": [
+      "weapons_infantry",
+      "armor_infantry",
+      "fletching",
+      "armor_ranged",
+      "masonry",
+      "town_watch",
+      "coinage"
+     ]
+    }
+   },
+   {
+    "index": 3,
+    "name": "עיירת נמל",
+    "emoji": "⚓",
+    "desc": "מזחים, שוק ואולם משתה גדול. כאן בוחרים את דרך הצפון.",
+    "controlRadius": 30,
+    "popBonus": 10,
+    "centerEmoji": "⚓",
+    "centerName": "מרכז העיירה",
+    "requires": {
+     "resources": {
+      "food": 800,
+      "wood": 600,
+      "gold": 250
+     },
+     "population": 25,
+     "buildings": {
+      "house": 4,
+      "barracks": 1
+     },
+     "time": 60
+    },
+    "unlocks": {
+     "buildings": [
+      "market",
+      "temple",
+      "siege_workshop",
+      "academy",
+      "vk_harbor"
+     ],
+     "units": [
+      "vk_huscarl",
+      "vk_siege",
+      "vk_skald"
+     ],
+     "techs": [
+      "armor_cavalry",
+      "husbandry",
+      "siege_engineering",
+      "caravan",
+      "engineering",
+      "logistics",
+      "devotion",
+      "education"
+     ]
+    }
+   },
+   {
+    "index": 4,
+    "name": "עיר סוחרים",
+    "emoji": "🌆",
+    "desc": "עיר נמל גדולה שסוחרת עם חצי העולם.",
+    "controlRadius": 40,
+    "popBonus": 20,
+    "centerEmoji": "🌆",
+    "centerName": "מרכז העיר",
+    "requires": {
+     "resources": {
+      "food": 1400,
+      "wood": 1000,
+      "stone": 400,
+      "gold": 600
+     },
+     "population": 45,
+     "buildings": {
+      "vk_harbor": 1,
+      "market": 1
+     },
+     "time": 90
+    },
+    "unlocks": {
+     "buildings": [
+      "fortress"
+     ],
+     "units": [
+      "vk_jarl"
+     ],
+     "techs": [
+      "industry"
+     ]
+    }
+   }
+  ],
+  "branches": [
+   {
+    "id": "north",
+    "name": "דרך הצפון",
+    "desc": "נבחרת עם המעבר לעיירת הנמל.",
+    "atStage": 3,
+    "options": [
+     {
+      "id": "traders",
+      "name": "דרך הסוחרים",
+      "emoji": "⚓",
+      "desc": "מסעות מסחר ארוכים — כסף, כלים ורעיונות זורמים לעיר.",
+      "highlights": [
+       "+35% זהב ממסחר",
+       "+15% איסוף משאבים",
+       "נמלי סחר נוספים"
+      ],
+      "modifiers": {
+       "tradeGoldMult": 1.35,
+       "gatherMult": {
+        "all": 1.15
+       },
+       "researchSpeedMult": 1.15
+      },
+      "unlocks": {
+       "buildings": [
+        "vk_harbor",
+        "market",
+        "academy"
+       ],
+       "techs": [
+        "caravan",
+        "coinage",
+        "education"
+       ]
+      }
+     },
+     {
+      "id": "warriors",
+      "name": "דרך הלוחמים",
+      "emoji": "🛡️",
+      "desc": "חומת מגנים והוסקרלים — כוח רגלי שקשה לשבור.",
+      "highlights": [
+       "+15% תקיפה לחי\"ר",
+       "+1 שריון לכל היחידות",
+       "+10% חיים ליחידות"
+      ],
+      "modifiers": {
+       "unitAttackMult": {
+        "infantry": 1.15
+       },
+       "unitArmorBonus": 1,
+       "unitHpMult": 1.1
+      },
+      "unlocks": {
+       "units": [
+        "vk_huscarl"
+       ],
+       "buildings": [
+        "vk_forge"
+       ],
+       "techs": [
+        "weapons_infantry",
+        "armor_infantry",
+        "devotion"
+       ]
+      }
+     }
+    ]
+   }
+  ]
+ }
+}
