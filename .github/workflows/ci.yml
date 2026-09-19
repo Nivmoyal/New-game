@@ -1,10 +1,17 @@
 name: CI
 
 on:
+  # דחיפה ל-main בלבד: על ענף עם PR פתוח האירוע pull_request כבר מריץ
+  # את התהליך, ושני הטריגרים יחד היו יוצרים שתי ריצות כפולות לכל דחיפה.
   push:
-    branches: ['**']
+    branches: [main]
   pull_request:
   workflow_dispatch:
+
+# דחיפה חדשה לאותו ענף מבטלת ריצה קודמת שעדיין רצה
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
