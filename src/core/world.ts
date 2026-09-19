@@ -1245,6 +1245,18 @@ export class World {
     };
   }
 
+  /** משחזר ישויות מתוך שמירה (בשימוש save.ts). */
+  rebuildFromEntities(entities: Entity[]): void {
+    for (const raw of entities) {
+      const e: Entity = JSON.parse(JSON.stringify(raw)) as Entity;
+      this.entities.set(e.id, e);
+      this.addToGrid(e);
+      if (e.kind === 'building') this.setFootprint(e, true);
+    }
+    this.updateFog(true);
+    this.recomputePopulation();
+  }
+
   drainEvents(): GameEvent[] {
     const out = this.events;
     this.events = [];
