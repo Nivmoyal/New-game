@@ -2,8 +2,10 @@ import unitsJson from './units.json';
 import buildingsJson from './buildings.json';
 import techsJson from './techs.json';
 import nationsJson from './nations.json';
+import mapsJson from './maps.json';
 import type {
   BranchDef,
+  MapPresetDef,
   BuildingDef,
   GameData,
   Modifiers,
@@ -20,6 +22,7 @@ export const DATA: GameData = {
   buildings: buildingsJson as unknown as Record<string, BuildingDef>,
   techs: techsJson as unknown as Record<string, TechDef>,
   nations: nationsJson as unknown as Record<string, NationDef>,
+  maps: mapsJson as unknown as Record<string, MapPresetDef>,
 };
 
 export function getUnit(id: string): UnitDef {
@@ -49,6 +52,18 @@ export function getNation(id: string): NationDef {
 export function allNations(): NationDef[] {
   return Object.values(DATA.nations);
 }
+
+export function getMapPreset(id: string): MapPresetDef {
+  const def = DATA.maps[id];
+  if (!def) throw new Error(`תבנית מפה לא מוכרת: ${id}`);
+  return def;
+}
+
+export function allMapPresets(): MapPresetDef[] {
+  return Object.values(DATA.maps);
+}
+
+export const DEFAULT_MAP_PRESET = 'greenland';
 
 export function stageOf(nation: NationDef, index: number): StageDef {
   const stage = nation.stages.find((s) => s.index === index);

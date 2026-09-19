@@ -200,9 +200,33 @@ export type NationDef = {
   uniques?: string[];
 };
 
+/** תבנית מפה שהשחקן בוחר במסך הפתיחה. */
+export type MapPresetDef = {
+  id: string;
+  name: string;
+  emoji: string;
+  desc: string;
+  highlights: string[];
+  /** כמות מים (0 = יבש לגמרי, 1 = הרבה אגמים) */
+  water: number;
+  /** צפיפות יערות (0..1) */
+  woodDensity: number;
+  /** כמה גבעות והרים (0..1) */
+  hills: number;
+  /** הסטת לחות: שלילי = מדברי יותר, חיובי = ירוק יותר */
+  moisture: number;
+  /** מכפיל כמות מכרות */
+  mines: number;
+  /** מכפיל כמות שיחי פירות */
+  berries: number;
+  /** תכונה גאוגרפית מיוחדת */
+  feature: 'none' | 'river' | 'lakes' | 'coast' | 'oasis';
+};
+
 export type GameData = {
   units: Record<string, UnitDef>;
   buildings: Record<string, BuildingDef>;
   techs: Record<string, TechDef>;
   nations: Record<string, NationDef>;
+  maps: Record<string, MapPresetDef>;
 };

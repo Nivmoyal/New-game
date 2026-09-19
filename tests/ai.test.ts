@@ -169,3 +169,80 @@ describe('התנהגות ה-AI', () => {
     expect(c.debugInfo().difficulty).toBe('hard');
   });
 });
+
+describe('אומת הויקינגים', () => {
+  it('משחקת משחק שלם מול ישראל ומתקדמת בשלבים', () => {
+    const world = new World({
+      seed: 2211,
+      map: { width: 96, height: 96, preset: 'fjords' },
+      players: [
+        { id: 0, name: 'ויקינגים', nationId: 'vikings', isAI: true, difficulty: 'hard', team: 0 },
+        {
+          id: 1,
+          name: 'ישראל',
+          nationId: 'israel',
+          isAI: true,
+          difficulty: 'normal',
+          branchChoices: { settlement: 'moshav' },
+          team: 1,
+        },
+      ],
+    });
+    const ai = new AiManager(world);
+    for (let i = 0; i < 600 * 12; i++) {
+      world.update(1 / 12);
+      ai.update(world, 1 / 12);
+      if (world.gameOver) break;
+    }
+    const vikings = world.player(0)!;
+    expect(vikings.stats.gathered.wood).toBeGreaterThan(0);
+    expect(vikings.stats.buildingsBuilt).toBeGreaterThan(0);
+    expect(vikings.stage).toBeGreaterThanOrEqual(2);
+  });
+
+  it('הלונגהאוס הוא מבנה מגורים גדול, לא מבנה אימון', () => {
+    const world = new World({
+      seed: 4,
+      map: { width: 64, height: 64 },
+      players: [{ id: 0, name: 'ויקינגים', nationId: 'vikings' }],
+    });
+    const p = world.player(0)!;
+    expect(p.canTrain('vk_bondi')).toBe(true);
+    expect(p.canBuild('vk_longhouse')).toBe(true);
+    expect(p.canTrain('vk_huscarl')).toBe(false); // נפתח רק בשלב 3
+
+    p.resources = { food: 9999, wood: 9999, stone: 9999, gold: 9999 };
+    const tc = world.townCenterOf(0)!;
+    const spot = world.findPlacementNear('vk_longhouse', { x: tc.pos.x + 6, y: tc.pos.y }, 14)!;
+    const capBefore = p.popCap;
+    const hall = world.placeNear('vk_longhouse', 0, spot, 6)!;
+    expect(hall).toBeTruthy();
+    // הלונגהאוס מוסיף מקום לאנשים (popProvided) מיד עם השלמתו
+    expect(p.popCap).toBe(capBefore + getBuilding('vk_longhouse').popProvided!);
+    // הלונגהאוס נותן מקום לאנשים אבל אינו מאמן — אימון נעשה בקסרקטין
+    expect(getBuilding('vk_longhouse').trains).toBeUndefined();
+    expect(world.enqueueTrain(hall.id, 'vk_bondi')).toBe(false);
+    expect(getBuilding('barracks').trains).toContain('vk_bondi');
+  });
+
+  it('הלונגהאוס מסווג כבית ולא כמבנה צבא (כדי שה-AI לא יציף יחידות)', () => {
+    expect(roleOf(getBuilding('vk_longhouse'))).toBe('house');
+    expect(roleOf(getBuilding('vk_mead_hall'))).toBe('house');
+    expect(roleOf(getBuilding('vk_harbor'))).toBe('economy');
+  });
+
+  it('בחירת "דרך הסוחרים" פותחת נמל ומחזקת מסחר', () => {
+    const world = new World({
+      seed: 5,
+      map: { width: 64, height: 64 },
+      players: [{ id: 0, name: 'ויקינגים', nationId: 'vikings' }],
+    });
+    const p = world.player(0)!;
+    p.stage = 3;
+    p.applyStageUnlocks(3);
+    const before = p.modifiers.tradeGoldMult ?? 1;
+    p.chooseBranch('north', 'traders');
+    expect(p.canBuild('vk_harbor')).toBe(true);
+    expect(p.modifiers.tradeGoldMult).toBeGreaterThan(before);
+  });
+});

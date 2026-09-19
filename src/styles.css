@@ -384,6 +384,25 @@ p { margin: 0 0 10px; line-height: 1.55; }
 .opt-name { font-weight: 700; font-size: 16px; }
 .opt-desc { font-size: 13px; color: var(--muted); }
 
+.map-picker { margin-top: 18px; }
+.map-picker h3 { font-size: 15px; color: var(--accent); margin-bottom: 8px; }
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+.map-card {
+  text-align: start;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.map-card.active { border-color: var(--accent-2); background: rgba(34, 197, 94, 0.12); }
+.map-emoji { font-size: 26px; }
+.map-name { font-weight: 700; font-size: 15px; }
+.map-desc { font-size: 12px; color: var(--muted); }
+
 .opponent-bar {
   display: flex;
   flex-wrap: wrap;
@@ -470,6 +489,8 @@ p { margin: 0 0 10px; line-height: 1.55; }
   .stage-req { font-size: 11px; }
   .action { min-width: 52px; }
   .opponent-bar .primary { width: 100%; margin-inline-start: 0; }
+  .map-grid { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .map-card .bullets { display: none; }
   .portrait { width: 42px; height: 42px; font-size: 26px; }
   .sel-desc { display: none; }
 }

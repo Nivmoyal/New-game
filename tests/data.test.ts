@@ -92,9 +92,9 @@ describe('שלמות הנתונים', () => {
     }
   });
 
-  it('חמש אומות לפחות, כל אחת עם תיאור, יתרונות ודגל', () => {
+  it('שש אומות לפחות, כל אחת עם תיאור, יתרונות ודגל', () => {
     const nations = allNations();
-    expect(nations.length).toBeGreaterThanOrEqual(5);
+    expect(nations.length).toBeGreaterThanOrEqual(6);
     for (const n of nations) {
       expect(n.desc.length).toBeGreaterThan(20);
       expect(n.bonuses.length).toBeGreaterThanOrEqual(3);
@@ -164,6 +164,52 @@ describe('שלמות הנתונים', () => {
     expect(israel.stages[1].name).toBe('יישוב גדול');
     expect(israel.stages[2].name).toBe('עיירה');
     expect(israel.stages[3].name).toBe('עיר');
+  });
+
+  it('לאומת הויקינגים מסלול צמיחה מלא, יחידות ומבנים ייחודיים', () => {
+    const vikings = getNation('vikings');
+    expect(vikings.stages.map((s) => s.index)).toEqual([1, 2, 3, 4]);
+    expect(vikings.stages.map((s) => s.name)).toEqual([
+      'חוות חוף',
+      'כפר לונגהאוס',
+      'עיירת נמל',
+      'עיר סוחרים',
+    ]);
+    expect(getUnit(vikings.worker).canBuild).toBe(true);
+    expect(getBuilding(vikings.townCenter).isTownCenter).toBe(true);
+    for (const id of ['vk_longhouse', 'vk_mead_hall', 'vk_harbor', 'vk_forge']) {
+      expect(() => getBuilding(id)).not.toThrow();
+    }
+    // בונדי זול ומהיר לאימון יותר מחי"ר רגיל של אומה אחרת
+    const bondi = getUnit('vk_bondi');
+    const ashigaru = getUnit('jp_ashigaru');
+    expect(bondi.trainTime).toBeLessThanOrEqual(ashigaru.trainTime);
+    // בונוס הסיור של האומה
+    expect(vikings.modifiers?.losBonus).toBe(2);
+  });
+
+  it('לויקינגים יש בחירת ענף בשלב 3 עם שתי דרכים', () => {
+    const vikings = getNation('vikings');
+    const branches = branchesAtStage(vikings, 3);
+    expect(branches).toHaveLength(1);
+    expect(branches[0].id).toBe('north');
+    expect(branches[0].options.map((o) => o.id).sort()).toEqual(['traders', 'warriors']);
+    for (const opt of branches[0].options) {
+      expect(opt.highlights.length).toBeGreaterThanOrEqual(3);
+      expect(opt.desc.length).toBeGreaterThan(10);
+    }
+  });
+
+  it('כל מבנה שמאמן יחידות מאמן יחידות של יותר מאומה אחת או ייחודי לאומה', () => {
+    // מוודא שהיחידות של הויקינגים באמת ניתנות לאימון איפשהו
+    const trainable = new Set<string>();
+    for (const b of Object.values(DATA.buildings)) {
+      for (const u of b.trains ?? []) trainable.add(u);
+    }
+    for (const id of Object.keys(DATA.units)) {
+      if (!id.startsWith('vk_')) continue;
+      expect(trainable.has(id), `${id} לא ניתן לאימון באף מבנה`).toBe(true);
+    }
   });
 
   it('שגיאה ברורה על מזהה לא מוכר', () => {

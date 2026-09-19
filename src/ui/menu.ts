@@ -1,4 +1,4 @@
-import { allNations, branchesAtStage, getNation } from '../data';
+import { allMapPresets, allNations, branchesAtStage, DEFAULT_MAP_PRESET, getNation } from '../data';
 import type { BranchOptionDef, NationDef } from '../data/schema';
 import { DIFFICULTY_ORDER, AI_PROFILES } from '../ai/difficulty';
 import type { Difficulty } from '../core/types';
@@ -13,6 +13,8 @@ export type GameSetup = {
   enemyNationId: string;
   difficulty: Difficulty;
   mapSize: { width: number; height: number };
+  /** מזהה תבנית המפה (src/data/maps.json) */
+  mapPreset: string;
   seed: number;
   /** מספר יריבים */
   enemies: number;
@@ -44,6 +46,7 @@ export class StartMenu {
       enemyNationId: nations[1]?.id ?? 'japan',
       difficulty: 'normal',
       mapSize: { width: MAP_SIZES[1].width, height: MAP_SIZES[1].height },
+      mapPreset: DEFAULT_MAP_PRESET,
       seed: randomSeed(),
       enemies: 1,
     };
@@ -90,6 +93,7 @@ export class StartMenu {
 
   private startQuick(): void {
     const nations = allNations();
+    const presets = allMapPresets();
     const nation = nations[Math.floor(Math.random() * nations.length)];
     const branchChoices: Record<string, string> = {};
     for (const branch of branchesAtStage(nation, 1)) {
@@ -103,6 +107,7 @@ export class StartMenu {
       enemyNationId: enemies[Math.floor(Math.random() * enemies.length)].id,
       difficulty: 'normal',
       mapSize: { width: 112, height: 112 },
+      mapPreset: presets[Math.floor(Math.random() * presets.length)].id,
       seed: randomSeed(),
       enemies: 1,
     });
@@ -223,6 +228,7 @@ export class StartMenu {
             el('button', { className: 'ghost', text: T.back, onClick: () => this.showMain() }),
           ] }),
           el('div', { className: 'nation-layout', children: [list, detail] }),
+          this.mapPicker(),
           this.opponentBar(),
         ],
       }),
@@ -252,6 +258,56 @@ export class StartMenu {
           children: opt.highlights.map((h) => el('li', { text: h })),
         }),
       ],
+    });
+  }
+
+  /** בורר סוג המפה — כרטיסייה לכל תבנית. */
+  private mapPicker(): HTMLElement {
+    const presets = allMapPresets();
+    const grid = el('div', { className: 'map-grid' });
+    const render = () => {
+      clear(grid);
+      for (const preset of presets) {
+        const active = this.setup.mapPreset === preset.id;
+        grid.appendChild(
+          el('button', {
+            className: `map-card${active ? ' active' : ''}`,
+            title: preset.desc,
+            onClick: () => {
+              this.setup.mapPreset = preset.id;
+              render();
+            },
+            children: [
+              el('span', { className: 'map-emoji', text: preset.emoji }),
+              el('span', { className: 'map-name', text: preset.name }),
+              el('span', { className: 'map-desc', text: preset.desc }),
+              el('ul', {
+                className: 'bullets small',
+                children: preset.highlights.map((h) => el('li', { text: h })),
+              }),
+            ],
+          }),
+        );
+      }
+      grid.appendChild(
+        el('button', {
+          className: 'map-card ghost',
+          onClick: () => {
+            this.setup.mapPreset = presets[Math.floor(Math.random() * presets.length)].id;
+            render();
+          },
+          children: [
+            el('span', { className: 'map-emoji', text: '🎲' }),
+            el('span', { className: 'map-name', text: T.randomMap }),
+            el('span', { className: 'map-desc', text: 'בוחר עבורך תבנית מפה באקראי' }),
+          ],
+        }),
+      );
+    };
+    render();
+    return el('div', {
+      className: 'map-picker',
+      children: [el('h3', { text: T.chooseMap }), grid],
     });
   }
 

@@ -92,7 +92,12 @@ export function serializeWorld(world: World, localPlayerId: number, label = ''):
     savedAt: Date.now(),
     label,
     seed: world.map.seed,
-    mapOptions: { width: world.map.width, height: world.map.height, seed: world.map.seed },
+    mapOptions: {
+      width: world.map.width,
+      height: world.map.height,
+      seed: world.map.seed,
+      preset: world.map.presetId,
+    },
     time: world.time,
     terrain: bytesToBase64(world.map.terrain),
     resources,

@@ -275,8 +275,10 @@ export class AiController {
         0,
       );
 
-    // 1. בתים — כשהאוכלוסייה מתקרבת לתקרה
-    if (player.popCap - player.popUsed <= 3 && player.popCap < 195) {
+    // 1. בתים — כשהמרווח לתקרת האוכלוסייה מתקרב לאפס.
+    //    המרווח גדל עם השלב, כי בשלבים גבוהים מאמנים מהר יותר.
+    const popBuffer = 4 + player.stage * 2;
+    if (player.popCap - player.popUsed <= popBuffer && player.popCap < 195) {
       const house = availableByRole(unlocked, 'house')[0];
       if (house) return house;
     }
@@ -332,13 +334,21 @@ export class AiController {
       if (def) return def;
     }
 
-    // 8. עוד בתים לצמיחה
+    // 8. בית נוסף רק אם באמת מתקרבים לתקרה.
+    //    בלי התנאי הזה ה-AI היה בונה בתים עד תקרה של 120 גם עם 17 תושבים,
+    //    ושורף את כל העץ שדרוש למעבר בין שלבי הצמיחה.
     const house = availableByRole(unlocked, 'house')[0];
-    if (house && player.popCap < 120) return house;
+    if (house && player.popCap - player.popUsed <= popBuffer * 2) return house;
     return null;
   }
 
-  /** מוצא מקום פנוי למבנה סביב הבסיס. */
+  /**
+   * מוצא מקום פנוי למבנה סביב הבסיס.
+   *
+   * שני סבבים: קודם מחפשים מקום עם מרווח מעבר סביב המבנה, ואם לא נמצא —
+   * מסתפקים בהצמדה. בלי הסבב השני ה-AI נתקע במפות צפופות כמו "יער עד",
+   * צובר משאבים ולא בונה כלום. הרדיוס גדל ככל שהניסיונות נכשלים.
+   */
   private findBuildSpot(
     world: World,
     def: BuildingDef,
@@ -346,19 +356,21 @@ export class AiController {
     role: string,
   ): Vec2 | null {
     const minR = role === 'defense' ? 6 : 3;
-    const maxR = role === 'dropOff' ? 20 : 16;
-    for (let attempt = 0; attempt < 90; attempt++) {
-      const angle = world.rng.float(0, Math.PI * 2);
-      const r = world.rng.float(minR, maxR);
-      const tile = {
-        x: Math.round(anchor.x + Math.cos(angle) * r - def.size / 2),
-        y: Math.round(anchor.y + Math.sin(angle) * r - def.size / 2),
-      };
-      if (world.canPlaceBuilding(def, tile)) {
-        // שומרים מרווח מעבר סביב המבנה
-        if (world.canPlaceBuilding({ ...def, size: def.size + 1 }, { x: tile.x, y: tile.y })) {
-          return tile;
-        }
+    const baseMax = role === 'dropOff' ? 20 : 16;
+
+    for (const requireGap of [true, false]) {
+      for (let attempt = 0; attempt < 140; attempt++) {
+        // מרחיבים את טווח החיפוש ככל שמתקשים למצוא מקום
+        const maxR = baseMax + Math.floor(attempt / 35) * 6;
+        const angle = world.rng.float(0, Math.PI * 2);
+        const r = world.rng.float(minR, maxR);
+        const tile = {
+          x: Math.round(anchor.x + Math.cos(angle) * r - def.size / 2),
+          y: Math.round(anchor.y + Math.sin(angle) * r - def.size / 2),
+        };
+        if (!world.canPlaceBuilding(def, tile)) continue;
+        if (requireGap && !world.canPlaceBuilding({ ...def, size: def.size + 1 }, tile)) continue;
+        return tile;
       }
     }
     return null;

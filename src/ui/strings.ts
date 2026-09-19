@@ -16,6 +16,8 @@ export const T = {
   chooseEnemy: 'אויב',
   chooseDifficulty: 'רמת קושי',
   chooseMapSize: 'גודל מפה',
+  chooseMap: 'סוג מפה',
+  randomMap: 'מפה אקראית',
   bonuses: 'יתרונות',
   uniqueBuildings: 'מבנים ייחודיים',
   growthPath: 'מסלול הצמיחה',

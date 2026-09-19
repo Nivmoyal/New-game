@@ -21,8 +21,11 @@ export function roleOf(def: BuildingDef): BuildingRole {
   if (def.isTownCenter) return 'townCenter';
   if (def.id === 'wall') return 'wall';
   if (def.attack && def.range) return 'defense';
+  // מבנה שנותן הרבה מקום לאנשים נחשב "בית" גם אם הוא מאמן יחידות:
+  // אחרת ה-AI היה בונה ממנו הרבה כ"מבנה צבא" ומרוקן את מלאי האוכל.
+  if ((def.popProvided ?? 0) >= 5) return 'house';
   if (def.trains && def.trains.length > 0) return 'military';
-  if (def.popProvided && !def.trains) return 'house';
+  if (def.popProvided) return 'house';
   if (def.dropOff) return 'dropOff';
   if (def.trickle && (def.trickle.food ?? 0) > 0 && !def.researches) return 'farm';
   if (def.trickle) return 'economy';

@@ -150,7 +150,11 @@ export class Game {
 
     this.world = new World({
       seed: setup.seed,
-      map: { width: setup.mapSize.width, height: setup.mapSize.height },
+      map: {
+        width: setup.mapSize.width,
+        height: setup.mapSize.height,
+        preset: setup.mapPreset,
+      },
       players,
     });
     this.afterWorldReady(0);
