@@ -50,6 +50,8 @@ export class GameMap {
   startPositions: Vec2[] = [];
   /** מזהה תבנית המפה שממנה נוצרה. */
   presetId = 'greenland';
+  /** אריחים שהשתנו מאז הקריאה האחרונה — לשכבת הציור המטמונה. */
+  private dirtyTiles: Vec2[] = [];
 
   private static readonly TERRAIN_ORDER: Terrain[] = [
     'grass',
@@ -86,6 +88,19 @@ export class GameMap {
   setTerrain(x: number, y: number, t: Terrain): void {
     if (!this.inBounds(x, y)) return;
     this.terrain[this.idx(x, y)] = GameMap.TERRAIN_ORDER.indexOf(t);
+    this.markDirty(x, y);
+  }
+
+  private markDirty(x: number, y: number): void {
+    if (this.dirtyTiles.length < 4096) this.dirtyTiles.push({ x, y });
+  }
+
+  /** מחזיר את האריחים שהשתנו ומנקה את הרשימה. */
+  consumeDirtyTiles(): Vec2[] {
+    if (this.dirtyTiles.length === 0) return [];
+    const out = this.dirtyTiles;
+    this.dirtyTiles = [];
+    return out;
   }
 
   /** אריח חסום למעבר (קרקע או משאב עומד כמו עץ/מכרה). */
@@ -114,6 +129,7 @@ export class GameMap {
     res.amount -= taken;
     if (res.amount <= 0) {
       this.resources.delete(key);
+      this.markDirty(x, y);
       if (res.visual === 'tree') this.setTerrain(x, y, 'grass');
     }
     return taken;
@@ -122,6 +138,7 @@ export class GameMap {
   addResource(x: number, y: number, res: TileResource): void {
     if (!this.inBounds(x, y)) return;
     this.resources.set(this.idx(x, y), res);
+    this.markDirty(x, y);
   }
 
   /** מוצא אריח פנוי קרוב לנקודה (BFS בספירלה). */

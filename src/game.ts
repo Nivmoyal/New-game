@@ -114,7 +114,7 @@ export class Game {
   private resize(): void {
     const dpr = Math.min(2, window.devicePixelRatio || 1);
     this.renderer.resize(window.innerWidth, window.innerHeight, dpr);
-    this.renderer.camera.minZoom = Math.min(10, this.defaultZoom() * 0.5);
+    this.renderer.camera.minZoom = Math.max(14, this.defaultZoom() * 0.45);
   }
 
   /**
@@ -122,8 +122,9 @@ export class Game {
    * בערך 20 אריחים לרוחב, ובמסך רחב יותר אריחים גדולים יותר.
    */
   private defaultZoom(): number {
+    // ברוחב מסך נתון רוצים לראות בערך 20 אריחים לרוחב המעוין
     const small = Math.min(window.innerWidth, window.innerHeight);
-    return Math.max(14, Math.min(34, Math.round(small / 20)));
+    return Math.max(30, Math.min(76, Math.round(small / 11)));
   }
 
   startGame(setup: GameSetup): void {
@@ -450,8 +451,8 @@ export class Game {
     if (!this.placingBuilding || !this.world) return;
     const def = getBuilding(this.placingBuilding);
     this.placementTile = {
-      x: Math.round(pos.x - def.size / 2),
-      y: Math.round(pos.y - def.size / 2),
+      x: Math.floor(pos.x - def.size / 2 + 0.5),
+      y: Math.floor(pos.y - def.size / 2 + 0.5),
     };
     this.placementValid = this.world.canPlaceBuilding(def, this.placementTile);
   }

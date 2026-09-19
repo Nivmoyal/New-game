@@ -1,14 +1,24 @@
 import type { Vec2 } from '../core/types';
 
-/** מצלמה: המרה בין קואורדינטות עולם (אריחים) לקואורדינטות מסך (פיקסלים). */
+/**
+ * מצלמה איזומטרית (מבט 2:1).
+ *
+ * אריח בעולם הוא ריבוע 1x1. על המסך הוא מעוין ברוחב `zoom` פיקסלים
+ * ובגובה `zoom/2`. ציר Z (גובה) נמדד ביחידות אריח ומורם כלפי מעלה.
+ *
+ *        (wx, wy)                     צפון
+ *            ◆              מערב  ◆       ◆  מזרח
+ *                                     ◆
+ *                                   דרום
+ */
 export class Camera {
   /** מרכז המצלמה בקואורדינטות אריחים */
   x = 0;
   y = 0;
-  /** פיקסלים לאריח */
-  zoom = 32;
-  minZoom = 8;
-  maxZoom = 72;
+  /** רוחב אריח בפיקסלים */
+  zoom = 64;
+  minZoom = 22;
+  maxZoom = 150;
   viewWidth = 800;
   viewHeight = 600;
   mapWidth = 128;
@@ -26,32 +36,70 @@ export class Camera {
     this.clamp();
   }
 
-  worldToScreen(wx: number, wy: number): Vec2 {
+  /** עולם → מסך. z הוא גובה ביחידות אריח. */
+  worldToScreen(wx: number, wy: number, z = 0): Vec2 {
+    const dx = wx - this.x;
+    const dy = wy - this.y;
     return {
-      x: (wx - this.x) * this.zoom + this.viewWidth / 2,
-      y: (wy - this.y) * this.zoom + this.viewHeight / 2,
+      x: (dx - dy) * (this.zoom / 2) + this.viewWidth / 2,
+      y: (dx + dy) * (this.zoom / 4) - z * (this.zoom / 2) + this.viewHeight / 2,
     };
   }
 
+  /** מסך → עולם (על מישור הקרקע, z=0). */
   screenToWorld(sx: number, sy: number): Vec2 {
+    const a = (sx - this.viewWidth / 2) / (this.zoom / 2); // dx - dy
+    const b = (sy - this.viewHeight / 2) / (this.zoom / 4); // dx + dy
     return {
-      x: (sx - this.viewWidth / 2) / this.zoom + this.x,
-      y: (sy - this.viewHeight / 2) / this.zoom + this.y,
+      x: this.x + (a + b) / 2,
+      y: this.y + (b - a) / 2,
     };
   }
 
-  /** גבולות התצוגה בקואורדינטות עולם, עם שוליים. */
-  visibleBounds(margin = 1) {
-    const halfW = this.viewWidth / 2 / this.zoom;
-    const halfH = this.viewHeight / 2 / this.zoom;
+  /**
+   * גבולות האריחים הנראים. בהיטל איזומטרי אזור המסך הוא מעוין בעולם,
+   * ולכן לוקחים את תיבת התוחמת של ארבע פינות המסך.
+   */
+  visibleBounds(margin = 2) {
+    const corners = [
+      this.screenToWorld(0, 0),
+      this.screenToWorld(this.viewWidth, 0),
+      this.screenToWorld(0, this.viewHeight),
+      this.screenToWorld(this.viewWidth, this.viewHeight),
+    ];
+    const xs = corners.map((c) => c.x);
+    const ys = corners.map((c) => c.y);
     return {
-      minX: Math.max(0, Math.floor(this.x - halfW - margin)),
-      maxX: Math.min(this.mapWidth - 1, Math.ceil(this.x + halfW + margin)),
-      minY: Math.max(0, Math.floor(this.y - halfH - margin)),
-      maxY: Math.min(this.mapHeight - 1, Math.ceil(this.y + halfH + margin)),
+      minX: Math.max(0, Math.floor(Math.min(...xs)) - margin),
+      maxX: Math.min(this.mapWidth - 1, Math.ceil(Math.max(...xs)) + margin),
+      minY: Math.max(0, Math.floor(Math.min(...ys)) - margin),
+      maxY: Math.min(this.mapHeight - 1, Math.ceil(Math.max(...ys)) + margin),
     };
   }
 
+  /**
+   * מחיל על ההקשר את ההקרנה האיזומטרית כטרנספורמציה לינארית,
+   * כך שאפשר לצייר תמונה שממופה ל"מרחב אריחים" ולקבל אותה מוטה
+   * נכון — הרבה יותר זול מציור מעוין לכל אריח.
+   */
+  applyIsoTransform(ctx: CanvasRenderingContext2D, dpr = 1): void {
+    const a = this.zoom / 2;
+    const b = this.zoom / 4;
+    const e = (this.y - this.x) * (this.zoom / 2) + this.viewWidth / 2;
+    const f = -(this.x + this.y) * (this.zoom / 4) + this.viewHeight / 2;
+    ctx.setTransform(a * dpr, b * dpr, -a * dpr, b * dpr, e * dpr, f * dpr);
+  }
+
+  /** הזזה לפי פיקסלים על המסך (גרירה) — מתורגמת לצירי העולם. */
+  panScreen(dxPx: number, dyPx: number): void {
+    const a = dxPx / (this.zoom / 2);
+    const b = dyPx / (this.zoom / 4);
+    this.x += (a + b) / 2;
+    this.y += (b - a) / 2;
+    this.clamp();
+  }
+
+  /** הזזה בצירי העולם (מקשי חצים). */
   pan(dx: number, dy: number): void {
     this.x += dx;
     this.y += dy;
@@ -64,10 +112,12 @@ export class Camera {
     this.clamp();
   }
 
-  /** זום סביב נקודת מסך (גלגלת עכבר / צביטה במגע). */
   zoomAt(sx: number, sy: number, factor: number): void {
     const before = this.screenToWorld(sx, sy);
-    this.zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoom * factor));
+    // מקבעים את הזום לצעדים שלמים: כך שכבות הקרקע המטמונות
+    // מצוירות ביחס 1:1 בלי דגימה מחדש — ההבדל בביצועים גדול.
+    const raw = Math.max(this.minZoom, Math.min(this.maxZoom, this.zoom * factor));
+    this.zoom = Math.max(this.minZoom, Math.round(raw / 2) * 2);
     const after = this.screenToWorld(sx, sy);
     this.x += before.x - after.x;
     this.y += before.y - after.y;
@@ -75,11 +125,7 @@ export class Camera {
   }
 
   private clamp(): void {
-    const halfW = this.viewWidth / 2 / this.zoom;
-    const halfH = this.viewHeight / 2 / this.zoom;
-    if (halfW * 2 >= this.mapWidth) this.x = this.mapWidth / 2;
-    else this.x = Math.max(halfW, Math.min(this.mapWidth - halfW, this.x));
-    if (halfH * 2 >= this.mapHeight) this.y = this.mapHeight / 2;
-    else this.y = Math.max(halfH, Math.min(this.mapHeight - halfH, this.y));
+    this.x = Math.max(-4, Math.min(this.mapWidth + 4, this.x));
+    this.y = Math.max(-4, Math.min(this.mapHeight + 4, this.y));
   }
 }
