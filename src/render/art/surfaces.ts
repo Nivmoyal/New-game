@@ -352,23 +352,25 @@ function build(kind: Surface, color: string): HTMLCanvasElement {
       break;
     }
     case 'cloth': {
-      // אריג: חוטים מצטלבים
-      ctx.strokeStyle = tone(c, -0.13);
-      ctx.lineWidth = 1;
-      for (let i = 0; i < px; i += 3) {
+      // אריג רך: אלכסוני טוויל בניגוד נמוך.
+      // גרסה קודמת ציירה רשת חוטים בצפיפות 3px — בקנה המידה של דמות
+      // במשחק זה יצא "נייר משבצות" שגם מרצד בתנועה.
+      ctx.strokeStyle = tone(c, -0.06);
+      ctx.lineWidth = 1.4;
+      for (let i = -px; i < px * 2; i += 9) {
         ctx.beginPath();
-        ctx.moveTo(i + 0.5, 0);
-        ctx.lineTo(i + 0.5, px);
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i + px, px);
         ctx.stroke();
       }
-      ctx.strokeStyle = tone(c, 0.1);
-      for (let i = 0; i < px; i += 3) {
+      ctx.strokeStyle = tone(c, 0.05);
+      for (let i = -px; i < px * 2; i += 9) {
         ctx.beginPath();
-        ctx.moveTo(0, i + 1.5);
-        ctx.lineTo(px, i + 1.5);
+        ctx.moveTo(i + 4, 0);
+        ctx.lineTo(i + 4 + px, px);
         ctx.stroke();
       }
-      grain(ctx, px, seed, 10);
+      grain(ctx, px, seed, 7);
       break;
     }
     case 'leather': {

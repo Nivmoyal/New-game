@@ -228,6 +228,33 @@ export function circleTextured(
   ctx.restore();
 }
 
+/**
+ * מוסיף טקסטורה לצורה שכבר נבנתה ב-path הנוכחי ומולאה.
+ * נועד לצורות עגולות שמצוירות ב-arc (קסדות, מגנים, כיפות), שבהן אין
+ * מרובע מישורי להיתלות בו.
+ */
+export function texturizePath(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  fill: string,
+  kind: Surface,
+  anchorX: number,
+  anchorY: number,
+): void {
+  if (!texturesOn(cam)) return;
+  const pat = surfacePattern(ctx, kind, fill);
+  if (!pat) return;
+  ctx.save();
+  ctx.clip();
+  const s = cam.zoom / TEXELS_PER_TILE / 2;
+  ctx.translate(anchorX, anchorY);
+  ctx.scale(s, s);
+  ctx.fillStyle = pat;
+  ctx.globalAlpha = 0.85;
+  ctx.fillRect(-500, -500, 1000, 1000);
+  ctx.restore();
+}
+
 export type BoxColors = { top: string; left: string; right: string; surface?: Surface };
 
 /**
