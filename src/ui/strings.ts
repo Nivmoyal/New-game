@@ -21,6 +21,7 @@ export const T = {
   bonuses: 'יתרונות',
   uniqueBuildings: 'מבנים ייחודיים',
   growthPath: 'מסלול הצמיחה',
+  version: 'גרסה',
   randomNation: 'אומה אקראית',
 
   // משאבים

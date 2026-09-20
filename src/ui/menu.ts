@@ -7,6 +7,11 @@ import { MenuScene } from '../render/scene';
 import { clear, el, show } from './dom';
 import { MAP_SIZES, T } from './strings';
 
+/** חותמת הבנייה; בפיתוח אין הזרקה ולכן מוצג "פיתוח". */
+function buildStamp(): string {
+  return typeof __BUILD_STAMP__ === 'string' ? __BUILD_STAMP__ : 'פיתוח';
+}
+
 export type GameSetup = {
   nationId: string;
   /** בחירות שנעשות לפני המשחק (למשל קיבוץ/מושב אצל ישראל) */
@@ -104,6 +109,8 @@ export class StartMenu {
               el('button', { className: 'big ghost', text: T.helpTitle, onClick: () => this.showHelp() }),
             ],
           }),
+          // חותמת הבנייה — כך רואים בבירור אם הדפדפן מציג גרסה מהמטמון
+          el('div', { className: 'build-stamp', text: `${T.version} ${buildStamp()}` }),
         ],
       }),
     );
