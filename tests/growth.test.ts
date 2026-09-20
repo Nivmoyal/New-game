@@ -140,8 +140,12 @@ describe('ביצוע המעבר', () => {
 describe('פתיחת תוכן עם השלבים', () => {
   it('מבנים ויחידות נפתחים בדיוק בשלב שלהם', () => {
     const p = player();
+    // צבא בסיסי זמין כבר משלב 1 — קסרקטין ומגדל שמירה.
+    // מה שנפתח בהמשך הוא היחידות המתקדמות, לא היכולת להתגונן.
     expect(p.canBuild('house')).toBe(true);
-    expect(p.canBuild('barracks')).toBe(false);
+    expect(p.canBuild('barracks')).toBe(true);
+    expect(p.canTrain('il_guard')).toBe(true);
+    expect(p.canBuild('archery_range')).toBe(false);
     expect(p.canTrain('il_infantry')).toBe(false);
 
     p.resources = { ...RICH };
@@ -149,7 +153,7 @@ describe('פתיחת תוכן עם השלבים', () => {
     for (let i = 0; i < 1000; i++) tickStageTransition(p, 0.1);
 
     expect(p.stage).toBe(2);
-    expect(p.canBuild('barracks')).toBe(true);
+    expect(p.canBuild('archery_range')).toBe(true);
     expect(p.canTrain('il_infantry')).toBe(true);
   });
 
@@ -161,16 +165,20 @@ describe('פתיחת תוכן עם השלבים', () => {
     expect(p.canResearch('industry')).toBe(true);
   });
 
-  it('הקיבוץ פותח מבני תעשייה שהמושב לא פותח', () => {
-    const kibbutz = player('israel', { settlement: 'kibbutz' });
-    const moshav = player('israel', { settlement: 'moshav' });
-    expect(kibbutz.canBuild('il_factory')).toBe(true);
-    expect(moshav.canBuild('il_factory')).toBe(false);
-    expect(moshav.canBuild('il_exchange')).toBe(true);
+  it('כל מבני הקצה של ישראל נפתחים בשלב העיר', () => {
+    // אין יותר פיצול קיבוץ/מושב — היישוב הישראלי אחד, וכל המסלול פתוח לו
+    const p = player('israel');
+    expect(p.canBuild('il_factory')).toBe(false);
+    const city = stageOf(getNation('israel'), 4);
+    expect(city.unlocks?.buildings).toEqual(
+      expect.arrayContaining(['il_factory', 'il_exchange', 'il_hightech']),
+    );
+    // וחדר האוכל, שקודם נפתח רק דרך בחירת הקיבוץ, נפתח עכשיו בשלב 2
+    expect(stageOf(getNation('israel'), 2).unlocks?.buildings).toContain('il_dining_hall');
   });
 
   it('בחירת זרוע צבאית פותחת את היחידות שלה', () => {
-    const p = player('israel', { settlement: 'kibbutz' });
+    const p = player('israel');
     p.stage = 3;
     expect(p.canTrain('il_sniper')).toBe(false);
     p.chooseBranch('army', 'special');
@@ -179,24 +187,19 @@ describe('פתיחת תוכן עם השלבים', () => {
     expect(p.canTrain('il_tank')).toBe(false);
   });
 
-  it('בחירה לפני המשחק משפיעה מיד', () => {
-    const p = player('israel', { settlement: 'moshav' });
-    expect(p.modifiers.houseCapBonus).toBe(3);
-    expect(p.modifiers.buildingCostMult).toBeCloseTo(0.85, 5);
+  it('בונוסי האומה חלים כבר בתחילת המשחק', () => {
+    const p = player('israel');
+    expect(p.modifiers.houseCapBonus).toBe(1);
+    expect(p.modifiers.researchSpeedMult).toBeCloseTo(1.15, 5);
   });
 });
 
 describe('מראה מרכז היישוב', () => {
-  it('משתנה לפי שלב ולפי בחירת הקיבוץ/מושב', () => {
-    const kibbutz = player('israel', { settlement: 'kibbutz' });
-    expect(kibbutz.centerAppearance().name).toBe('קיבוץ');
-    kibbutz.stage = 4;
-    expect(kibbutz.centerAppearance().name).toBe('עיר תעשייה והייטק');
-
-    const moshav = player('israel', { settlement: 'moshav' });
-    expect(moshav.centerAppearance().name).toBe('מושב');
-    moshav.stage = 4;
-    expect(moshav.centerAppearance().name).toBe('עיר מסחר וחקלאות');
+  it('משתנה לפי שלב הצמיחה', () => {
+    const p = player('israel');
+    expect(p.centerAppearance().name).toBe(stageOf(getNation('israel'), 1).centerName);
+    p.stage = 4;
+    expect(p.centerAppearance().name).toBe(stageOf(getNation('israel'), 4).centerName);
   });
 
   it('אומה בלי בחירות משתמשת בשמות השלב', () => {

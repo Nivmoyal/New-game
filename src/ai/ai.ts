@@ -351,9 +351,15 @@ export class AiController {
       if (player.canBuild(missing.id)) return getBuilding(missing.id);
     }
 
-    // 4. מבני צבא
+    // 4. מבני צבא.
+    //    בשלב 1 רק אחרי שהמשאבים למעבר לשלב 2 כבר בקופה: קסרקטין מוקדם
+    //    שורף בדיוק את העץ שדרוש לצמיחה, וה-AI היה נתקע ביישוב קטן.
     const militaryWant = this.profile.militaryBuildings[stageIdx];
-    if (totalOfRole('military') < militaryWant) {
+    const nextCost = stageOf(player.nation, player.stage + 1)?.requires?.resources ?? {};
+    const bankedForGrowth = RESOURCE_KINDS.every(
+      (k) => player.resources[k] >= (nextCost[k] ?? 0),
+    );
+    if ((player.stage > 1 || bankedForGrowth) && totalOfRole('military') < militaryWant) {
       const options = availableByRole(unlocked, 'military').filter(
         (d) => !d.isTownCenter && (d.limit == null || has(d.id) < d.limit),
       );

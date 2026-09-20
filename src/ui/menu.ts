@@ -196,23 +196,8 @@ export class StartMenu {
         );
       }
 
-      detail.appendChild(el('h3', { text: T.growthPath }));
-      detail.appendChild(
-        el('div', {
-          className: 'stage-path',
-          children: nation.stages.map((s, i) =>
-            el('div', {
-              className: 'stage-step',
-              children: [
-                el('span', { className: 'step-num', text: String(i + 1) }),
-                el('span', { className: 'step-emoji', text: s.emoji }),
-                el('span', { className: 'step-name', text: s.name }),
-                el('span', { className: 'step-desc', text: s.desc }),
-              ],
-            }),
-          ),
-        }),
-      );
+      // מסלול הצמיחה לא מפורט כאן: הוא מתגלה תוך כדי משחק, וההסבר
+      // המלא רק הציף את מסך הפתיחה.
 
       // בחירות לפני המשחק (נקודת פתיחה — קיבוץ/מושב)
       for (const branch of branchesAtStage(nation, 1)) {

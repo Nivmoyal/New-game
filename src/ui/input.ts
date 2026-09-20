@@ -7,12 +7,17 @@ import type { Camera } from '../render/camera';
 export type InputCallbacks = {
   onSelect: (ids: EntityId[], additive: boolean) => void;
   onCommandAt: (world: Vec2, target: Entity | undefined, queue: boolean) => void;
+  /**
+   * קליק שמאלי על משאב או על אתר בנייה שלי.
+   * מחזיר true אם הפקודה נקלטה — ואז הקליק לא משנה את הבחירה.
+   */
+  onQuickCommand: (world: Vec2, target: Entity | undefined) => boolean;
   onPlaceBuilding: (tile: Vec2, queue: boolean) => void;
   onCancelPlacement: () => void;
   onMinimapNav: (world: Vec2) => void;
   onMinimapCommand: (world: Vec2) => void;
   onHotkey: (key: string, ctrl: boolean, shift: boolean) => void;
-  onHover: (world: Vec2, target: Entity | undefined) => void;
+  onHover: (world: Vec2, target: Entity | undefined, resourceTile: Vec2 | null) => void;
 };
 
 /**
@@ -98,8 +103,8 @@ export class InputController {
         this.cb.onCancelPlacement();
         return;
       }
-      const world = this.camera.screenToWorld(p.x, p.y);
-      this.cb.onCommandAt(world, this.entityAt(world), ev.shiftKey);
+      const c = this.commandPoint(p);
+      this.cb.onCommandAt(c.pos, c.target, ev.shiftKey);
     } else if (ev.button === 1) {
       this.panning = true;
       this.lastPan = p;
@@ -123,7 +128,8 @@ export class InputController {
       }
     }
     const world = this.camera.screenToWorld(p.x, p.y);
-    this.cb.onHover(world, this.entityAt(world));
+    const target = this.entityAt(world);
+    this.cb.onHover(world, target, target ? null : this.resourceTileAt(world));
   };
 
   private onMouseUp = (ev: MouseEvent): void => {
@@ -138,8 +144,15 @@ export class InputController {
       if (hit && ev.altKey) {
         // Alt+קליק — בחירת כל היחידות מאותו סוג במסך
         this.cb.onSelect(this.sameTypeOnScreen(hit), ev.shiftKey);
+      } else if (!ev.shiftKey) {
+        // קליק שמאלי על עץ/מכרה/שיח עם פועלים מסומנים = התחלת עבודה,
+        // בלי לאבד את הבחירה. אם אין מה לעשות שם — בחירה רגילה.
+        const c = this.commandPoint(p);
+        if (!this.cb.onQuickCommand(c.pos, c.target)) {
+          this.cb.onSelect(hit ? [hit.id] : [], false);
+        }
       } else {
-        this.cb.onSelect(hit ? [hit.id] : [], ev.shiftKey);
+        this.cb.onSelect(hit ? [hit.id] : [], true);
       }
     }
     this.dragStart = null;
@@ -205,8 +218,12 @@ export class InputController {
       this.longPressTimer = window.setTimeout(() => {
         if (this.touchMoved) return;
         const world = this.camera.screenToWorld(only.x, only.y);
-        if (this.placing) this.cb.onPlaceBuilding(this.placementTile(world), false);
-        else this.cb.onCommandAt(world, this.entityAt(world), false);
+        if (this.placing) {
+          this.cb.onPlaceBuilding(this.placementTile(world), false);
+        } else {
+          const c = this.commandPoint(only);
+          this.cb.onCommandAt(c.pos, c.target, false);
+        }
         this.dragStart = null;
         if (navigator.vibrate) navigator.vibrate(18);
       }, 420);
@@ -284,12 +301,56 @@ export class InputController {
     }
   }
 
+  /**
+   * ממיר נקודת מסך לפקודה: קודם ישות, ואחריה משאב שמצויר גבוה.
+   * בלי זה, קליק על צמרת של עץ היה נקרא כאריח הריק שמאחוריו —
+   * והפועל פשוט היה הולך לשם.
+   */
+  private commandPoint(p: { x: number; y: number }): { pos: Vec2; target: Entity | undefined } {
+    const ground = this.camera.screenToWorld(p.x, p.y);
+    const target = this.entityAt(ground);
+    if (target) return { pos: ground, target };
+    const res = this.resourceTileAt(ground);
+    if (res) return { pos: { x: res.x + 0.5, y: res.y + 0.5 }, target: undefined };
+    return { pos: ground, target: undefined };
+  }
+
   // ===== שאילתות =====
 
   /** פינת ההצבה של מבנה כך שהעכבר במרכזו. */
   placementTile(world: Vec2, defId?: string): Vec2 {
     const size = defId ? getBuilding(defId).size : 1;
     return { x: Math.round(world.x - size / 2), y: Math.round(world.y - size / 2) };
+  }
+
+  /**
+   * גבהים שנדגמים כשמחפשים מה נלחץ.
+   * עץ, מכרה או מבנה מצוירים **מעל** האריח שלהם, ולכן נקודת המסך
+   * שנראית "על העץ" מתורגמת, בגובה אפס, לאריח שמאחוריו. גוף בגובה z
+   * מצויר בדיוק במקום שבו הקרקע של (x-z, y-z) הייתה מצוירת — ולכן
+   * מהיסט המסך אפשר לשחזר את האריח האמיתי.
+   */
+  private static readonly PICK_HEIGHTS = [1.5, 1.2, 0.9, 0.6, 0.35, 0.15, 0];
+
+  /** מסיט נקודת עולם בגובה z אל האריח שבאמת מצויר שם. */
+  private tileAtHeight(ground: Vec2, z: number): Vec2 {
+    return { x: Math.floor(ground.x + z), y: Math.floor(ground.y + z) };
+  }
+
+  /**
+   * האריח שהשחקן באמת הצביע עליו — כולל גופים גבוהים.
+   * מחזיר את האריח הגבוה ביותר שיש בו משאב; אם אין, את הקרקע עצמה.
+   */
+  resourceTileAt(ground: Vec2): Vec2 | null {
+    const world = this.getWorld();
+    if (!world) return null;
+    for (const z of InputController.PICK_HEIGHTS) {
+      const t = this.tileAtHeight(ground, z);
+      if (!world.map.inBounds(t.x, t.y)) continue;
+      const res = world.map.resourceAt(t.x, t.y);
+      if (res && res.amount > 0) return t;
+    }
+    return null;
   }
 
   /**
@@ -319,20 +380,21 @@ export class InputController {
     }
     if (best) return best;
 
-    for (const e of world.entities.values()) {
-      if (!e.alive || e.kind !== 'building') continue;
-      const o = buildingOrigin(e);
-      const size = e.building?.size ?? 1;
-      if (
-        worldPos.x >= o.x &&
-        worldPos.x < o.x + size &&
-        worldPos.y >= o.y &&
-        worldPos.y < o.y + size
-      ) {
-        const score = size;
-        if (score < bestScore) {
-          bestScore = score;
-          best = e;
+    // מבנים: נבדקים בכמה גבהים, כך שגם קליק על הגג תופס את המבנה
+    // ולא את האריח שמאחוריו.
+    for (const z of InputController.PICK_HEIGHTS) {
+      const probe = { x: worldPos.x + z, y: worldPos.y + z };
+      for (const e of world.entities.values()) {
+        if (!e.alive || e.kind !== 'building') continue;
+        const o = buildingOrigin(e);
+        const size = e.building?.size ?? 1;
+        if (
+          probe.x >= o.x &&
+          probe.x < o.x + size &&
+          probe.y >= o.y &&
+          probe.y < o.y + size
+        ) {
+          return e;
         }
       }
     }

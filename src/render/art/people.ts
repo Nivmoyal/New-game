@@ -1,5 +1,5 @@
 import type { Camera } from '../camera';
-import { drawCastShadowEllipse, poly, shade } from '../iso';
+import { circleTextured, drawCastShadowEllipse, poly, polyTextured, shade, texturizePath } from '../iso';
 
 /**
  * דמויות אנוש מצוירות פרוצדורלית, עם אנימציית הליכה ועבודה.
@@ -146,7 +146,9 @@ export function drawPerson(
     px(half * 0.82, legTop + u * 0.02),
     px(-half * 0.82, legTop + u * 0.02),
   ];
-  poly(ctx, bodyPts, style.cloth, shade(style.cloth, -0.5));
+  // האריג נקרא בזום גבוה; בזום נמוך `polyTextured` מוותר על הטקסטורה
+  polyTextured(ctx, cam, bodyPts, style.cloth, 'cloth');
+  poly(ctx, bodyPts, 'rgba(0,0,0,0)', shade(style.cloth, -0.5));
   // הצללה בצד המרוחק מהשמש
   poly(ctx, [bodyPts[0], px(-half * 0.2, shoulderY), px(-half * 0.18, legTop), bodyPts[3]],
     shade(style.cloth, -0.16));
@@ -175,6 +177,27 @@ export function drawPerson(
   ctx.lineTo(frontHand.x, frontHand.y);
   ctx.stroke();
 
+  // מגן עגול ביד האחורית — מה שמבדיל חי"ר מיחידת טווח.
+  // הוא הוגדר ב-PersonStyle מזמן אבל מעולם לא צויר.
+  if (style.shield) {
+    const rim = shade(style.accent, -0.3);
+    const face = shade(style.cloth, -0.05);
+    ctx.fillStyle = rim;
+    ctx.beginPath();
+    ctx.ellipse(backHand.x, backHand.y - u * 0.06, u * 0.26, u * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = face;
+    ctx.beginPath();
+    ctx.ellipse(backHand.x, backHand.y - u * 0.06, u * 0.2, u * 0.24, 0, 0, Math.PI * 2);
+    ctx.fill();
+    texturizePath(ctx, cam, face, 'timber', backHand.x, backHand.y);
+    // בליטת הברזל במרכז
+    ctx.fillStyle = '#b9bec4';
+    ctx.beginPath();
+    ctx.arc(backHand.x, backHand.y - u * 0.06, u * 0.07, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
   if (style.tool && style.tool !== 'none') {
     drawTool(ctx, style.tool, frontHand, shoulder, u, dirSign, style);
   }
@@ -188,10 +211,9 @@ export function drawPerson(
 
   // גב הראש: כשמפנים גב רואים רק שיער/קסדה
   if (!facingUs) {
-    ctx.fillStyle = style.hat === 'helmet' ? '#8a939c' : '#3a2a1c';
-    ctx.beginPath();
-    ctx.arc(head.x, head.y, headR * 0.98, 0, Math.PI * 2);
-    ctx.fill();
+    circleTextured(ctx, cam, head.x, head.y, headR * 0.98, headR * 0.98,
+      style.hat === 'helmet' ? '#8a939c' : '#3a2a1c',
+      style.hat === 'helmet' ? 'metal' : 'cloth');
   } else {
     // פנים: עיניים נראות רק כשפונים אלינו, ומתעמעמות בפרופיל
     const eyeAlpha = Math.max(0, fwd) * (0.45 + 0.55 * (1 - side));
@@ -209,7 +231,7 @@ export function drawPerson(
     }
   }
 
-  drawHat(ctx, style, head, headR, dirSign);
+  drawHat(ctx, cam, style, head, headR, dirSign);
 
   // ===== משא על הגב =====
   if (action === 'carry') {
@@ -311,38 +333,52 @@ function drawTool(
 
 function drawHat(
   ctx: CanvasRenderingContext2D,
+  cam: Camera,
   style: PersonStyle,
   head: { x: number; y: number },
   r: number,
   dir: number,
 ): void {
   switch (style.hat) {
-    case 'helmet':
-      ctx.fillStyle = '#9aa3ad';
+    case 'helmet': {
+      // קסדת מתכת: מרקם פח דק מבדיל אותה מכובע בד
+      const steel = '#9aa3ad';
+      ctx.fillStyle = steel;
       ctx.beginPath();
       ctx.arc(head.x, head.y - r * 0.15, r * 1.08, Math.PI, 0);
       ctx.fill();
+      texturizePath(ctx, cam, steel, 'metal', head.x, head.y);
+      ctx.fillStyle = steel;
       ctx.fillRect(head.x - r * 1.1, head.y - r * 0.2, r * 2.2, r * 0.3);
       break;
-    case 'cap':
-      ctx.fillStyle = shade(style.accent, -0.15);
+    }
+    case 'cap': {
+      const cloth = shade(style.accent, -0.15);
+      ctx.fillStyle = cloth;
       ctx.beginPath();
       ctx.arc(head.x, head.y - r * 0.1, r * 1.02, Math.PI, 0);
       ctx.fill();
+      texturizePath(ctx, cam, cloth, 'cloth', head.x, head.y);
+      ctx.fillStyle = cloth;
       ctx.fillRect(head.x + (dir > 0 ? 0 : -r * 1.4), head.y - r * 0.2, r * 1.4, r * 0.22);
       break;
+    }
     case 'beret':
       ctx.fillStyle = '#6b7f4a';
       ctx.beginPath();
       ctx.ellipse(head.x - dir * r * 0.15, head.y - r * 0.5, r * 1.15, r * 0.5, 0, 0, Math.PI * 2);
       ctx.fill();
+      texturizePath(ctx, cam, '#6b7f4a', 'cloth', head.x, head.y);
       break;
-    case 'hood':
-      ctx.fillStyle = shade(style.cloth, -0.25);
+    case 'hood': {
+      const hood = shade(style.cloth, -0.25);
+      ctx.fillStyle = hood;
       ctx.beginPath();
       ctx.arc(head.x, head.y, r * 1.2, Math.PI * 0.9, Math.PI * 2.1);
       ctx.fill();
+      texturizePath(ctx, cam, hood, 'cloth', head.x, head.y);
       break;
+    }
     case 'crown':
       ctx.fillStyle = '#e8c24a';
       ctx.beginPath();

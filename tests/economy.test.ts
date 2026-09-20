@@ -58,24 +58,24 @@ describe('משאבים בסיסיים', () => {
 });
 
 describe('קצב איסוף', () => {
-  it('משתמש בקצב הבסיסי של היחידה', () => {
-    const p = makePlayer();
-    const base = getUnit('il_worker').gatherRate!.wood!;
-    expect(gatherRateFor('il_worker', 'wood', p)).toBeCloseTo(base, 5);
+  it('משתמש בקצב הבסיסי של היחידה כשאין בונוס אומה', () => {
+    const p = makePlayer('japan');
+    const base = getUnit('jp_worker').gatherRate!.wood!;
+    expect(gatherRateFor('jp_worker', 'wood', p)).toBeCloseTo(base, 5);
   });
 
-  it('קיבוץ נותן +15% לכל המשאבים', () => {
-    const kibbutz = makePlayer('israel', { settlement: 'kibbutz' });
+  it('היישוב הישראלי נותן +10% לכל המשאבים', () => {
+    const p = makePlayer('israel');
     const base = getUnit('il_worker').gatherRate!.wood!;
-    expect(gatherRateFor('il_worker', 'wood', kibbutz)).toBeCloseTo(base * 1.15, 5);
+    expect(gatherRateFor('il_worker', 'wood', p)).toBeCloseTo(base * 1.1, 5);
   });
 
-  it('מושב נותן בונוס לאוכל בלבד', () => {
-    const moshav = makePlayer('israel', { settlement: 'moshav' });
-    const food = getUnit('il_worker').gatherRate!.food!;
-    const wood = getUnit('il_worker').gatherRate!.wood!;
-    expect(gatherRateFor('il_worker', 'food', moshav)).toBeCloseTo(food * 1.2, 5);
-    expect(gatherRateFor('il_worker', 'wood', moshav)).toBeCloseTo(wood, 5);
+  it('בונוס אומה על משאב אחד לא משפיע על השאר', () => {
+    const egypt = makePlayer('egypt');
+    const food = getUnit('eg_worker').gatherRate!.food!;
+    const wood = getUnit('eg_worker').gatherRate!.wood!;
+    expect(gatherRateFor('eg_worker', 'food', egypt)).toBeCloseTo(food * 1.15, 5);
+    expect(gatherRateFor('eg_worker', 'wood', egypt)).toBeCloseTo(wood, 5);
   });
 
   it('טכנולוגיה מכפילה את קצב האיסוף', () => {
@@ -108,15 +108,15 @@ describe('אוכלוסייה', () => {
   });
 
   it('בתים מגדילים את התקרה', () => {
-    const p = makePlayer();
+    const p = makePlayer('japan');
     const houses = [0, 1].map(() => createBuilding(getBuilding('house'), 0, { x: 1, y: 1 }, true));
     expect(computePopCap(p, houses)).toBe(BASE_POP_CAP + 10);
   });
 
-  it('במושב כל בית מכיל יותר אנשים', () => {
-    const moshav = makePlayer('israel', { settlement: 'moshav' });
+  it('בית ביישוב ישראלי מכיל אדם אחד יותר', () => {
+    const p = makePlayer('israel');
     const houses = [createBuilding(getBuilding('house'), 0, { x: 1, y: 1 }, true)];
-    expect(computePopCap(moshav, houses)).toBe(BASE_POP_CAP + 5 + 3);
+    expect(computePopCap(p, houses)).toBe(BASE_POP_CAP + 5 + 1);
   });
 
   it('מבנה שלא הושלם אינו סופר', () => {
@@ -172,8 +172,8 @@ describe('זרימת משאבים פסיבית', () => {
   });
 
   it('בונוס מסחר מגדיל זהב מהשוק', () => {
-    const plain = makePlayer('israel', { settlement: 'kibbutz' });
-    const trader = makePlayer('israel', { settlement: 'moshav' });
+    const plain = makePlayer('japan');
+    const trader = makePlayer('arabs');
     const marketA = createBuilding(getBuilding('market'), 0, { x: 1, y: 1 }, true);
     const marketB = createBuilding(getBuilding('market'), 0, { x: 1, y: 1 }, true);
     for (let i = 0; i < 200; i++) {

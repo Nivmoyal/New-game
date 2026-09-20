@@ -1,5 +1,6 @@
 import type { Vec2 } from '../core/types';
 import type { Camera } from './camera';
+import { surfacePattern, TEXELS_PER_TILE, type Surface } from './art/surfaces';
 
 /**
  * פרימיטיבים לציור איזומטרי (מבט 2:1, כמו במשחקי אסטרטגיה קלאסיים).
@@ -66,14 +67,109 @@ export function mix(a: string, b: string, t: number): string {
 }
 
 /** עוצמות התאורה לשלוש הפאות הנראות (אור מלמעלה-ימין). */
-export const FACE_LIGHT = { top: 0.16, right: -0.04, left: -0.3 };
+/**
+ * תאורה כיוונית אחידה לכל הגופים: פאה עליונה מוארת, ימנית ניטרלית,
+ * שמאלית מוצללת. ניגוד גבוה יותר בין הפאות = הגוף נקרא כנפח ולא
+ * כמדבקה שטוחה.
+ */
+export const FACE_LIGHT = { top: 0.2, right: -0.07, left: -0.4 };
 
-/** צלליות הפאות של גוף בצבע בסיס אחד. */
-export function faceColors(base: string) {
+/**
+ * האם לצייר טקסטורות משטח בזום הנוכחי.
+ * בזום נמוך אריח טקסטורה קטן מפיקסל, ואז הוא רק רעש שעולה זמן.
+ */
+export function texturesOn(cam: Camera): boolean {
+  return cam.zoom >= 26;
+}
+
+type V3 = { x: number; y: number; z: number };
+
+/**
+ * ממלא מרובע מישורי בטקסטורה **מיושרת למשטח**.
+ *
+ * הטריק: במקום לחשב פוליגון במרחב המסך ולמלא אותו בדפוס (שהיה נמרח
+ * בכיוון שרירותי), מגדירים טרנספורם שממפה את מרחב הטקסטורה ישירות אל
+ * המשטח — שני וקטורי הקצה שלו במרחב העולם. כך נדבכי אבן רצים לאורך
+ * הקיר, שורות רעפים לאורך המדרון, וקרשים לאורך הדופן.
+ *
+ * `u` ו-`v` הם וקטורי הקצה המלאים של המרובע (לא מנורמלים).
+ */
+export function fillQuad(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  origin: V3,
+  u: V3,
+  v: V3,
+  kind: Surface,
+  color: string,
+): void {
+  const ulen = Math.hypot(u.x, u.y, u.z);
+  const vlen = Math.hypot(v.x, v.y, v.z);
+  if (ulen < 1e-5 || vlen < 1e-5) return;
+  const pat = surfacePattern(ctx, kind, color);
+  if (!pat) return;
+
+  const z = cam.zoom;
+  // נגזרות ההקרנה: +x, +y ו-+z במרחב המסך
+  const sx = (d: V3): number => ((d.x - d.y) * z) / 2;
+  const sy = (d: V3): number => ((d.x + d.y) * z) / 4 - (d.z * z) / 2;
+  const uh = { x: u.x / ulen, y: u.y / ulen, z: u.z / ulen };
+  const vh = { x: v.x / vlen, y: v.y / vlen, z: v.z / vlen };
+  const s = 1 / TEXELS_PER_TILE;
+  const o = cam.worldToScreen(origin.x, origin.y, origin.z);
+
+  ctx.save();
+  ctx.transform(sx(uh) * s, sy(uh) * s, sx(vh) * s, sy(vh) * s, o.x, o.y);
+  ctx.fillStyle = pat;
+  // חצי טקסל חפיפה מכסה תפרי עיגול בין פאות שכנות
+  ctx.fillRect(-0.5, -0.5, ulen / s + 1, vlen / s + 1);
+  ctx.restore();
+}
+
+/**
+ * מילוי פוליגון עם טקסטורה במרחב המסך.
+ * משמש לגופים שאינם מרובעים מישוריים — דמויות, נוף, סלעים. בקנה מידה
+ * הזה הכיוון המדויק של החומר לא נקרא, ומספיק שיש לו מרקם.
+ */
+export function polyTextured(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  pts: Vec2[],
+  fill: string,
+  kind: Surface,
+): void {
+  poly(ctx, pts, fill);
+  if (!texturesOn(cam)) return;
+  const pat = surfacePattern(ctx, kind, fill);
+  if (!pat) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath();
+  ctx.clip();
+  const s = cam.zoom / TEXELS_PER_TILE / 2;
+  ctx.translate(pts[0].x, pts[0].y);
+  ctx.scale(s, s);
+  ctx.fillStyle = pat;
+  ctx.globalAlpha = 0.85;
+  ctx.fillRect(-400, -400, 800, 800);
+  ctx.restore();
+}
+
+/** כמה כהה תחתית הקיר (הצללה סביבתית) וכמה גבוה הפס. */
+const WALL_AO = { strength: 0.16, height: 0.42 };
+
+/**
+ * צלליות הפאות של גוף בצבע בסיס אחד.
+ * `surface` אופציונלי — אם נתון, הפאות יקבלו גם טקסטורת חומר.
+ */
+export function faceColors(base: string, surface?: Surface): BoxColors {
   return {
     top: shade(base, FACE_LIGHT.top),
     right: shade(base, FACE_LIGHT.right),
     left: shade(base, FACE_LIGHT.left),
+    surface,
   };
 }
 
@@ -101,7 +197,65 @@ export function tileDiamond(cam: Camera, wx: number, wy: number, w = 1, d = 1, z
   ];
 }
 
-export type BoxColors = { top: string; left: string; right: string };
+/** כמו polyTextured, לצורות עגולות (צמרות עצים, שיחים). */
+export function circleTextured(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  cx: number,
+  cy: number,
+  rx: number,
+  ry: number,
+  fill: string,
+  kind: Surface,
+): void {
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (!texturesOn(cam)) return;
+  const pat = surfacePattern(ctx, kind, fill);
+  if (!pat) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.clip();
+  const s = cam.zoom / TEXELS_PER_TILE / 2;
+  ctx.translate(cx, cy);
+  ctx.scale(s, s);
+  ctx.fillStyle = pat;
+  ctx.globalAlpha = 0.85;
+  ctx.fillRect(-400, -400, 800, 800);
+  ctx.restore();
+}
+
+/**
+ * מוסיף טקסטורה לצורה שכבר נבנתה ב-path הנוכחי ומולאה.
+ * נועד לצורות עגולות שמצוירות ב-arc (קסדות, מגנים, כיפות), שבהן אין
+ * מרובע מישורי להיתלות בו.
+ */
+export function texturizePath(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  fill: string,
+  kind: Surface,
+  anchorX: number,
+  anchorY: number,
+): void {
+  if (!texturesOn(cam)) return;
+  const pat = surfacePattern(ctx, kind, fill);
+  if (!pat) return;
+  ctx.save();
+  ctx.clip();
+  const s = cam.zoom / TEXELS_PER_TILE / 2;
+  ctx.translate(anchorX, anchorY);
+  ctx.scale(s, s);
+  ctx.fillStyle = pat;
+  ctx.globalAlpha = 0.85;
+  ctx.fillRect(-500, -500, 1000, 1000);
+  ctx.restore();
+}
+
+export type BoxColors = { top: string; left: string; right: string; surface?: Surface };
 
 /**
  * תיבה תלת-ממדית: בסיס בפינה (wx,wy), מידות w×d אריחים וגובה h.
@@ -120,6 +274,9 @@ export function drawBox(
 ): void {
   const z0 = baseZ;
   const z1 = baseZ + h;
+  const tex = colors.surface && texturesOn(cam) ? colors.surface : null;
+  // גובה הפס הכהה בתחתית — מדמה הצללה סביבתית ליד הקרקע
+  const ao = Math.min(h * WALL_AO.height, 0.34);
   // פאה שמאלית (הצד שפונה אל +y)
   poly(ctx, [
     cam.worldToScreen(wx, wy + d, z0),
@@ -127,6 +284,17 @@ export function drawBox(
     cam.worldToScreen(wx + w, wy + d, z1),
     cam.worldToScreen(wx, wy + d, z1),
   ], colors.left);
+  if (tex) {
+    fillQuad(ctx, cam, { x: wx, y: wy + d, z: z0 }, { x: w, y: 0, z: 0 }, { x: 0, y: 0, z: h }, tex, colors.left);
+  }
+  if (ao > 0.02) {
+    poly(ctx, [
+      cam.worldToScreen(wx, wy + d, z0),
+      cam.worldToScreen(wx + w, wy + d, z0),
+      cam.worldToScreen(wx + w, wy + d, z0 + ao),
+      cam.worldToScreen(wx, wy + d, z0 + ao),
+    ], shade(colors.left, -WALL_AO.strength));
+  }
   // פאה ימנית (הצד שפונה אל +x)
   poly(ctx, [
     cam.worldToScreen(wx + w, wy, z0),
@@ -134,8 +302,22 @@ export function drawBox(
     cam.worldToScreen(wx + w, wy + d, z1),
     cam.worldToScreen(wx + w, wy, z1),
   ], colors.right);
+  if (tex) {
+    fillQuad(ctx, cam, { x: wx + w, y: wy, z: z0 }, { x: 0, y: d, z: 0 }, { x: 0, y: 0, z: h }, tex, colors.right);
+  }
+  if (ao > 0.02) {
+    poly(ctx, [
+      cam.worldToScreen(wx + w, wy, z0),
+      cam.worldToScreen(wx + w, wy + d, z0),
+      cam.worldToScreen(wx + w, wy + d, z0 + ao),
+      cam.worldToScreen(wx + w, wy, z0 + ao),
+    ], shade(colors.right, -WALL_AO.strength));
+  }
   // גג שטוח
   poly(ctx, tileDiamond(cam, wx, wy, w, d, z1), colors.top);
+  if (tex) {
+    fillQuad(ctx, cam, { x: wx, y: wy, z: z1 }, { x: w, y: 0, z: 0 }, { x: 0, y: d, z: 0 }, tex, colors.top);
+  }
 }
 
 /** גג רעפים משופע: הרכס לאורך ציר x (ridgeAlongX) או ציר y. */
@@ -151,6 +333,7 @@ export function drawGableRoof(
   base: string,
   ridgeAlongX = true,
   overhang = 0.12,
+  surface?: Surface,
 ): void {
   const ox = wx - overhang;
   const oy = wy - overhang;
@@ -182,6 +365,12 @@ export function drawGableRoof(
       cam.worldToScreen(ox + ow, oy + od, baseZ),
       cam.worldToScreen(ox + ow, midY, baseZ + peak),
     ], side);
+    if (surface && texturesOn(cam)) {
+      fillQuad(ctx, cam, { x: ox, y: oy + od, z: baseZ },
+        { x: ow, y: 0, z: 0 }, { x: 0, y: -od / 2, z: peak }, surface, dark);
+      fillQuad(ctx, cam, { x: ox, y: oy, z: baseZ },
+        { x: ow, y: 0, z: 0 }, { x: 0, y: od / 2, z: peak }, surface, top);
+    }
     const rows = Math.max(2, Math.round(od * 2.4));
     drawRoofCourses(ctx, cam,
       { x: ox, y: midY, z: baseZ + peak }, { x: ox + ow, y: midY, z: baseZ + peak },
@@ -210,6 +399,12 @@ export function drawGableRoof(
       cam.worldToScreen(ox + ow, oy + od, baseZ),
       cam.worldToScreen(midX, oy + od, baseZ + peak),
     ], side);
+    if (surface && texturesOn(cam)) {
+      fillQuad(ctx, cam, { x: ox + ow, y: oy, z: baseZ },
+        { x: 0, y: od, z: 0 }, { x: -ow / 2, y: 0, z: peak }, surface, dark);
+      fillQuad(ctx, cam, { x: ox, y: oy, z: baseZ },
+        { x: 0, y: od, z: 0 }, { x: ow / 2, y: 0, z: peak }, surface, top);
+    }
     const rows = Math.max(2, Math.round(ow * 2.4));
     drawRoofCourses(ctx, cam,
       { x: midX, y: oy, z: baseZ + peak }, { x: midX, y: oy + od, z: baseZ + peak },
@@ -234,6 +429,7 @@ export function drawHipRoof(
   peak: number,
   base: string,
   overhang = 0.12,
+  surface?: Surface,
 ): void {
   const ox = wx - overhang;
   const oy = wy - overhang;
@@ -250,6 +446,13 @@ export function drawHipRoof(
   poly(ctx, [c[0], c[3], apex], shade(base, -0.34)); // אחורי-שמאלי
   poly(ctx, [c[1], c[2], apex], shade(base, -0.06)); // קדמי-ימני
   poly(ctx, [c[2], c[3], apex], shade(base, -0.24)); // קדמי-שמאלי
+  if (surface && texturesOn(cam)) {
+    // ארבעת המדרונות, כל אחד מהמרזב אל הפסגה
+    fillQuad(ctx, cam, { x: ox, y: oy + od, z: baseZ },
+      { x: ow, y: 0, z: 0 }, { x: 0, y: -od / 2, z: peak }, surface, shade(base, -0.24));
+    fillQuad(ctx, cam, { x: ox + ow, y: oy, z: baseZ },
+      { x: 0, y: od, z: 0 }, { x: -ow / 2, y: 0, z: peak }, surface, shade(base, -0.06));
+  }
   const rows = Math.max(2, Math.round(Math.min(ow, od) * 2));
   const top = { x: ox + ow / 2, y: oy + od / 2, z: baseZ + peak };
   drawRoofCourses(ctx, cam, top, top,
@@ -289,23 +492,37 @@ export function drawColumn(
   height: number,
   base: string,
   baseZ = 0,
+  surface?: Surface,
 ): void {
   const steps = 8;
   const pts: Vec2[] = [];
   const top: Vec2[] = [];
+  const world: Vec2[] = [];
   for (let i = 0; i < steps; i++) {
     const a = (i / steps) * Math.PI * 2;
     const x = wx + Math.cos(a) * radius;
     const y = wy + Math.sin(a) * radius;
+    world.push({ x, y });
     pts.push(cam.worldToScreen(x, y, baseZ));
     top.push(cam.worldToScreen(x, y, baseZ + height));
   }
+  const tex = surface && texturesOn(cam) ? surface : null;
   // דפנות
   for (let i = 0; i < steps; i++) {
     const j = (i + 1) % steps;
     const a = (i / steps) * Math.PI * 2;
     const light = 0.1 - 0.4 * (0.5 + 0.5 * Math.sin(a + Math.PI * 0.75));
-    poly(ctx, [pts[i], pts[j], top[j], top[i]], shade(base, light));
+    const color = shade(base, light);
+    poly(ctx, [pts[i], pts[j], top[j], top[i]], color);
+    if (tex) {
+      fillQuad(
+        ctx, cam,
+        { x: world[i].x, y: world[i].y, z: baseZ },
+        { x: world[j].x - world[i].x, y: world[j].y - world[i].y, z: 0 },
+        { x: 0, y: 0, z: height },
+        tex, color,
+      );
+    }
   }
   poly(ctx, top, shade(base, 0.18));
 }
@@ -366,7 +583,7 @@ export function drawDomeRoof(
       const a = (k / 12) * Math.PI * 2;
       pts.push(cam.worldToScreen(cx + Math.cos(a) * r, cy + Math.sin(a) * r, z));
     }
-    poly(ctx, pts, shade(base, -0.24 + t * 0.4));
+    polyTextured(ctx, cam, pts, shade(base, -0.24 + t * 0.4), 'plaster');
   }
 }
 
@@ -382,10 +599,14 @@ export function drawFlatRoof(
   base: string,
 ): void {
   poly(ctx, tileDiamond(cam, wx, wy, w, d, baseZ), shade(base, 0.1));
+  if (texturesOn(cam)) {
+    fillQuad(ctx, cam, { x: wx, y: wy, z: baseZ }, { x: w, y: 0, z: 0 }, { x: 0, y: d, z: 0 },
+      'plaster', shade(base, 0.1));
+  }
   const t = Math.min(w, d) * 0.08;
   // מעקה בשתי הפאות הנראות
-  drawBox(ctx, cam, wx, wy + d - t, w, t, 0.1, faceColors(shade(base, -0.05)), baseZ);
-  drawBox(ctx, cam, wx + w - t, wy, t, d - t, 0.1, faceColors(shade(base, -0.02)), baseZ);
+  drawBox(ctx, cam, wx, wy + d - t, w, t, 0.1, faceColors(shade(base, -0.05), 'plaster'), baseZ);
+  drawBox(ctx, cam, wx + w - t, wy, t, d - t, 0.1, faceColors(shade(base, -0.02), 'plaster'), baseZ);
 }
 
 /** גג פגודה: שתי שכבות רעפים רחבות עם מרזבים בולטים. */
@@ -400,18 +621,31 @@ export function drawPagodaRoof(
   peak: number,
   base: string,
 ): void {
-  drawHipRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 0.42, base, 0.34);
+  drawHipRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 0.42, base, 0.34, 'tile');
   const inset = Math.min(w, d) * 0.16;
   drawHipRoof(
     ctx, cam,
     wx + inset, wy + inset,
     w - inset * 2, d - inset * 2,
     baseZ + peak * 0.46, peak * 0.58,
-    shade(base, 0.06), 0.3,
+    shade(base, 0.06), 0.3, 'tile',
   );
 }
 
 /** בוחר ומצייר גג לפי הסגנון של האומה. */
+/** חומר הגג לפי הסגנון האדריכלי. */
+export function roofSurface(style: RoofStyle): Surface {
+  switch (style) {
+    case 'turf':
+      return 'turf';
+    case 'dome':
+    case 'flat':
+      return 'plaster';
+    default:
+      return 'tile';
+  }
+}
+
 export function drawRoof(
   style: RoofStyle,
   ctx: CanvasRenderingContext2D,
@@ -425,9 +659,10 @@ export function drawRoof(
   base: string,
   ridgeAlongX = true,
 ): void {
+  const surface = roofSurface(style);
   switch (style) {
     case 'hip':
-      drawHipRoof(ctx, cam, wx, wy, w, d, baseZ, peak, base, 0.14);
+      drawHipRoof(ctx, cam, wx, wy, w, d, baseZ, peak, base, 0.14, surface);
       break;
     case 'pagoda':
       drawPagodaRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 1.15, base);
@@ -440,11 +675,11 @@ export function drawRoof(
       drawFlatRoof(ctx, cam, wx, wy, w, d, baseZ, base);
       break;
     case 'turf':
-      drawGableRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 1.35, base, ridgeAlongX, 0.24);
+      drawGableRoof(ctx, cam, wx, wy, w, d, baseZ, peak * 1.35, base, ridgeAlongX, 0.24, surface);
       break;
     case 'gable':
     default:
-      drawGableRoof(ctx, cam, wx, wy, w, d, baseZ, peak, base, ridgeAlongX);
+      drawGableRoof(ctx, cam, wx, wy, w, d, baseZ, peak, base, ridgeAlongX, 0.12, surface);
       break;
   }
 }

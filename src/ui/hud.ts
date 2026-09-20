@@ -7,6 +7,7 @@ import { RESOURCE_KINDS, type EntityId, type ResourceKind } from '../core/types'
 import type { World } from '../core/world';
 import { RESOURCE_ICONS } from '../render/sprites';
 import { clear, el, show } from './dom';
+import { buildingIcon, unitIcon } from './icons';
 import { formatCost, formatTime, RESOURCE_NAMES, T } from './strings';
 
 export type HudCallbacks = {
@@ -361,7 +362,7 @@ export class Hud {
         const popOk = player.popUsed + u.pop <= player.popCap;
         this.actionsEl.appendChild(
           this.actionButton(
-            u.emoji,
+            unitIcon(unitId, player.color),
             `${u.name}\n${formatCost(cost)}\n${u.desc ?? ''}`,
             () => this.cb.onTrain(building.id, unitId),
             !affordable || !popOk,
@@ -418,7 +419,7 @@ export class Hud {
       const affordable = player.hasResources(cost);
       this.actionsEl.appendChild(
         this.actionButton(
-          def.emoji,
+          buildingIcon(id, player.nation.id, player.color),
           `${def.name}\n${def.desc ?? ''}\n${formatCost(cost)}`,
           () => {
             this.buildMenuOpen = false;
@@ -432,13 +433,20 @@ export class Hud {
     }
   }
 
+  /**
+   * כפתור פעולה. `icon` הוא או תמונה מצוירת (מבנה/יחידה) או טקסט —
+   * טקסט נשאר לפעולות כלליות כמו "עצור" שאין להן ייצוג על המפה.
+   */
   private actionButton(
-    emoji: string,
+    icon: string | HTMLCanvasElement,
     tooltip: string,
     onClick: () => void,
     disabled = false,
     caption = '',
   ): HTMLElement {
+    const art = typeof icon === 'string'
+      ? el('span', { className: 'emoji', text: icon })
+      : el('span', { className: 'art', children: [icon] });
     const btn = el('button', {
       className: `action${disabled ? ' disabled' : ''}`,
       title: tooltip,
@@ -446,7 +454,7 @@ export class Hud {
         if (!disabled) onClick();
       },
       children: [
-        el('span', { className: 'emoji', text: emoji }),
+        art,
         caption ? el('span', { className: 'caption', text: caption }) : null,
       ],
     });

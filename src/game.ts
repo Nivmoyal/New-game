@@ -58,6 +58,7 @@ export class Game {
       hovered: null,
       dragRect: null,
       placing: null,
+      hoverTile: null,
       showHealthBars: this.settings.showHealthBars,
       pings: [],
     };
@@ -79,12 +80,13 @@ export class Game {
     this.input = new InputController(canvas, this.renderer.camera, () => this.world, {
       onSelect: (ids, additive) => this.select(ids, additive),
       onCommandAt: (pos, target, queue) => this.commandAt(pos, target, queue),
-      onPlaceBuilding: (_, queue) => this.confirmPlacement(queue),
+      onQuickCommand: (pos, target) => this.quickCommand(pos, target),
+      onPlaceBuilding: (tile, queue) => this.confirmPlacement(tile, queue),
       onCancelPlacement: () => this.cancelPlacement(),
       onMinimapNav: (pos) => this.renderer.camera.centerOn(pos.x, pos.y),
       onMinimapCommand: (pos) => this.commandAt(pos, undefined, false),
       onHotkey: (key, ctrl, shift) => this.hotkey(key, ctrl, shift),
-      onHover: (pos, target) => this.onHover(pos, target),
+      onHover: (pos, target, resourceTile) => this.onHover(pos, target, resourceTile),
     });
     this.input.edgeScroll = this.settings.edgeScroll;
     this.input.scrollSpeed = this.settings.scrollSpeed;
@@ -446,21 +448,87 @@ export class Game {
     this.input.placing = false;
   }
 
-  private onHover(pos: Vec2, target: Entity | undefined): void {
+  private onHover(pos: Vec2, target: Entity | undefined, resourceTile: Vec2 | null = null): void {
     this.renderState.hovered = target?.id ?? null;
+    this.renderState.hoverTile = resourceTile;
     if (!this.placingBuilding || !this.world) return;
     const def = getBuilding(this.placingBuilding);
-    this.placementTile = {
-      x: Math.floor(pos.x - def.size / 2 + 0.5),
-      y: Math.floor(pos.y - def.size / 2 + 0.5),
-    };
+    this.placementTile = Game.placementOrigin(
+      { x: Math.floor(pos.x), y: Math.floor(pos.y) },
+      def.size,
+    );
     this.placementValid = this.world.canPlaceBuilding(def, this.placementTile);
   }
 
-  private confirmPlacement(queue: boolean): void {
+  /**
+   * פינת המבנה כך שהאריח שנלחץ יהיה במרכזו.
+   * אותה נוסחה משמשת גם לרוח הרפאים וגם להצבה בפועל, כדי שמה שרואים
+   * הוא מה שנבנה.
+   */
+  private static placementOrigin(tile: Vec2, size: number): Vec2 {
+    const off = Math.floor((size - 1) / 2);
+    return { x: tile.x - off, y: tile.y - off };
+  }
+
+  /**
+   * קליק שמאלי על עץ/מכרה/שיח או על אתר בנייה שלי, כשיש יחידות מסומנות
+   * שיכולות לעשות שם משהו. מחזיר true אם הפקודה נקלטה.
+   *
+   * זה מה שהופך את הקליק לאינטואיטיבי: בוחרים פועל, לוחצים על העץ,
+   * והוא מתחיל לכרות — בלי לזכור שצריך קליק ימני.
+   */
+  private quickCommand(pos: Vec2, target: Entity | undefined): boolean {
+    const world = this.world;
+    if (!world) return false;
+    const mine = [...this.selected]
+      .map((id) => world.get(id))
+      .filter((e): e is Entity => !!e && e.owner === this.localPlayerId && e.kind === 'unit');
+    if (mine.length === 0) return false;
+
+    // אתר בנייה שלי — שולחים בנאים
+    if (target) {
+      if (target.owner !== this.localPlayerId || target.kind !== 'building') return false;
+      if (target.building?.complete) return false;
+      const builders = mine.filter((u) => getUnit(u.defId).canBuild);
+      if (builders.length === 0) return false;
+      world.issueCommand(builders.map((u) => u.id), { kind: 'build', targetId: target.id });
+      audio.play('command');
+      this.renderState.pings.push({ pos: { ...target.pos }, time: performance.now(), color: '#4ade80' });
+      return true;
+    }
+
+    const res = world.map.resourceAt(Math.floor(pos.x), Math.floor(pos.y));
+    if (!res || res.amount <= 0) return false;
+    const gatherers = mine.filter((u) => (getUnit(u.defId).gatherRate?.[res.kind] ?? 0) > 0);
+    if (gatherers.length === 0) return false;
+    const tile = { x: Math.floor(pos.x), y: Math.floor(pos.y) };
+    // ספינה לא תישלח לעץ, ופועל לא יישלח לדגה — `assignOrder` חוסם את זה
+    const accepted = gatherers.filter((u) => {
+      world.assignOrder(u, { kind: 'gather', tile, resource: res.kind });
+      return u.order.kind === 'gather';
+    });
+    if (accepted.length === 0) return false;
+    audio.play('command');
+    this.renderState.pings.push({
+      pos: { x: tile.x + 0.5, y: tile.y + 0.5 },
+      time: performance.now(),
+      color: '#4ade80',
+    });
+    return true;
+  }
+
+  /**
+   * מציב את המבנה **במקום שנלחץ**, ולא במקום הריחוף האחרון.
+   * קודם השתמשנו במצב מהריחוף, ולכן במגע — שבו אין ריחוף כלל — הבית
+   * היה נבנה במקום אחר לגמרי ממה שהשחקן בחר.
+   */
+  private confirmPlacement(tile: Vec2, queue: boolean): void {
     const world = this.world;
     const player = this.localPlayer();
     if (!world || !player || !this.placingBuilding) return;
+    const def0 = getBuilding(this.placingBuilding);
+    this.placementTile = Game.placementOrigin(tile, def0.size);
+    this.placementValid = world.canPlaceBuilding(def0, this.placementTile);
     const builders = [...this.selected].filter((id) => {
       const e = world.get(id);
       return e?.kind === 'unit' && getUnit(e.defId).canBuild;

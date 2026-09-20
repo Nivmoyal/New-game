@@ -21,6 +21,8 @@ export type RenderState = {
   hovered: EntityId | null;
   dragRect: { x0: number; y0: number; x1: number; y1: number } | null;
   placing: { defId: string; valid: boolean; tile: Vec2 } | null;
+  /** אריח המשאב שמתחת לסמן — מסומן כדי שברור על מה לוחצים */
+  hoverTile: Vec2 | null;
   showHealthBars: boolean;
   pings: Array<{ pos: Vec2; time: number; color: string }>;
 };
@@ -112,6 +114,7 @@ export class Renderer {
     this.terrain.render(ctx, this.camera, world, viewer, now);
     this.drawControlRadius(world, viewer);
     this.drawSceneObjects(world, viewer, state, bounds, now);
+    this.drawHoverTile(state);
     this.drawPlacement(state);
     this.effects.render(ctx, this.camera, now);
     this.drawFog(world, viewer);
@@ -384,6 +387,29 @@ export class Renderer {
   }
 
   // ===== הצבת מבנה =====
+
+  /**
+   * מסמן את אריח המשאב שמתחת לסמן.
+   * בלי הסימון קשה לדעת על מה בדיוק לוחצים — עץ מצויר גבוה מעל האריח
+   * שלו, והסימון מראה איפה הוא באמת עומד.
+   */
+  private drawHoverTile(state: RenderState): void {
+    const t = state.hoverTile;
+    if (!t) return;
+    const ctx = this.ctx;
+    const cam = this.camera;
+    const pts = tileDiamond(cam, t.x + 0.04, t.y + 0.04, 0.92, 0.92, 0.02);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.beginPath();
+    pts.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
 
   private drawPlacement(state: RenderState): void {
     if (!state.placing) return;
