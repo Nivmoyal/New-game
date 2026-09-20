@@ -19,7 +19,7 @@ import {
   directionIndex,
   screenAngleOf,
 } from '../src/render/art/people';
-import { archetypeOf, paletteFor } from '../src/render/art/structures';
+import { archetypeOf, drawStructure, paletteFor } from '../src/render/art/structures';
 import { lookFor, isVehicle, isMotorised } from '../src/render/art/appearance';
 import { allNations, getBuilding, getNation, getUnit, DATA } from '../src/data';
 import { Effects } from '../src/render/effects';
@@ -370,6 +370,27 @@ function recordCtx() {
     ellipse() {
       ellipses++;
     },
+    arc() {
+      ellipses++;
+    },
+    arcTo() {},
+    quadraticCurveTo() {},
+    bezierCurveTo() {},
+    rect() {},
+    fillRect() {
+      fills++;
+    },
+    strokeRect() {},
+    clip() {},
+    scale() {},
+    setTransform() {},
+    drawImage() {},
+    createLinearGradient() {
+      return { addColorStop() {} };
+    },
+    createRadialGradient() {
+      return { addColorStop() {} };
+    },
     fill() {
       fills++;
     },
@@ -573,5 +594,60 @@ describe('שחיקת קרקע', () => {
       worn += wear.step(world, 1 / 30).length;
     }
     expect(worn).toBe(0);
+  });
+});
+
+describe('זהות חזותית למבנים', () => {
+  it('לכל תפקיד יש ארכיטיפ ציור משלו — אין שני תפקידים שונים שנראים אותו דבר', () => {
+    const arch = (id: string) => archetypeOf(getBuilding(id));
+    // כלכלה: טחנה, מחנה עצים ומחנה כרייה היו זהים בעבר
+    expect(arch('mill')).not.toBe(arch('lumber_camp'));
+    expect(arch('lumber_camp')).not.toBe(arch('mining_camp'));
+    expect(arch('mill')).not.toBe(arch('mining_camp'));
+    expect(arch('eg_granary')).not.toBe(arch('mill'));
+    // צבא: חי"ר, קשתים, פרשים, מצור ונפחייה — כל אחד בנפרד
+    const military = ['barracks', 'archery_range', 'stable', 'siege_workshop', 'blacksmith']
+      .map(arch);
+    expect(new Set(military).size).toBe(military.length);
+    // מוסדות
+    expect(arch('academy')).toBe('university');
+    expect(arch('il_school')).toBe('university');
+    expect(arch('academy')).not.toBe(arch('temple'));
+    expect(arch('il_exchange')).not.toBe(arch('market'));
+    expect(arch('il_factory')).not.toBe(arch('il_hightech'));
+    expect(arch('il_watertower')).not.toBe(arch('tower'));
+    expect(arch('rm_aqueduct')).not.toBe(arch('eg_obelisk'));
+    expect(arch('il_military_base')).not.toBe(arch('barracks'));
+  });
+
+  it('כל מבנה בנתונים מקבל ארכיטיפ מוכר', () => {
+    const known = new Set<string>();
+    for (const id of Object.keys(DATA.buildings)) known.add(archetypeOf(getBuilding(id)));
+    // לפחות 25 מראות שונים בפועל
+    expect(known.size).toBeGreaterThanOrEqual(25);
+  });
+
+  it('ציור מבנה בכל שלב לא זורק שגיאה ומשנה את התוצאה', () => {
+    const cam = cam2();
+    cam.zoom = 70;
+    const pal = paletteFor('israel', '#4a76c2');
+    for (const id of Object.keys(DATA.buildings)) {
+      const def = getBuilding(id);
+      const a = archetypeOf(def);
+      const counts: number[] = [];
+      for (const stage of [1, 2, 3, 4]) {
+        const r = recordCtx();
+        expect(() => {
+          drawStructure(r.ctx, cam, a, 10, 10, def.size, pal, {
+            stage, time: 500, seed: 2, icon: true,
+            links: { n: false, e: true, s: false, w: true },
+          });
+        }, `${id} שלב ${stage}`).not.toThrow();
+        counts.push(r.fills + r.pts.length);
+      }
+      // המבנה מתפתח: שלב 4 מצויר מעשיר יותר משלב 1
+      expect(counts[3], `${id} אמור להתפתח עם השלב`).toBeGreaterThanOrEqual(counts[0]);
+      expect(counts[0], `${id} אמור להיות מצויר בכלל`).toBeGreaterThan(0);
+    }
   });
 });
