@@ -151,8 +151,10 @@ export class TerrainLayer {
       blurred.width = size;
       blurred.height = size;
       const bctx = blurred.getContext('2d')!;
-      // טשטוש קצר בלבד: מספיק כדי לרכך את הגבול, בלי למרוח חומרים
-      bctx.filter = `blur(${Math.max(1, Math.round(GROUND_PX * 0.16))}px)`;
+      // טשטוש שממזג את הגבול בין חומרים. ערך נמוך מדי השאיר "שטיח
+      // טלאים" של מעוינים בגוונים שונים; זה מספיק כדי שהמעבר ייראה
+      // כשטח אחד, ועדיין לא מורח חומר לתוך שכנו.
+      bctx.filter = `blur(${Math.max(2, Math.round(GROUND_PX * 0.3))}px)`;
       bctx.drawImage(canvas, 0, 0);
       bctx.filter = 'none';
       ctx.clearRect(0, 0, size, size);

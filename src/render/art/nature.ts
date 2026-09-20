@@ -282,7 +282,7 @@ export function drawGroundProps(
     const p = cam.worldToScreen(x + 0.15 + hx * 0.7, y + 0.15 + hy * 0.7, 0);
 
     if (grass) {
-      if (pick > 0.93) {
+      if (pick > 0.965) {
         // פרח — נקודת צבע קטנה על גבעול
         const stem = cam.worldToScreen(x + 0.15 + hx * 0.7, y + 0.15 + hy * 0.7, 0.07);
         ctx.strokeStyle = '#3f7a33';

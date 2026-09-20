@@ -2,7 +2,7 @@ import type { BuildingDef } from '../../data/schema';
 import type { Camera } from '../camera';
 import {
   drawBox, drawCastShadow, drawColumn, drawFacade, drawFlag, drawGableRoof, drawHipRoof,
-  drawRoof, faceColors, poly, shade, type RoofStyle,
+  drawRoof, faceColors, mix, poly, shade, tileDiamond, type RoofStyle,
 } from '../iso';
 import { drawFarmField, tileHash } from './nature';
 
@@ -114,18 +114,18 @@ export type StructurePalette = {
 
 /** לוחות צבע לפי אומה — נותן לכל צד מראה משלו. */
 const NATION_PALETTE: Record<string, Omit<StructurePalette, 'owner'>> = {
-  // טיח בהיר וגגות רעפים אדומים
-  israel: { wall: '#e8dfc8', roof: '#c0563a', trim: '#9aa7b4', roofStyle: 'gable', texture: 'plaster' },
+  // טיח בהיר וגגות רעפי חרס
+  israel: { wall: '#ded5c0', roof: '#a85a46', trim: '#93a0ab', roofStyle: 'gable', texture: 'plaster' },
   // גגות פגודה רחבים בשתי שכבות, קירות עץ בהירים
-  japan: { wall: '#e4d7bd', roof: '#3f4a5a', trim: '#8c3b32', roofStyle: 'pagoda', texture: 'wood' },
+  japan: { wall: '#d9cdb5', roof: '#46505d', trim: '#89453c', roofStyle: 'pagoda', texture: 'wood' },
   // כיפות על גגות שטוחים וקירות חימר
-  arabs: { wall: '#e6d3a8', roof: '#d8bd7a', trim: '#3f7d78', roofStyle: 'dome', texture: 'mud' },
+  arabs: { wall: '#ddcaa3', roof: '#cbb489', trim: '#4b7c78', roofStyle: 'dome', texture: 'mud' },
   // רעפי חרס על גג ארבע-שיפועים, קירות שיש
-  rome: { wall: '#eee7d8', roof: '#b4523c', trim: '#c9b37a', roofStyle: 'hip', texture: 'stone' },
+  rome: { wall: '#e5ddcd', roof: '#a35a48', trim: '#c0ad82', roofStyle: 'hip', texture: 'stone' },
   // גגות שטוחים עם מעקה, אבן חול
-  egypt: { wall: '#ddc89a', roof: '#cbb277', trim: '#3f7d9c', roofStyle: 'flat', texture: 'stone' },
+  egypt: { wall: '#d4c097', roof: '#c2ae86', trim: '#4e7f96', roofStyle: 'flat', texture: 'stone' },
   // גגות דשא תלולים על קירות עץ
-  vikings: { wall: '#8a6b47', roof: '#4f6b40', trim: '#6b7f8c', roofStyle: 'turf', texture: 'wood' },
+  vikings: { wall: '#836848', roof: '#57684b', trim: '#6e7e88', roofStyle: 'turf', texture: 'wood' },
 };
 
 /** לאילו שכנים החומה מתחברת. */
@@ -169,6 +169,8 @@ export function drawStructure(
     gateOpen?: boolean;
     /** לאיזה כיוון נמצאים המים — הנמל מפנה את המזח לשם */
     waterSide?: 'n' | 's' | 'e' | 'w';
+    /** ציור לאייקון: בלי צל ובלי הצללת מגע, שלא ייראו כמצע אפור */
+    icon?: boolean;
   } = {},
 ): void {
   const progress = opts.progress ?? 1;
@@ -176,8 +178,13 @@ export function drawStructure(
   const seed = opts.seed ?? 0;
 
   // צל מוטל על הקרקע — מה שגורם למבנה "לשבת" בעולם ולא לרחף
-  const shadowH = (SHADOW_HEIGHT[arch] ?? 0.7) * (progress < 1 ? 0.45 : 1);
-  drawCastShadow(ctx, cam, wx + size * 0.1, wy + size * 0.1, size * 0.8, size * 0.8, shadowH);
+  if (!opts.icon) {
+    const shadowH = (SHADOW_HEIGHT[arch] ?? 0.7) * (progress < 1 ? 0.45 : 1);
+    drawCastShadow(ctx, cam, wx + size * 0.1, wy + size * 0.1, size * 0.8, size * 0.8, shadowH);
+    if (arch !== 'farm' && arch !== 'wall' && arch !== 'gate') {
+      contactShade(ctx, cam, wx + size * 0.12, wy + size * 0.12, size * 0.76, size * 0.76);
+    }
+  }
 
   if (progress < 1) {
     drawConstructionSite(ctx, cam, wx, wy, size, pal, progress);
@@ -277,8 +284,37 @@ function facade(
   });
 }
 
-function platform(ctx: CanvasRenderingContext2D, cam: Camera, x: number, y: number, s: number, color: string): void {
-  drawBox(ctx, cam, x - 0.08, y - 0.08, s + 0.16, s + 0.16, 0.06, faceColors(color));
+/**
+ * רחבת עפר כבוש סביב המבנה.
+ *
+ * קודם זו הייתה מדרגת בטון אפורה שנראתה כמו מצע placeholder. עכשיו
+ * זו שכבה נמוכה בגוון עפר, כמעט שטוחה, שרק מקשרת את המבנה לקרקע.
+ */
+function apron(ctx: CanvasRenderingContext2D, cam: Camera, x: number, y: number, s: number, color: string): void {
+  const earth = mix(color, '#6b5c46', 0.72);
+  drawBox(ctx, cam, x - 0.1, y - 0.1, s + 0.2, s + 0.2, 0.025, faceColors(earth));
+}
+
+/**
+ * צל מגע: כתם כהה רך בדיוק מתחת לגוף.
+ *
+ * להבדיל מהצל המוטל (שנופל לכיוון השמש), זה מה שגורם למבנה
+ * "לשבת" על הקרקע ולא לרחף מעליה — הרמז התלת-ממדי הכי חזק שיש.
+ */
+function contactShade(
+  ctx: CanvasRenderingContext2D,
+  cam: Camera,
+  x: number,
+  y: number,
+  w: number,
+  d: number,
+): void {
+  ctx.save();
+  ctx.globalAlpha = 0.16;
+  poly(ctx, tileDiamond(cam, x - 0.14, y - 0.14, w + 0.28, d + 0.28, 0.005), '#20180f');
+  ctx.globalAlpha = 0.14;
+  poly(ctx, tileDiamond(cam, x - 0.05, y - 0.05, w + 0.1, d + 0.1, 0.008), '#20180f');
+  ctx.restore();
 }
 
 function drawConstructionSite(
@@ -290,7 +326,7 @@ function drawConstructionSite(
   pal: StructurePalette,
   progress: number,
 ): void {
-  platform(ctx, cam, wx + 0.1, wy + 0.1, size - 0.2, '#6b5a44');
+  apron(ctx, cam, wx + 0.1, wy + 0.1, size - 0.2, '#6b5a44');
   const h = 0.25 + progress * 0.7;
   drawBox(ctx, cam, wx + 0.2, wy + 0.2, size - 0.4, size - 0.4, h * 0.5, faceColors(shade(pal.wall, -0.2)));
   // פיגומים
@@ -334,7 +370,7 @@ function drawTownCenter(
   stage: number,
   time: number,
 ): void {
-  platform(ctx, cam, x, y, s, shade(pal.wall, -0.42));
+  apron(ctx, cam, x, y, s, shade(pal.wall, -0.42));
   const body = s * 0.62;
   const ox = x + (s - body) / 2;
   const oy = y + (s - body) / 2;
@@ -447,7 +483,7 @@ function drawBarracks(
   pal: StructurePalette,
   time: number,
 ): void {
-  platform(ctx, cam, x, y, s, shade(pal.wall, -0.45));
+  apron(ctx, cam, x, y, s, shade(pal.wall, -0.45));
   drawBox(ctx, cam, x, y, s, s * 0.66, 0.46, faceColors(pal.wall));
   facade(ctx, cam, x, y, s, s * 0.66, 0.46, pal, pal.wall, { windows: 3, door: true, lit: true, seed: 9 });
   drawRoof(pal.roofStyle, ctx, cam, x, y, s, s * 0.66, 0.46, 0.26, pal.roof, true);
@@ -695,7 +731,7 @@ function drawMarket(
   s: number,
   pal: StructurePalette,
 ): void {
-  platform(ctx, cam, x, y, s, shade(pal.wall, -0.4));
+  apron(ctx, cam, x, y, s, shade(pal.wall, -0.4));
   drawBox(ctx, cam, x, y, s * 0.5, s * 0.5, 0.34, faceColors(pal.wall));
   facade(ctx, cam, x, y, s * 0.5, s * 0.5, 0.34, pal, pal.wall, { windows: 1, door: true, seed: 25 });
   drawGableRoof(ctx, cam, x, y, s * 0.5, s * 0.5, 0.34, 0.2, pal.roof);
@@ -725,7 +761,7 @@ function drawTemple(
   s: number,
   pal: StructurePalette,
 ): void {
-  platform(ctx, cam, x, y, s, shade(pal.wall, -0.3));
+  apron(ctx, cam, x, y, s, shade(pal.wall, -0.3));
   const body = s * 0.7;
   const ox = x + (s - body) / 2;
   const oy = y + (s - body) / 2;
@@ -764,7 +800,7 @@ function drawCastle(
   pal: StructurePalette,
   time: number,
 ): void {
-  platform(ctx, cam, x, y, s, shade(pal.wall, -0.45));
+  apron(ctx, cam, x, y, s, shade(pal.wall, -0.45));
   drawBox(ctx, cam, x + s * 0.12, y + s * 0.12, s * 0.76, s * 0.76, 0.75, faceColors(pal.wall));
   facade(ctx, cam, x + s * 0.12, y + s * 0.12, s * 0.76, s * 0.76, 0.75, pal, pal.wall, {
     windows: 3, windowRows: 2, door: true, seed: 33,
@@ -792,7 +828,7 @@ function drawMonument(
   s: number,
   pal: StructurePalette,
 ): void {
-  platform(ctx, cam, x, y, s, shade(pal.wall, -0.35));
+  apron(ctx, cam, x, y, s, shade(pal.wall, -0.35));
   // פירמידה מדורגת
   const steps = 5;
   for (let i = 0; i < steps; i++) {

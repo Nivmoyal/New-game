@@ -66,7 +66,15 @@ export function mix(a: string, b: string, t: number): string {
 }
 
 /** עוצמות התאורה לשלוש הפאות הנראות (אור מלמעלה-ימין). */
-export const FACE_LIGHT = { top: 0.16, right: -0.04, left: -0.3 };
+/**
+ * תאורה כיוונית אחידה לכל הגופים: פאה עליונה מוארת, ימנית ניטרלית,
+ * שמאלית מוצללת. ניגוד גבוה יותר בין הפאות = הגוף נקרא כנפח ולא
+ * כמדבקה שטוחה.
+ */
+export const FACE_LIGHT = { top: 0.2, right: -0.07, left: -0.4 };
+
+/** כמה כהה תחתית הקיר (הצללה סביבתית) וכמה גבוה הפס. */
+const WALL_AO = { strength: 0.16, height: 0.42 };
 
 /** צלליות הפאות של גוף בצבע בסיס אחד. */
 export function faceColors(base: string) {
@@ -120,6 +128,8 @@ export function drawBox(
 ): void {
   const z0 = baseZ;
   const z1 = baseZ + h;
+  // גובה הפס הכהה בתחתית — מדמה הצללה סביבתית ליד הקרקע
+  const ao = Math.min(h * WALL_AO.height, 0.34);
   // פאה שמאלית (הצד שפונה אל +y)
   poly(ctx, [
     cam.worldToScreen(wx, wy + d, z0),
@@ -127,6 +137,14 @@ export function drawBox(
     cam.worldToScreen(wx + w, wy + d, z1),
     cam.worldToScreen(wx, wy + d, z1),
   ], colors.left);
+  if (ao > 0.02) {
+    poly(ctx, [
+      cam.worldToScreen(wx, wy + d, z0),
+      cam.worldToScreen(wx + w, wy + d, z0),
+      cam.worldToScreen(wx + w, wy + d, z0 + ao),
+      cam.worldToScreen(wx, wy + d, z0 + ao),
+    ], shade(colors.left, -WALL_AO.strength));
+  }
   // פאה ימנית (הצד שפונה אל +x)
   poly(ctx, [
     cam.worldToScreen(wx + w, wy, z0),
@@ -134,6 +152,14 @@ export function drawBox(
     cam.worldToScreen(wx + w, wy + d, z1),
     cam.worldToScreen(wx + w, wy, z1),
   ], colors.right);
+  if (ao > 0.02) {
+    poly(ctx, [
+      cam.worldToScreen(wx + w, wy, z0),
+      cam.worldToScreen(wx + w, wy + d, z0),
+      cam.worldToScreen(wx + w, wy + d, z0 + ao),
+      cam.worldToScreen(wx + w, wy, z0 + ao),
+    ], shade(colors.right, -WALL_AO.strength));
+  }
   // גג שטוח
   poly(ctx, tileDiamond(cam, wx, wy, w, d, z1), colors.top);
 }

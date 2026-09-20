@@ -21,15 +21,23 @@ export type MaterialStyle = {
   priority: number;
 };
 
+/**
+ * לוח הצבעים של הקרקע.
+ *
+ * הגוונים מכוונים נמוך בריווי בכוונה: צבעים רוויים הפכו את המפה
+ * ל"שטיח טלאים" צעקני, שבו כל אריח נקרא בנפרד. גוונים עפרוריים
+ * וקרובים זה לזה נקראים כשטח אחד, והתלת-ממד של הגופים שעליו בולט
+ * יותר כי הוא לא מתחרה בקרקע על תשומת הלב.
+ */
 export const MATERIALS: Record<Terrain, MaterialStyle> = {
-  grass: { base: '#5d8f43', dark: '#4a7735', light: '#74a652', grain: 0.55, priority: 1 },
-  dirt: { base: '#7d7048', dark: '#665a39', light: '#94855a', grain: 0.5, priority: 3 },
-  sand: { base: '#c4b483', dark: '#ad9d6f', light: '#d9cb9e', grain: 0.35, priority: 4 },
-  forest: { base: '#4a7d3a', dark: '#3b672e', light: '#5c9147', grain: 0.6, priority: 2 },
-  hill: { base: '#7a8a4e', dark: '#63723e', light: '#93a165', grain: 0.5, priority: 5 },
-  rock: { base: '#8a9098', dark: '#6f757c', light: '#a5abb3', grain: 0.45, priority: 6 },
-  water: { base: '#2a6ea8', dark: '#1f5585', light: '#3c88c4', grain: 0.2, priority: 0 },
-  shallow: { base: '#4a9ac4', dark: '#3b83aa', light: '#62b0d6', grain: 0.25, priority: 0 },
+  grass: { base: '#6d8757', dark: '#5d7449', light: '#7e9866', grain: 0.5, priority: 1 },
+  dirt: { base: '#7a6e56', dark: '#685d48', light: '#8b7f66', grain: 0.45, priority: 3 },
+  sand: { base: '#c0b394', dark: '#ab9e80', light: '#d0c5a8', grain: 0.32, priority: 4 },
+  forest: { base: '#5d7549', dark: '#4e643d', light: '#6d8657', grain: 0.55, priority: 2 },
+  hill: { base: '#7d8560', dark: '#6b7251', light: '#8e9672', grain: 0.45, priority: 5 },
+  rock: { base: '#8b8f93', dark: '#73777b', light: '#a0a4a8', grain: 0.4, priority: 6 },
+  water: { base: '#3a6a90', dark: '#2e5878', light: '#4b7ea6', grain: 0.18, priority: 0 },
+  shallow: { base: '#5590ad', dark: '#457b96', light: '#68a3bf', grain: 0.22, priority: 0 },
 };
 
 /** רעש דטרמיניסטי לפי קואורדינטה — אותה מפה תיראה תמיד אותו דבר. */
