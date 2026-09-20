@@ -5,6 +5,7 @@ import { Camera } from './camera';
 import { poly, shade, tileDiamond } from './iso';
 import { drawGroundProps, drawResource } from './art/nature';
 import { grainTexture, MATERIALS } from './art/textures';
+import { surfaceTexture, type Surface } from './art/surfaces';
 import type { GroundWear } from './groundwear';
 
 /** גובה תבליט לכל סוג קרקע (ביחידות אריח). */
@@ -19,9 +20,24 @@ export const TERRAIN_HEIGHT: Record<Terrain, number> = {
   rock: 0.12,
 };
 
+/**
+ * מבנה החומר של כל סוג קרקע.
+ * הטקסטורה נוצרת סביב אפור ניטרלי ומוטבעת במצב `overlay`, כך שהיא
+ * מוסיפה מבנה (גושי דשא, חצץ, כתמי חול) בלי לשנות את גוון הקרקע
+ * שהתקבל מהמיזוג בין החומרים.
+ */
+const GROUND_SURFACE: Partial<Record<Terrain, Surface>> = {
+  grass: 'turf',
+  forest: 'turf',
+  hill: 'turf',
+  rock: 'rubble',
+  sand: 'leather',
+  dirt: 'leather',
+};
+
 const CHUNK = 12;
 /** פיקסלים לאריח בתמונת הקרקע (במרחב האריחים, לפני ההטיה). */
-const GROUND_PX = 20;
+const GROUND_PX = 26;
 /** שוליים בתמונת הקרקע — נדרשים כדי שהמיזוג בקצה הנתח יהיה רציף. */
 const PAD = 2;
 
@@ -163,9 +179,35 @@ export class TerrainLayer {
       // דפדפן בלי ctx.filter — נשארים עם גבולות חדים
     }
 
-    // שלב ג׳: גרעיניות ניטרלית מחזירה פרטים בלי לשנות את גוון הקרקע
+    // שלב ג׳: מבנה החומר לכל אריח — אחרי הטשטוש, כדי שיישאר חד.
+    // המיזוג בשלב ב׳ כבר איחד את הגוונים; כאן רק מוסיפים מרקם.
     ctx.save();
-    ctx.globalAlpha = 0.33;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.globalAlpha = 0.34;
+    for (let ty = 0; ty < tiles; ty++) {
+      for (let tx = 0; tx < tiles; tx++) {
+        const wx = x0 - PAD + tx;
+        const wy = y0 - PAD + ty;
+        const t = world.map.inBounds(wx, wy) ? world.map.terrainAt(wx, wy) : 'water';
+        const kind = GROUND_SURFACE[t];
+        if (!kind) continue;
+        const pat = ctx.createPattern(surfaceTexture(kind, '#808080'), 'repeat');
+        if (!pat) continue;
+        ctx.save();
+        // הטקסטורה נפרסת על ~0.8 אריח. גדול מזה והדשא נראה ככתמי הסוואה.
+        const scale = (GROUND_PX * 0.8) / 52;
+        ctx.translate(tx * GROUND_PX, ty * GROUND_PX);
+        ctx.scale(scale, scale);
+        ctx.fillStyle = pat;
+        ctx.fillRect(0, 0, GROUND_PX / scale, GROUND_PX / scale);
+        ctx.restore();
+      }
+    }
+    ctx.restore();
+
+    // שלב ד׳: גרעיניות ניטרלית דקה מעל הכול
+    ctx.save();
+    ctx.globalAlpha = 0.22;
     ctx.globalCompositeOperation = 'overlay';
     const pattern = ctx.createPattern(grainTexture(96), 'repeat');
     if (pattern) {

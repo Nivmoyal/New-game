@@ -1,6 +1,6 @@
 import type { TileResource } from '../../core/types';
 import type { Camera } from '../camera';
-import { drawCastShadowEllipse, drawColumn, poly, shade } from '../iso';
+import { circleTextured, drawCastShadowEllipse, drawColumn, poly, polyTextured, shade } from '../iso';
 
 /** גיוון דטרמיניסטי לפי אריח — אותו עץ ייראה אותו דבר בכל פריים. */
 export function tileHash(x: number, y: number, salt = 0): number {
@@ -24,7 +24,7 @@ export function drawConifer(
   const trunk = '#6b4a2f';
   const leaf = CONIFER[Math.floor(tileHash(wx, wy, seed) * CONIFER.length)];
   drawCastShadowEllipse(ctx, cam, wx, wy, 0.3, h * 0.9);
-  drawColumn(ctx, cam, wx, wy, 0.085, h * 0.3, trunk);
+  drawColumn(ctx, cam, wx, wy, 0.085, h * 0.3, trunk, 0, 'bark');
   const layers = 4;
   for (let i = 0; i < layers; i++) {
     const t = i / layers;
@@ -39,13 +39,13 @@ export function drawConifer(
       pts.push(cam.worldToScreen(wx + Math.cos(a) * r, wy + Math.sin(a) * r, z));
     }
     // בסיס החרוט (נראה מלמטה רק בקצוות)
-    poly(ctx, pts, shade(leaf, -0.3));
+    polyTextured(ctx, cam, pts, shade(leaf, -0.3), 'foliage');
     // דפנות החרוט
     for (let k = 0; k < ring; k++) {
       const j = (k + 1) % ring;
       const a = (k / ring) * Math.PI * 2;
       const light = 0.14 - 0.42 * (0.5 + 0.5 * Math.sin(a + Math.PI * 0.75));
-      poly(ctx, [pts[k], pts[j], apex], shade(leaf, light));
+      polyTextured(ctx, cam, [pts[k], pts[j], apex], shade(leaf, light), 'foliage');
     }
   }
 }
@@ -61,21 +61,12 @@ export function drawBroadleaf(
 ): void {
   const leaf = BROADLEAF[Math.floor(tileHash(wx, wy, seed) * BROADLEAF.length)];
   drawCastShadowEllipse(ctx, cam, wx, wy, 0.34, h * 0.85);
-  drawColumn(ctx, cam, wx, wy, 0.095, h * 0.42, '#6b4a2f');
+  drawColumn(ctx, cam, wx, wy, 0.095, h * 0.42, '#6b4a2f', 0, 'bark');
   const c = cam.worldToScreen(wx, wy, h * 0.72);
   const r = cam.zoom * 0.28;
-  ctx.fillStyle = shade(leaf, -0.18);
-  ctx.beginPath();
-  ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = leaf;
-  ctx.beginPath();
-  ctx.arc(c.x + r * 0.18, c.y - r * 0.2, r * 0.78, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = shade(leaf, 0.16);
-  ctx.beginPath();
-  ctx.arc(c.x + r * 0.3, c.y - r * 0.36, r * 0.4, 0, Math.PI * 2);
-  ctx.fill();
+  circleTextured(ctx, cam, c.x, c.y, r, r, shade(leaf, -0.18), 'foliage');
+  circleTextured(ctx, cam, c.x + r * 0.18, c.y - r * 0.2, r * 0.78, r * 0.78, leaf, 'foliage');
+  circleTextured(ctx, cam, c.x + r * 0.3, c.y - r * 0.36, r * 0.4, r * 0.4, shade(leaf, 0.16), 'foliage');
 }
 
 /** גוש סלע — למכרות אבן ולעיטור. */
@@ -102,10 +93,10 @@ export function drawRocks(
     const p2 = cam.worldToScreen(wx + ox + size, wy + oy, 0);
     const p3 = cam.worldToScreen(wx + ox, wy + oy + size, 0);
     const top = cam.worldToScreen(wx + ox, wy + oy, height);
-    poly(ctx, [p0, p3, top], shade(c, -0.3));
-    poly(ctx, [p3, p2, top], shade(c, -0.12));
-    poly(ctx, [p2, p1, top], shade(c, 0.16));
-    poly(ctx, [p1, p0, top], shade(c, 0.02));
+    polyTextured(ctx, cam, [p0, p3, top], shade(c, -0.3), 'rubble');
+    polyTextured(ctx, cam, [p3, p2, top], shade(c, -0.12), 'rubble');
+    polyTextured(ctx, cam, [p2, p1, top], shade(c, 0.16), 'rubble');
+    polyTextured(ctx, cam, [p1, p0, top], shade(c, 0.02), 'rubble');
   }
 }
 

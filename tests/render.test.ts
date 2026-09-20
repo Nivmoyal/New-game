@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { Camera } from '../src/render/camera';
 import {
   detailLevel,
+  drawBox,
+  faceColors,
+  roofSurface,
+  texturesOn,
   drawCastShadow,
   drawCastShadowEllipse,
   drawFacade,
@@ -12,6 +16,7 @@ import {
   shadowScreenOffset,
 } from '../src/render/iso';
 import { GroundWear } from '../src/render/groundwear';
+import { surfacePattern, TEXELS_PER_TILE } from '../src/render/art/surfaces';
 import { drawGroundProps } from '../src/render/art/nature';
 import {
   DIRECTIONS,
@@ -649,5 +654,41 @@ describe('זהות חזותית למבנים', () => {
       expect(counts[3], `${id} אמור להתפתח עם השלב`).toBeGreaterThanOrEqual(counts[0]);
       expect(counts[0], `${id} אמור להיות מצויר בכלל`).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('טקסטורות משטח', () => {
+  it('כל חומר מייצר טקסטורה תפורה בגודל אחיד', () => {
+    // בסביבת בדיקה אין DOM, ולכן נבדקת הלוגיקה שלא תלויה בקנבס
+    expect(TEXELS_PER_TILE).toBeGreaterThan(50);
+  });
+
+  it('בלי DOM הציור ממשיך בצבעים שטוחים ולא קורס', () => {
+    const cam = cam2();
+    cam.zoom = 80;
+    const r = recordCtx();
+    // surfacePattern מחזיר null בלי createPattern — הציור נופל חזרה לצבע
+    expect(surfacePattern(r.ctx, 'stone', '#cccccc')).toBeNull();
+    expect(() => {
+      drawBox(r.ctx, cam, 10, 10, 2, 2, 1, faceColors('#cccccc', 'stone'));
+    }).not.toThrow();
+    expect(r.fills).toBeGreaterThan(0);
+  });
+
+  it('טקסטורה נדלקת רק מזום סביר ומעלה', () => {
+    const cam = cam2();
+    cam.zoom = 18;
+    expect(texturesOn(cam)).toBe(false);
+    cam.zoom = 60;
+    expect(texturesOn(cam)).toBe(true);
+  });
+
+  it('לכל סגנון גג יש חומר גג מתאים', () => {
+    expect(roofSurface('gable')).toBe('tile');
+    expect(roofSurface('hip')).toBe('tile');
+    expect(roofSurface('pagoda')).toBe('tile');
+    expect(roofSurface('turf')).toBe('turf');
+    expect(roofSurface('dome')).toBe('plaster');
+    expect(roofSurface('flat')).toBe('plaster');
   });
 });

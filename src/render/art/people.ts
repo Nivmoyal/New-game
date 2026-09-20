@@ -1,5 +1,5 @@
 import type { Camera } from '../camera';
-import { drawCastShadowEllipse, poly, shade } from '../iso';
+import { circleTextured, drawCastShadowEllipse, poly, polyTextured, shade } from '../iso';
 
 /**
  * דמויות אנוש מצוירות פרוצדורלית, עם אנימציית הליכה ועבודה.
@@ -146,7 +146,9 @@ export function drawPerson(
     px(half * 0.82, legTop + u * 0.02),
     px(-half * 0.82, legTop + u * 0.02),
   ];
-  poly(ctx, bodyPts, style.cloth, shade(style.cloth, -0.5));
+  // האריג נקרא בזום גבוה; בזום נמוך `polyTextured` מוותר על הטקסטורה
+  polyTextured(ctx, cam, bodyPts, style.cloth, 'cloth');
+  poly(ctx, bodyPts, 'rgba(0,0,0,0)', shade(style.cloth, -0.5));
   // הצללה בצד המרוחק מהשמש
   poly(ctx, [bodyPts[0], px(-half * 0.2, shoulderY), px(-half * 0.18, legTop), bodyPts[3]],
     shade(style.cloth, -0.16));
@@ -188,10 +190,9 @@ export function drawPerson(
 
   // גב הראש: כשמפנים גב רואים רק שיער/קסדה
   if (!facingUs) {
-    ctx.fillStyle = style.hat === 'helmet' ? '#8a939c' : '#3a2a1c';
-    ctx.beginPath();
-    ctx.arc(head.x, head.y, headR * 0.98, 0, Math.PI * 2);
-    ctx.fill();
+    circleTextured(ctx, cam, head.x, head.y, headR * 0.98, headR * 0.98,
+      style.hat === 'helmet' ? '#8a939c' : '#3a2a1c',
+      style.hat === 'helmet' ? 'metal' : 'cloth');
   } else {
     // פנים: עיניים נראות רק כשפונים אלינו, ומתעמעמות בפרופיל
     const eyeAlpha = Math.max(0, fwd) * (0.45 + 0.55 * (1 - side));
