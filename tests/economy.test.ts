@@ -159,8 +159,9 @@ describe('זרימת משאבים פסיבית', () => {
     const farm = createBuilding(getBuilding('farm'), 0, { x: 1, y: 1 }, true);
     const before = p.resources.food;
     for (let i = 0; i < 100; i++) applyTrickle(p, farm, 0.1);
+    const rate = getBuilding('farm').trickle!.food!;
     expect(p.resources.food).toBeGreaterThan(before);
-    expect(p.resources.food - before).toBeCloseTo(4, 0);
+    expect(p.resources.food - before).toBeCloseTo(rate * 10, 1);
   });
 
   it('מבנה לא מושלם אינו מייצר', () => {

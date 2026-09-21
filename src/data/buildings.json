@@ -145,7 +145,7 @@
     "pierceArmor": 2,
     "los": 3,
     "trickle": {
-      "food": 0.42
+      "food": 0.5
     }
   },
   "mill": {

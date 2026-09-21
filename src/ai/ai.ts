@@ -40,6 +40,12 @@ export class AiController {
   private pendingBuild = 0;
   /** מקום הנמל שנמצא (null = אין חוף בטווח, undefined = עוד לא נבדק). */
   private cachedShore: Vec2 | null | undefined = undefined;
+  /**
+   * כמה חסר עוד למעבר לשלב הבא, כשכל שאר הדרישות (מבנים ואוכלוסייה) כבר מולאו.
+   * ריק = אין על מה לחסוך. בזמן חיסכון ה-AI מפסיק לשרוף משאבים על יחידות,
+   * אחרת מרכז היישוב אוכל בדיוק את כל האוכל שנכנס והמשחק תקוע בשלב 1 לנצח.
+   */
+  private growthNeed: Partial<Record<ResourceKind, number>> = {};
 
   constructor(playerId: PlayerId, difficulty: Difficulty = 'normal') {
     this.playerId = playerId;
@@ -66,14 +72,51 @@ export class AiController {
     });
     const army = units.filter((e) => this.isMilitary(e));
 
+    // הצמיחה נבדקת לפני האימון: אחרת מרכז היישוב מוציא את המשאב
+    // שהצטבר באותו טיק בדיוק, והמעבר לשלב הבא לא קורה לעולם.
+    this.manageGrowth(world, player, buildings);
+    this.growthNeed = this.growthShortfall(world, player);
     this.manageEconomy(world, player, workers);
     this.manageTraining(world, player, buildings, workers.length, army.length);
     this.manageDocks(world, player, buildings);
     this.manageConstruction(world, player, buildings, workers);
     this.manageResearch(world, player, buildings);
-    this.manageGrowth(world, player, buildings);
     this.manageDefense(world, player, army, buildings);
     this.manageAttack(world, player, army);
+  }
+
+  /**
+   * מה עוד חסר במשאבים למעבר לשלב הבא — אבל רק כשהמבנים והאוכלוסייה כבר בסדר.
+   * כל עוד חסר מבנה או תושבים אין טעם לחסוך: קודם בונים.
+   */
+  private growthShortfall(world: World, player: Player): Partial<Record<ResourceKind, number>> {
+    if (player.transition) return {};
+    const status = evaluateStageRequirements(
+      player,
+      world.countBuildings(this.playerId),
+      player.popUsed,
+    );
+    if (!status.nextStage) return {};
+    if (status.missing.buildings.length > 0 || status.missing.population > 0) return {};
+    // שומרים שוליים קטנים מעל הדרישה, אחרת האימון הבא מוריד את הקופה
+    // בדיוק מתחת לסף והמעבר נדחה שוב ושוב.
+    const cost = status.stage?.requires?.resources ?? {};
+    const need: Partial<Record<ResourceKind, number>> = {};
+    for (const k of RESOURCE_KINDS) {
+      const want = (cost[k] ?? 0) * 1.05;
+      if (want > 0 && player.resources[k] < want) need[k] = Math.ceil(want - player.resources[k]);
+    }
+    return need;
+  }
+
+  /** האם מותר להוציא משאב מסוים על יחידה, או שהוא שמור לצמיחה. */
+  private canSpend(cost: Partial<Record<ResourceKind, number>> | undefined): boolean {
+    if (!cost) return true;
+    for (const k of RESOURCE_KINDS) {
+      const need = this.growthNeed[k] ?? 0;
+      if (need > 0 && (cost[k] ?? 0) > 0) return false;
+    }
+    return true;
   }
 
   private isMilitary(e: Entity): boolean {
@@ -110,12 +153,16 @@ export class AiController {
       const tc = world.townCenterOf(this.playerId);
       const from = tc?.pos ?? worker.pos;
       const tile =
-        world.findResourceTile(worker.pos, kind, 20) ?? world.findResourceTile(from, kind, 40);
+        world.findResourceTile(worker.pos, kind, 24) ??
+        world.findResourceTile(from, kind, 60) ??
+        world.findResourceTile(from, kind, 140);
       if (!tile) {
-        // אין משאב כזה בסביבה — ננסה משאב אחר
-        const fallback = RESOURCE_KINDS.find((k) => world.findResourceTile(from, k, 40));
+        // אין משאב כזה בכל המפה — ננסה משאב אחר, ורק אז נשאיר את הפועל.
+        // בלי החיפוש הרחב הזה פועלים היו עומדים בטלים לנצח אחרי שהשיחים
+        // והזהב שליד הבסיס נגמרו, והכלכלה הייתה נתקעת באמצע המשחק.
+        const fallback = RESOURCE_KINDS.find((k) => world.findResourceTile(from, k, 140));
         if (!fallback) continue;
-        const ft = world.findResourceTile(from, fallback, 40)!;
+        const ft = world.findResourceTile(from, fallback, 140)!;
         world.assignOrder(worker, { kind: 'gather', tile: ft, resource: fallback });
         assigned[fallback]++;
         continue;
@@ -160,6 +207,8 @@ export class AiController {
     const workerTarget = Math.round(this.profile.workerTarget[stageIdx]);
 
     // פועלים ממרכז היישוב
+    // פועל תמיד משתלם — הוא מחזיר את מחירו תוך פחות מדקה — ולכן אימון
+    // פועלים לא נעצר בזמן חיסכון לשלב הבא. רק הצבא והמבנים נעצרים.
     if (workerCount < workerTarget) {
       for (const b of buildings) {
         if (!getBuilding(b.defId).isTownCenter) continue;
@@ -169,7 +218,7 @@ export class AiController {
       }
     }
 
-    // צבא — רק אם יש כלכלה בסיסית
+    // צבא — רק אם יש כלכלה בסיסית, ולא על חשבון החיסכון לשלב הבא
     if (workerCount < Math.min(6, workerTarget * 0.4)) return;
     const desiredArmy = this.profile.waveSize[stageIdx] * 2;
     if (armyCount >= desiredArmy + 6) return;
@@ -182,7 +231,7 @@ export class AiController {
       if (!b.building?.complete) continue;
       if ((b.building.trainQueue.length ?? 0) >= 2) continue;
       const choice = this.pickUnit(world, player, def);
-      if (choice) world.enqueueTrain(b.id, choice.id);
+      if (choice && this.canSpend(choice.cost)) world.enqueueTrain(b.id, choice.id);
     }
   }
 
@@ -351,59 +400,68 @@ export class AiController {
       if (player.canBuild(missing.id)) return getBuilding(missing.id);
     }
 
-    // 4. מבני צבא.
-    //    בשלב 1 רק אחרי שהמשאבים למעבר לשלב 2 כבר בקופה: קסרקטין מוקדם
-    //    שורף בדיוק את העץ שדרוש לצמיחה, וה-AI היה נתקע ביישוב קטן.
+    // 4. נמל — נמל ראשון לפני מבני הצבא: הוא גם נקודת פריקה וגם מקור
+    //    אוכל יציב (דיג), ובמפה ימית הוא עדיף על עוד קסרקטין.
+    //    נבדק מול החוף כדי שה-AI לא "ירצה" נמל במפה יבשתית וייתקע.
+    if (player.stage >= 2 && totalOfRole('dock') < 1) {
+      const dock = availableByRole(unlocked, 'dock')[0];
+      if (dock && this.shoreSpot(world, dock) !== null) return dock;
+    }
+
+    // 5. מבני צבא.
+    //    בשלב 1 בונים רק כשנשאר עץ גם לצמיחה: קסרקטין מוקדם מדי שורף
+    //    בדיוק את העץ שדרוש למעבר, וה-AI היה נתקע ביישוב קטן.
     const militaryWant = this.profile.militaryBuildings[stageIdx];
-    const nextCost = stageOf(player.nation, player.stage + 1)?.requires?.resources ?? {};
-    const bankedForGrowth = RESOURCE_KINDS.every(
-      (k) => player.resources[k] >= (nextCost[k] ?? 0),
-    );
-    if ((player.stage > 1 || bankedForGrowth) && totalOfRole('military') < militaryWant) {
+    // בשלב האחרון אין שלב הבא — stageOf זורק שגיאה, ולכן מחפשים ישירות.
+    const nextStage = player.nation.stages.find((st) => st.index === player.stage + 1);
+    const nextCost = nextStage?.requires?.resources ?? {};
+    // מבנה רשות נבנה רק אם הוא לא אוכל את המשאב ששמור למעבר לשלב הבא.
+    const spare = (d: BuildingDef | null | undefined): BuildingDef | null =>
+      d && this.canSpend(d.cost) ? d : null;
+    const woodToSpare = player.stage > 1 || player.resources.wood >= (nextCost.wood ?? 0) * 0.6;
+    if (woodToSpare && totalOfRole('military') < militaryWant) {
       const options = availableByRole(unlocked, 'military').filter(
         (d) => !d.isTownCenter && (d.limit == null || has(d.id) < d.limit),
       );
-      if (options.length > 0) {
-        return options[Math.floor(world.rng.next() * options.length)];
-      }
+      const pick = spare(options[Math.floor(world.rng.next() * options.length)]);
+      if (pick) return pick;
     }
 
-    // 5. חוות וכלכלה
-    if (player.stage >= 2 && totalOfRole('farm') < 2 + player.stage) {
-      const farm = availableByRole(unlocked, 'farm')[0];
+    // 6. חוות וכלכלה.
+    //    חוות כבר בשלב 1 (מוגבל ל-2): בלעדיהן האוכל נאסף רק משיחים
+    //    שנגמרים, וה-AI היה עומד דקות ארוכות בלי לבנות כלום.
+    // חוות הן מקור האוכל היציב: השיחים שליד הבסיס נגמרים, והפועלים
+    // מתחילים ללכת רחוק. בלי מספיק חוות הכלכלה נחנקת באמצע המשחק.
+    const farmWant = player.stage === 1 ? 3 : 3 * player.stage;
+    if (woodToSpare && totalOfRole('farm') < farmWant) {
+      const farm = spare(availableByRole(unlocked, 'farm')[0]);
       if (farm) return farm;
     }
     if (player.stage >= 3 && totalOfRole('economy') < player.stage - 1) {
       const eco = availableByRole(unlocked, 'economy').find(
         (d) => d.limit == null || has(d.id) < d.limit,
       );
-      if (eco) return eco;
+      if (spare(eco)) return eco!;
     }
 
-    // 5ב. נמל — רק אם באמת יש חוף בטווח סביר מהבסיס.
-    //     בלי הבדיקה הזו ה-AI היה "רוצה" נמל במפה יבשתית ונתקע בלי לבנות כלום.
-    if (player.stage >= 2 && totalOfRole('dock') < 1) {
-      const dock = availableByRole(unlocked, 'dock')[0];
-      if (dock && this.shoreSpot(world, dock) !== null) return dock;
-    }
 
-    // 6. מחקר
+    // 7. מחקר
     if (player.stage >= 2 && totalOfRole('research') < 1 + Math.floor(player.stage / 2)) {
       const res = availableByRole(unlocked, 'research').find(
         (d) => d.limit == null || has(d.id) < d.limit,
       );
-      if (res) return res;
+      if (spare(res)) return res!;
     }
 
-    // 7. הגנה
+    // 8. הגנה
     if (this.profile.defends && totalOfRole('defense') < player.stage) {
       const def = availableByRole(unlocked, 'defense').find(
         (d) => d.limit == null || has(d.id) < d.limit,
       );
-      if (def) return def;
+      if (spare(def)) return def!;
     }
 
-    // 8. בית נוסף רק אם באמת מתקרבים לתקרה.
+    // 9. בית נוסף רק אם באמת מתקרבים לתקרה.
     //    בלי התנאי הזה ה-AI היה בונה בתים עד תקרה של 120 גם עם 17 תושבים,
     //    ושורף את כל העץ שדרוש למעבר בין שלבי הצמיחה.
     const house = availableByRole(unlocked, 'house')[0];

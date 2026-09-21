@@ -8,7 +8,7 @@
     "cost": {
       "food": 50
     },
-    "trainTime": 12,
+    "trainTime": 18,
     "hp": 45,
     "armor": 0,
     "pierceArmor": 0,
@@ -22,10 +22,10 @@
     "radius": 0.35,
     "carry": 12,
     "gatherRate": {
-      "food": 0.58,
-      "wood": 0.52,
-      "stone": 0.42,
-      "gold": 0.46
+      "food": 0.72,
+      "wood": 0.65,
+      "stone": 0.53,
+      "gold": 0.58
     },
     "canBuild": true,
     "canRepair": true
@@ -359,7 +359,7 @@
       "food": 40,
       "gold": 40
     },
-    "trainTime": 20,
+    "trainTime": 18,
     "hp": 60,
     "armor": 0,
     "pierceArmor": 1,
@@ -410,7 +410,7 @@
     "cost": {
       "food": 50
     },
-    "trainTime": 12,
+    "trainTime": 18,
     "hp": 45,
     "armor": 0,
     "pierceArmor": 0,
@@ -424,10 +424,10 @@
     "radius": 0.35,
     "carry": 13,
     "gatherRate": {
-      "food": 0.56,
-      "wood": 0.54,
-      "stone": 0.42,
-      "gold": 0.44
+      "food": 0.7,
+      "wood": 0.68,
+      "stone": 0.53,
+      "gold": 0.55
     },
     "canBuild": true,
     "canRepair": true
@@ -653,7 +653,7 @@
     "cost": {
       "food": 50
     },
-    "trainTime": 12,
+    "trainTime": 18,
     "hp": 45,
     "armor": 0,
     "pierceArmor": 0,
@@ -667,10 +667,10 @@
     "radius": 0.35,
     "carry": 12,
     "gatherRate": {
-      "food": 0.54,
-      "wood": 0.5,
-      "stone": 0.44,
-      "gold": 0.56
+      "food": 0.68,
+      "wood": 0.62,
+      "stone": 0.55,
+      "gold": 0.7
     },
     "canBuild": true,
     "canRepair": true
@@ -868,7 +868,7 @@
     "cost": {
       "gold": 90
     },
-    "trainTime": 26,
+    "trainTime": 18,
     "hp": 70,
     "armor": 0,
     "pierceArmor": 1,
@@ -891,7 +891,7 @@
     "cost": {
       "food": 50
     },
-    "trainTime": 12,
+    "trainTime": 18,
     "hp": 48,
     "armor": 1,
     "pierceArmor": 0,
@@ -905,10 +905,10 @@
     "radius": 0.35,
     "carry": 12,
     "gatherRate": {
-      "food": 0.54,
-      "wood": 0.5,
-      "stone": 0.55,
-      "gold": 0.44
+      "food": 0.68,
+      "wood": 0.62,
+      "stone": 0.69,
+      "gold": 0.55
     },
     "canBuild": true,
     "canRepair": true
@@ -1107,7 +1107,7 @@
     "cost": {
       "food": 50
     },
-    "trainTime": 12,
+    "trainTime": 18,
     "hp": 45,
     "armor": 0,
     "pierceArmor": 0,
@@ -1121,10 +1121,10 @@
     "radius": 0.35,
     "carry": 14,
     "gatherRate": {
-      "food": 0.62,
-      "wood": 0.48,
-      "stone": 0.5,
-      "gold": 0.42
+      "food": 0.78,
+      "wood": 0.6,
+      "stone": 0.62,
+      "gold": 0.53
     },
     "canBuild": true,
     "canRepair": true
@@ -1296,7 +1296,7 @@
     "cost": {
       "gold": 85
     },
-    "trainTime": 26,
+    "trainTime": 18,
     "hp": 65,
     "armor": 0,
     "pierceArmor": 1,
@@ -1319,7 +1319,7 @@
     "cost": {
       "food": 50
     },
-    "trainTime": 12,
+    "trainTime": 18,
     "hp": 48,
     "armor": 0,
     "pierceArmor": 0,
@@ -1333,10 +1333,10 @@
     "radius": 0.35,
     "carry": 13,
     "gatherRate": {
-      "food": 0.54,
-      "wood": 0.6,
-      "stone": 0.44,
-      "gold": 0.44
+      "food": 0.68,
+      "wood": 0.75,
+      "stone": 0.55,
+      "gold": 0.55
     },
     "canBuild": true,
     "canRepair": true
@@ -1508,7 +1508,7 @@
     "cost": {
       "gold": 85
     },
-    "trainTime": 26,
+    "trainTime": 18,
     "hp": 68,
     "armor": 0,
     "pierceArmor": 1,
@@ -1572,7 +1572,7 @@
     "radius": 0.45,
     "carry": 18,
     "gatherRate": {
-      "food": 0.72
+      "food": 0.9
     }
   },
   "war_galley": {

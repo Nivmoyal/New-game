@@ -56,19 +56,23 @@ describe('מבנה הנתונים של השלבים', () => {
 
 describe('דרישות מעבר שלב', () => {
   it('מזהה חוסר במשאבים, באוכלוסייה ובמבנים', () => {
+    // נקרא מהנתונים ולא ממספרים קשיחים, כדי שאיזון של עלויות השלבים
+    // לא ישבור את הבדיקה.
+    const req = stageOf(getNation('israel'), 2).requires!;
     const p = player();
+    p.resources = { food: 0, wood: 0, stone: 0, gold: 0 };
     const status = evaluateStageRequirements(p, {}, 0);
     expect(status.nextStage).toBe(2);
     expect(status.ok).toBe(false);
-    expect(status.missing.resources.food).toBe(100);
-    expect(status.missing.population).toBe(12);
+    expect(status.missing.resources.food).toBe(req.resources!.food);
+    expect(status.missing.population).toBe(req.population);
     expect(status.missing.buildings).toEqual([{ id: 'house', need: 2, have: 0 }]);
   });
 
   it('מאשר מעבר כשכל הדרישות מולאו', () => {
     const p = player();
     p.resources = { ...RICH };
-    const status = evaluateStageRequirements(p, { house: 2 }, 12);
+    const status = evaluateStageRequirements(p, { house: 2 }, 24);
     expect(status.ok).toBe(true);
     expect(status.missing.buildings).toHaveLength(0);
   });
@@ -84,11 +88,12 @@ describe('דרישות מעבר שלב', () => {
 
 describe('ביצוע המעבר', () => {
   it('גובה משאבים ומתקדם אחרי הזמן הנדרש', () => {
+    const req = stageOf(getNation('israel'), 2).requires!;
     const p = player();
-    p.resources = { food: 500, wood: 300, stone: 0, gold: 0 };
+    p.resources = { food: 900, wood: 700, stone: 0, gold: 0 };
     expect(beginStageTransition(p, { house: 2 }, 12)).toBe(true);
-    expect(p.resources.food).toBe(100);
-    expect(p.resources.wood).toBe(50);
+    expect(p.resources.food).toBe(900 - req.resources!.food!);
+    expect(p.resources.wood).toBe(700 - req.resources!.wood!);
     expect(p.stage).toBe(1);
     expect(transitionProgress(p)).toBe(0);
 
