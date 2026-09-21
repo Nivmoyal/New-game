@@ -199,6 +199,15 @@ export class InputController {
       if (y >= 0 && y < margin) dy -= speed;
       if (y > this.camera.viewHeight - margin && y <= this.camera.viewHeight) dy += speed;
     }
+    // תנועה אלכסונית נורמלית: בלי זה לחיצה על שני חצים נתנה מהירות
+    // כפולת שורש 2, שמכניסה נתחי קרקע חדשים בקצב כפול ומקפיצה את הציור.
+    // len > 0 הוא הכרחי: בפריים הראשון dt יכול לצאת שלילי, ואז speed
+    // שלילי, len=0 גדול ממנו, והחלוקה 0/0 הופכת את מיקום המצלמה ל-NaN.
+    const len = Math.hypot(dx, dy);
+    if (len > 0 && len > speed) {
+      dx = (dx / len) * speed;
+      dy = (dy / len) * speed;
+    }
     if (dx !== 0 || dy !== 0) this.camera.pan(dx, dy);
   }
 
