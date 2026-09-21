@@ -99,6 +99,30 @@ describe('התנהגות ה-AI', () => {
     expect(world.player(1)!.stage).toBeGreaterThanOrEqual(2);
   });
 
+  it('הכלכלה לא נתקעת: מגיע לשלב 2 בזמן סביר וממשיך לגדול', () => {
+    // רגרסיה ל"המשחק תקוע": ה-AI היה חוסך משאבים בלי לבנות ובלי לאמן,
+    // ונשאר ביישוב קטן עם 13 תושבים עד סוף המשחק.
+    const { world, ai } = aiWorld('normal', 7);
+    run(world, ai, 420, 1 / 10);
+    const p = world.player(1)!;
+    expect(p.stage, 'שלב').toBeGreaterThanOrEqual(2);
+    expect(p.popUsed, 'אוכלוסייה').toBeGreaterThan(18);
+
+    const before = p.popUsed;
+    run(world, ai, 240, 1 / 10);
+    // הכלכלה ממשיכה לגדול, לא קופאת
+    expect(p.popUsed, 'גדילה').toBeGreaterThan(before);
+  });
+
+  it('לא קורס בשלב האחרון (אין שלב חמישי)', () => {
+    const { world, ai } = aiWorld('normal');
+    const p = world.player(1)!;
+    p.stage = 4;
+    p.recomputeModifiers();
+    p.resources = { food: 5000, wood: 5000, stone: 5000, gold: 5000 };
+    expect(() => run(world, ai, 40)).not.toThrow();
+  });
+
   it('בוחר ענף (סוג צבא) כשנפתח', () => {
     const { world, ai } = aiWorld('normal');
     const p = world.player(1)!;

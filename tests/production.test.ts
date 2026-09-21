@@ -156,7 +156,7 @@ describe('אימון יחידות', () => {
     w.setRallyPoint(tc.id, rally);
     const before = new Set(w.entitiesOf(0).map((e) => e.id));
     w.enqueueTrain(tc.id, 'il_worker');
-    run(w, 16);
+    run(w, 22);
     const fresh = w.entitiesOf(0).find((e) => !before.has(e.id) && e.defId === 'il_worker')!;
     expect(fresh).toBeTruthy();
     expect(['move', 'gather', 'idle']).toContain(fresh.order.kind);
@@ -173,7 +173,7 @@ describe('אימון יחידות', () => {
     w.setRallyPoint(tc.id, { x: tile.x + 0.5, y: tile.y + 0.5 });
     const before = new Set(w.entitiesOf(0).map((e) => e.id));
     w.enqueueTrain(tc.id, 'il_worker');
-    run(w, 16);
+    run(w, 22);
     const fresh = w.entitiesOf(0).find((e) => !before.has(e.id) && e.defId === 'il_worker')!;
     expect(fresh.order.kind).toBe('gather');
     expect(fresh.order.resource).toBe('wood');
